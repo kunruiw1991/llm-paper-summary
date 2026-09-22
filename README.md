@@ -1,6 +1,6 @@
 # Formal Mathematical Research Monograph Series: Foundations of Large Language Model Reasoning, Optimization, and Systems
 
-> **Interactive Mathematical Monograph Reader (GitHub Pages)**: [https://kunruiw1991.github.io/rednote-llm-paper-summary/](https://kunruiw1991.github.io/rednote-llm-paper-summary/)
+> **Interactive Mathematical Monograph Reader (GitHub Pages)**: [https://kunruiw1991.github.io/llm-paper-summary/](https://kunruiw1991.github.io/llm-paper-summary/)
 
 A rigorous, theorem-proof mathematical compendium of foundational and frontier **Large Language Model (LLM)** research papers. Each volume is structured as a **7-Plate Formal Mathematical Monograph** (`1080×1440 px` archival plates typeset in Computer Modern / Bourbaki *Definition–Proposition–Theorem–Proof* style) with complete probability space specifications, hypergeometric and variational derivations, complexity bounds, and empirical calibration matrices.
 
@@ -10,8 +10,8 @@ A rigorous, theorem-proof mathematical compendium of foundational and frontier *
 
 | Volume | Track | Primary Reference & Citation | Formal Mathematical Scope | Monograph Plates (`1080×1440`) | Interactive Reader |
 | :--- | :--- | :--- | :--- | :---: | :---: |
-| **Vol. I** (`ep01`) | **Track A: Multi-Agent Reasoning & Proof Harnesses** | H. Lin, D. P. Woodruff, Y. Deng, J. Mao, S. Zuo, V. Mirrokni, *"Stellar Colosseum: A Many-Agent Harness for Long-Horizon Research in Mathematics and Theoretical Computer Science,"* [arXiv:2609.15983v2](https://arxiv.org/abs/2609.15983v2) (Sept 2026) | Typed `StrategyCard` automata, 4-way Readiness Gate partition, hypergeometric reuse `E[R_i^(ℓ)] = m_{ℓ+1} k_ℓ / m_ℓ` (Eq. 1–5), topological section DAG `G=(V,E)` with global veto semantics, logistic Elo MLE (Eq. 13–14), and 7 TCS theorems (Eq. 6–12). | [Plates I–VII](episodes/ep01_stellar_colosseum/cards/) | [Open Vol. I](https://kunruiw1991.github.io/rednote-llm-paper-summary/episodes/ep01_stellar_colosseum/) |
-| **Vol. II** (`ep02`) | **Track B: Stochastic Optimization & Reinforcement Learning** | DeepSeek-AI (D. Guo et al.), *"DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning,"* [arXiv:2501.12948](https://arxiv.org/abs/2501.12948) (Jan 2025); Z. Shao et al., [arXiv:2402.03300](https://arxiv.org/abs/2402.03300) | Token-level MDP formulation, critic-free GRPO surrogate functional `J_GRPO(θ)` (Eq. 1–3), empirical control-variate centering `∑ Â_{i,t} = 0`, affine reward invariance, zero-gradient saturation boundary `p(q) ∈ {0,1}`, Schulman `k_3` reverse-KL convexity proof (`u - log u - 1 ≥ 0`), and deterministic RLVR immunity to Goodhart's Law. | [Plates I–VII](episodes/ep02_deepseek_r1_grpo/cards/) | [Open Vol. II](https://kunruiw1991.github.io/rednote-llm-paper-summary/episodes/ep02_deepseek_r1_grpo/) |
+| **Vol. I** (`ep01`) | **Track A: Multi-Agent Reasoning & Proof Harnesses** | H. Lin, D. P. Woodruff, Y. Deng, J. Mao, S. Zuo, V. Mirrokni, *"Stellar Colosseum: A Many-Agent Harness for Long-Horizon Research in Mathematics and Theoretical Computer Science,"* [arXiv:2609.15983v2](https://arxiv.org/abs/2609.15983v2) (Sept 2026) | Typed `StrategyCard` automata, 4-way Readiness Gate partition, hypergeometric reuse `E[R_i^(ℓ)] = m_{ℓ+1} k_ℓ / m_ℓ` (Eq. 1–5), topological section DAG `G=(V,E)` with global veto semantics, logistic Elo MLE (Eq. 13–14), and 7 TCS theorems (Eq. 6–12). | [Plates I–VII](episodes/ep01_stellar_colosseum/plates/) | [Open Vol. I](https://kunruiw1991.github.io/llm-paper-summary/episodes/ep01_stellar_colosseum/) |
+| **Vol. II** (`ep02`) | **Track B: Stochastic Optimization & Reinforcement Learning** | DeepSeek-AI (D. Guo et al.), *"DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning,"* [arXiv:2501.12948](https://arxiv.org/abs/2501.12948) (Jan 2025); Z. Shao et al., [arXiv:2402.03300](https://arxiv.org/abs/2402.03300) | Token-level MDP formulation, critic-free GRPO surrogate functional `J_GRPO(θ)` (Eq. 1–3), empirical control-variate centering `∑ Â_{i,t} = 0`, affine reward invariance, zero-gradient saturation boundary `p(q) ∈ {0,1}`, Schulman `k_3` reverse-KL convexity proof (`u - log u - 1 ≥ 0`), and deterministic RLVR immunity to Goodhart's Law. | [Plates I–VII](episodes/ep02_deepseek_r1_grpo/plates/) | [Open Vol. II](https://kunruiw1991.github.io/llm-paper-summary/episodes/ep02_deepseek_r1_grpo/) |
 | **Vol. III** (`ep03`) | **Track C: Retrieval-Augmented & Tool-Augmented Inference** | S. Yao et al., *"ReAct"* ([arXiv:2210.03629](https://arxiv.org/abs/2210.03629)); A. Asai et al., *"Self-RAG"* ([arXiv:2310.11511](https://arxiv.org/abs/2310.11511)) | POMDP formulation over external knowledge/tool state transitions and critique-token conditional decoding. | *Scheduled (Daily 2AM PT)* | *Scheduled* |
 | **Vol. IV** (`ep04`) | **Track D: High-Throughput Inference & Memory Systems** | W. Kwon et al., *"Efficient Memory Management for Large Language Model Serving with PagedAttention,"* [arXiv:2309.06180](https://arxiv.org/abs/2309.06180) | Virtual block-table KV-cache paging bounds (`< 4%` internal fragmentation) and lossless speculative rejection sampling equivalence. | *Scheduled (Daily 2AM PT)* | *Scheduled* |
 
@@ -22,17 +22,17 @@ A rigorous, theorem-proof mathematical compendium of foundational and frontier *
 ### Formal Monograph Plates I–VII (`1080×1440` Archival Typesetting)
 
 <p align="center">
-  <img src="episodes/ep01_stellar_colosseum/cards/rednote_card_1.png" width="32%" alt="Vol I Plate I" />
-  <img src="episodes/ep01_stellar_colosseum/cards/rednote_card_2.png" width="32%" alt="Vol I Plate II" />
-  <img src="episodes/ep01_stellar_colosseum/cards/rednote_card_3.png" width="32%" alt="Vol I Plate III" />
+  <img src="episodes/ep01_stellar_colosseum/plates/plate_1.png" width="32%" alt="Vol I Plate I" />
+  <img src="episodes/ep01_stellar_colosseum/plates/plate_2.png" width="32%" alt="Vol I Plate II" />
+  <img src="episodes/ep01_stellar_colosseum/plates/plate_3.png" width="32%" alt="Vol I Plate III" />
 </p>
 <p align="center">
-  <img src="episodes/ep01_stellar_colosseum/cards/rednote_card_4.png" width="32%" alt="Vol I Plate IV" />
-  <img src="episodes/ep01_stellar_colosseum/cards/rednote_card_5.png" width="32%" alt="Vol I Plate V" />
-  <img src="episodes/ep01_stellar_colosseum/cards/rednote_card_6.png" width="32%" alt="Vol I Plate VI" />
+  <img src="episodes/ep01_stellar_colosseum/plates/plate_4.png" width="32%" alt="Vol I Plate IV" />
+  <img src="episodes/ep01_stellar_colosseum/plates/plate_5.png" width="32%" alt="Vol I Plate V" />
+  <img src="episodes/ep01_stellar_colosseum/plates/plate_6.png" width="32%" alt="Vol I Plate VI" />
 </p>
 <p align="center">
-  <img src="episodes/ep01_stellar_colosseum/cards/rednote_card_7.png" width="32%" alt="Vol I Plate VII" />
+  <img src="episodes/ep01_stellar_colosseum/plates/plate_7.png" width="32%" alt="Vol I Plate VII" />
 </p>
 
 ### Key Formal Results (Vol. I)
@@ -47,17 +47,17 @@ A rigorous, theorem-proof mathematical compendium of foundational and frontier *
 ### Formal Monograph Plates I–VII (`1080×1440` Archival Typesetting)
 
 <p align="center">
-  <img src="episodes/ep02_deepseek_r1_grpo/cards/rednote_card_1.png" width="32%" alt="Vol II Plate I" />
-  <img src="episodes/ep02_deepseek_r1_grpo/cards/rednote_card_2.png" width="32%" alt="Vol II Plate II" />
-  <img src="episodes/ep02_deepseek_r1_grpo/cards/rednote_card_3.png" width="32%" alt="Vol II Plate III" />
+  <img src="episodes/ep02_deepseek_r1_grpo/plates/plate_1.png" width="32%" alt="Vol II Plate I" />
+  <img src="episodes/ep02_deepseek_r1_grpo/plates/plate_2.png" width="32%" alt="Vol II Plate II" />
+  <img src="episodes/ep02_deepseek_r1_grpo/plates/plate_3.png" width="32%" alt="Vol II Plate III" />
 </p>
 <p align="center">
-  <img src="episodes/ep02_deepseek_r1_grpo/cards/rednote_card_4.png" width="32%" alt="Vol II Plate IV" />
-  <img src="episodes/ep02_deepseek_r1_grpo/cards/rednote_card_5.png" width="32%" alt="Vol II Plate V" />
-  <img src="episodes/ep02_deepseek_r1_grpo/cards/rednote_card_6.png" width="32%" alt="Vol II Plate VI" />
+  <img src="episodes/ep02_deepseek_r1_grpo/plates/plate_4.png" width="32%" alt="Vol II Plate IV" />
+  <img src="episodes/ep02_deepseek_r1_grpo/plates/plate_5.png" width="32%" alt="Vol II Plate V" />
+  <img src="episodes/ep02_deepseek_r1_grpo/plates/plate_6.png" width="32%" alt="Vol II Plate VI" />
 </p>
 <p align="center">
-  <img src="episodes/ep02_deepseek_r1_grpo/cards/rednote_card_7.png" width="32%" alt="Vol II Plate VII" />
+  <img src="episodes/ep02_deepseek_r1_grpo/plates/plate_7.png" width="32%" alt="Vol II Plate VII" />
 </p>
 
 ### Key Formal Results (Vol. II)
