@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RedNote (3:4) Studio — Ep.02 DeepSeek-R1 & GRPO (arXiv:2501.12948)</title>
+  <style>
+    :root {
+      --rednote: #FF2442;
+      --paper: #FAF8F5;
+      --paper-grid: #EFECE6;
+      --ink: #18181B;
+      --muted: #64748B;
+      --highlighter-yellow: #FFE66D;
+      --highlighter-coral: #FFD1D8;
+      --highlighter-mint: #C6F6D5;
+      --bento-dark: #18181B;
+      --bento-card: #FFFFFF;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", Roboto, sans-serif;
+      background: #F1F0EC;
+      color: var(--ink);
+      min-height: 100vh;
+      padding: 24px 16px 60px;
+    }
+    .topbar {
+      max-width: 1160px;
+      margin: 0 auto 22px;
+      background: #fff;
+      border-radius: 18px;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.06);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-logo {
+      background: var(--rednote);
+      color: #fff;
+      font-weight: 900;
+      font-size: 16px;
+      padding: 6px 12px;
+      border-radius: 10px;
+      letter-spacing: -0.3px;
+    }
+    .brand-title {
+      font-weight: 800;
+      font-size: 17px;
+    }
+    .brand-sub {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      border: none;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 13px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-red {
+      background: var(--rednote);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(255,36,66,0.3);
+    }
+    .btn-red:hover { transform: translateY(-1px); background: #e01b37; }
+    .btn-outline {
+      background: #F4F4F5;
+      color: var(--ink);
+    }
+    .btn-outline:hover { background: #E4E4E7; }
+
+    .workspace {
+      max-width: 1160px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 440px 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+    @media (max-width: 960px) {
+      .workspace { grid-template-columns: 1fr; }
+    }
+
+    .phone-frame {
+      background: #fff;
+      border-radius: 32px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.12);
+      overflow: hidden;
+      border: 6px solid #18181B;
+      position: sticky;
+      top: 20px;
+    }
+    .phone-header {
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #F1F5F9;
+    }
+    .author-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #FF2442, #FF7A8A);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 14px;
+    }
+    .author-name { font-weight: 700; font-size: 14px; }
+    .author-handle { font-size: 11px; color: var(--muted); }
+    .follow-pill {
+      background: var(--rednote);
+      color: #fff;
+      font-weight: 700;
+      font-size: 12px;
+      padding: 5px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+
+    .carousel-stage {
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      background: #000;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .page-counter {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(8px);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+      z-index: 10;
+    }
+    .nav-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.85);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 18px;
+      color: var(--ink);
+      z-index: 10;
+      transition: all 0.15s ease;
+    }
+    .nav-arrow:hover { background: #fff; transform: translateY(-50%) scale(1.08); }
+    .nav-prev { left: 10px; }
+    .nav-next { right: 10px; }
+
+    .dots-bar {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 0;
+      background: #fff;
+    }
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #E2E8F0;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .dot.active {
+      width: 18px;
+      border-radius: 999px;
+      background: var(--rednote);
+    }
+
+    .phone-caption {
+      padding: 14px 16px 20px;
+      font-size: 13.5px;
+      line-height: 1.55;
+      background: #fff;
+    }
+    .phone-caption h2 {
+      font-size: 15px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      line-height: 1.35;
+    }
+    .phone-caption p {
+      margin-bottom: 8px;
+      color: #27272A;
+    }
+    .hashtag {
+      color: #1D4ED8;
+      font-weight: 600;
+      margin-right: 4px;
+    }
+
+    .phone-footer {
+      padding: 10px 16px;
+      border-top: 1px solid #F1F5F9;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .input-pill {
+      background: #F1F5F9;
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 12px;
+      color: var(--muted);
+      flex: 1;
+      margin-right: 12px;
+    }
+    .metrics-row {
+      display: flex;
+      gap: 14px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    /* 3:4 Card Visual Canvas Engine */
+    .xhs-card {
+      width: 100%;
+      height: 100%;
+      background-color: var(--paper);
+      background-image: 
+        linear-gradient(var(--paper-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--paper-grid) 1px, transparent 1px);
+      background-size: 24px 24px;
+      padding: 24px 22px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif;
+    }
+    .xhs-card.dark-mode {
+      background-color: #121215;
+      background-image: 
+        linear-gradient(#1E1E24 1px, transparent 1px),
+        linear-gradient(90deg, #1E1E24 1px, transparent 1px);
+      color: #FFFFFF;
+    }
+
+    .card-top-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .pill-tag {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #E4E4E7;
+      color: #18181B;
+    }
+    .pill-tag.red { background: var(--rednote); color: #fff; }
+    .pill-tag.yellow { background: var(--highlighter-yellow); color: #18181B; }
+    .slide-num {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--muted);
+      letter-spacing: 1px;
+    }
+
+    .cover-headline {
+      font-size: 30px;
+      font-weight: 900;
+      line-height: 1.15;
+      letter-spacing: -0.5px;
+      margin-bottom: 12px;
+    }
+    .hl-yellow {
+      background: linear-gradient(180deg, transparent 50%, var(--highlighter-yellow) 50%);
+      padding: 0 4px;
+      border-radius: 3px;
+    }
+    .hl-coral {
+      background: linear-gradient(180deg, transparent 50%, #FFA8B5 50%);
+      padding: 0 4px;
+      border-radius: 3px;
+    }
+    .bento-box {
+      background: var(--bento-card);
+      border: 2px solid #18181B;
+      border-radius: 16px;
+      padding: 13px 15px;
+      margin-bottom: 10px;
+      box-shadow: 3px 3px 0px #18181B;
+    }
+    .dark-mode .bento-box {
+      background: #1A1A20;
+      border-color: #3F3F46;
+      box-shadow: 3px 3px 0px #000;
+      color: #F4F4F5;
+    }
+    .bento-title {
+      font-weight: 800;
+      font-size: 14px;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .bento-body {
+      font-size: 12.5px;
+      line-height: 1.45;
+      color: #3F3F46;
+    }
+    .dark-mode .bento-body { color: #A1A1AA; }
+
+    .big-stat-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 12px 0;
+    }
+    .stat-card {
+      background: #fff;
+      border: 2px solid #18181B;
+      border-radius: 14px;
+      padding: 12px 10px;
+      text-align: center;
+      box-shadow: 2px 2px 0px #18181B;
+    }
+    .dark-mode .stat-card {
+      background: #1F1F26;
+      border-color: #3F3F46;
+      box-shadow: 2px 2px 0px #000;
+    }
+    .stat-val {
+      font-size: 25px;
+      font-weight: 900;
+      color: var(--rednote);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .stat-lbl {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .card-footer-cite {
+      font-size: 11.5px;
+      color: var(--muted);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px dashed #CBD5E1;
+      padding-top: 10px;
+      margin-top: 6px;
+    }
+    .dark-mode .card-footer-cite { border-top-color: #3F3F46; }
+
+    /* RIGHT PANEL CARDS GRID */
+    .right-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .panel-box {
+      background: #fff;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.06);
+    }
+    .panel-title {
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .panel-sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 14px;
+    }
+    .mini-card-wrap {
+      aspect-ratio: 3 / 4;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 2px solid #E4E4E7;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      position: relative;
+    }
+    .mini-card-wrap:hover {
+      transform: translateY(-3px);
+      border-color: var(--rednote);
+      box-shadow: 0 8px 20px rgba(255,36,66,0.18);
+    }
+    .mini-card-wrap.selected {
+      border-color: var(--rednote);
+      box-shadow: 0 0 0 3px rgba(255,36,66,0.25);
+    }
+    .caption-textarea {
+      width: 100%;
+      min-height: 260px;
+      border: 1.5px solid #E4E4E7;
+      border-radius: 12px;
+      padding: 14px;
+      font-family: inherit;
+      font-size: 13.5px;
+      line-height: 1.6;
+      background: #FAFAFA;
+      resize: vertical;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-logo">RedNote 3:4</div>
+      <div>
+        <div class="brand-title">LLM Paper Daily Carousel Studio — Ep. 02: DeepSeek-R1 & GRPO</div>
+        <div class="brand-sub">Synthesized via DeepSeek-R1 (arXiv:2501.12948) · 3:4 GoodNotes + Bento Visual Cards + Mobile Copy</div>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button class="btn btn-outline" onclick="copyCaption()">📋 Copy RedNote Caption</button>
+      <button class="btn btn-red" onclick="window.print()">🖼️ Print / Save 3:4 Deck</button>
+    </div>
+  </div>
+
+  <div class="workspace">
+    <!-- LEFT: Authentic RedNote Mobile App Preview -->
+    <div class="phone-frame">
+      <div class="phone-header">
+        <div class="author-row">
+          <div class="avatar">KW</div>
+          <div>
+            <div class="author-name">Kunrui's LLM Lab Notes</div>
+            <div class="author-handle">Daily Paper Breakdown · Ep. 02</div>
+          </div>
+        </div>
+        <div class="follow-pill">+ Follow</div>
+      </div>
+
+      <div class="carousel-stage" id="activeSlideStage">
+        <div class="page-counter" id="slideCounter">1 / 7</div>
+        <button class="nav-arrow nav-prev" onclick="changeSlide(-1)">‹</button>
+        <button class="nav-arrow nav-next" onclick="changeSlide(1)">›</button>
+        <div id="slideMount" style="width:100%;height:100%;"></div>
+      </div>
+
+      <div class="dots-bar" id="dotsBar"></div>
+
+      <div class="phone-caption">
+        <h2>How DeepSeek-R1 ditched the Critic & conquered Math 🤯 7-Slide Visual Study! ☕️✨</h2>
+        <p>Why did standard PPO need a massive Value Critic network that consumed 100% extra VRAM? 😭</p>
+        <p>DeepSeek-R1 introduced <b>GRPO (Group Relative Policy Optimization)</b> and pure rule-based RLVR to ignite self-reasoning without any neural reward model! 📈</p>
+        <p>I just broke down <b>DeepSeek-R1 (arXiv:2501.12948)</b> into 7 bite-sized 3:4 visual cards.</p>
+        <p>Swipe through the cheat cards above! 👉</p>
+        <p>
+          🃏 <b>Slide 2</b>: The PPO Value Critic Memory Footprint Problem<br/>
+          🛑 <b>Slide 3</b>: Group Relative Advantage (A_i = (r_i - mean)/std)<br/>
+          🧩 <b>Slide 4</b>: RLVR Verifier (Rule-based Math + Strict Format Tags)<br/>
+          ⚔️ <b>Slide 5</b>: The Emergence of the "Aha Moment" & Backtracking<br/>
+          🌳 <b>Slide 6</b>: Multi-Stage Distillation Pipeline (R1-Zero to R1)<br/>
+          🏆 <b>Slide 7</b>: The Scoreboard: AIME 79.8% & MATH-500 97.3%
+        </p>
+        <p>Did you run GRPO on your own models yet? Drop your thoughts below! 👇💬</p>
+        <p>📌 <b>SAVE & COLLECT</b> this deck for your next post-training RL session!</p>
+        <p>
+          <span class="hashtag">#DeepSeekR1</span>
+          <span class="hashtag">#GRPO</span>
+          <span class="hashtag">#ReinforcementLearning</span>
+          <span class="hashtag">#LLMPostTraining</span>
+          <span class="hashtag">#ArXivDaily</span>
+          <span class="hashtag">#ReasoningModels</span>
+        </p>
+      </div>
+
+      <div class="phone-footer">
+        <div class="input-pill">Say something nice...</div>
+        <div class="metrics-row">
+          <span>❤️ 2.1k</span>
+          <span>⭐ 4.3k</span>
+          <span>💬 318</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: All 7 3:4 Cards Overview + Copy-Paste Caption -->
+    <div class="right-panel">
+      <div class="panel-box">
+        <div class="panel-title">
+          <span>🎴 All 7 Swipeable 3:4 Visual Cards (Click any card to inspect)</span>
+          <span style="font-size:12px;color:#FF2442;font-weight:700;">Aspect Ratio: 3:4 (1080×1440 Spec)</span>
+        </div>
+        <div class="panel-sub">
+          On RedNote, 90% of technical value lives inside these visual 3:4 cards (&lt; 45 words/card, iPad GoodNotes + Bento boxes), NOT in a wall-of-text markdown blog!
+        </div>
+        <div class="cards-grid" id="galleryGrid"></div>
+      </div>
+
+      <div class="panel-box">
+        <div class="panel-title">
+          <span>📝 Copy-Paste Mobile Caption (Aerated 1-Sentence RedNote Style)</span>
+          <button class="btn btn-red" onclick="copyCaption()" style="padding:6px 14px;font-size:12px;">Copy Text</button>
+        </div>
+        <div class="panel-sub">Formatted with single-line breathing room, slide guide cues (👉), save/collect CTA, and full public paper citation.</div>
+        <textarea class="caption-textarea" id="rawCaptionBox" readonly>How DeepSeek-R1 ditched the Critic & conquered Math 🤯 7-Slide Visual Study! ☕️✨
+
+Why did standard PPO need a massive Value Critic network that consumed 100% extra VRAM? 😭
+
+DeepSeek-R1 introduced GRPO (Group Relative Policy Optimization) and pure rule-based RLVR to ignite self-reasoning without any neural reward model! 📈
+
+Swipe the 3:4 cards to master the post-training revolution! 👉
+
+Slide 2 👉 The PPO Value Critic Memory Footprint Problem 🛑
+Slide 3 👉 Group Relative Advantage: A_i = (r_i - mean)/std 🧮
+Slide 4 👉 RLVR Verifier: Accuracy + Strict &lt;think&gt; Format Enforcement 🧩
+Slide 5 👉 Emergent Reasoning: The "Aha Moment" & Dynamic Backtracking 💡
+Slide 6 👉 4-Stage Post-Training: R1-Zero -> Cold-Start -> Rejection SFT -> R1 🌳
+Slide 7 👉 The Scoreboard: AIME 79.8% & MATH-500 97.3% (Equal to OpenAI o1) 🏆
+
+📚 Public Paper Citation:
+DeepSeek-AI. (2025). "DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning." arXiv:2501.12948 (https://arxiv.org/abs/2501.12948)
+
+Which mechanism surprised you more: eliminating the Critic model or emergent self-correction? 👇💬
+
+📌 SAVE this cheat sheet for your next RL architecture review! ✨
+
+#DeepSeekR1 #GRPO #ReinforcementLearning #LLMPostTraining #ArXivDaily #MachineLearning #AIResearch</textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Templates for the 7 3:4 Cards -->
+  <script>
+    const SLIDES = [
+      // SLIDE 1: COVER POSTER
+      `
+      <div class="xhs-card">
+        <div class="card-top-meta">
+          <span class="pill-tag red">EP. 02 · DAILY LLM PAPER NOTES</span>
+          <span class="slide-num">01 / 07</span>
+        </div>
+        <div>
+          <div style="font-size:13px;font-weight:800;color:#FF2442;margin-bottom:6px;">NO CRITIC MODEL NEEDED! 🚀</div>
+          <div class="cover-headline">
+            Meet <span class="hl-coral">DeepSeek-R1</span> 🧠<br/>
+            & The <span class="hl-yellow">GRPO</span> Revolution
+          </div>
+          <p style="font-size:13.5px;font-weight:600;color:#3F3F46;margin-top:8px;">
+            How pure RL with rule-based rewards ignited emergent reasoning without supervised traces.
+          </p>
+        </div>
+        <div class="big-stat-row">
+          <div class="stat-card">
+            <div class="stat-val">79.8%</div>
+            <div class="stat-lbl">AIME 2024 Pass@1 (o1-level)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val">0 FLOPs</div>
+            <div class="stat-lbl">Critic Model Overhead</div>
+          </div>
+        </div>
+        <div class="bento-box" style="background:#18181B;color:#fff;margin-bottom:0;">
+          <div style="font-size:12px;font-weight:700;display:flex;justify-content:space-between;align-items:center;">
+            <span>📄 DeepSeek-AI (Jan 2025) · arXiv:2501.12948</span>
+            <span style="color:#FFE66D;">Swipe →</span>
+          </div>
+        </div>
+      </div>
+      `,
+      // SLIDE 2: THE CRITIC BOTTLENECK
+      `
+      <div class="xhs-card dark-mode">
+        <div class="card-top-meta">
+          <span class="pill-tag yellow">THE PPO BOTTLENECK</span>
+          <span class="slide-num">02 / 07</span>
+        </div>
+        <div>
+          <div style="font-size:24px;font-weight:900;line-height:1.2;margin-bottom:12px;">
+            Why Standard <span style="color:#FF2442;">PPO</span> Crushes GPU Clusters 🛑
+          </div>
+          <div class="bento-box">
+            <div class="bento-title">1️⃣ 2× LLM Parameter Footprint</div>
+            <div class="bento-body">PPO trains a Value Critic network V_ψ(s) equal in size to the Actor. Storing two 671B models doubles cluster cost.</div>
+          </div>
+          <div class="bento-box">
+            <div class="bento-title">2️⃣ Value Estimation Variance</div>
+            <div class="bento-body">Estimating state values across 10,000 reasoning tokens is notoriously noisy, causing training collapse.</div>
+          </div>
+          <div class="bento-box" style="margin-bottom:0;">
+            <div class="bento-title">3️⃣ Neural Reward Hacking</div>
+            <div class="bento-body">Learned reward models reward verbose, flattering prose rather than actual mathematical truth.</div>
+          </div>
+        </div>
+        <div class="card-footer-cite">
+          <span>arXiv:2501.12948 · §2.1</span>
+          <span>Swipe for GRPO →</span>
+        </div>
+      </div>
+      `,
+      // SLIDE 3: GRPO MATHEMATICS
+      `
+      <div class="xhs-card">
+        <div class="card-top-meta">
+          <span class="pill-tag">CORE ALGORITHM · GRPO</span>
+          <span class="slide-num">03 / 07</span>
+        </div>
+        <div>
+          <div style="font-size:23px;font-weight:900;line-height:1.18;margin-bottom:10px;">
+            Group Relative <span class="hl-yellow">Advantage</span> 🧮<br/>
+            No Critic Required!
+          </div>
+          <div class="bento-box" style="background:#18181B;color:#fff;">
+            <div style="font-family:monospace;font-size:13px;line-height:1.5;color:#38BDF8;">
+              A_i = (r_i - mean({r_1..r_G})) / std({r_1..r_G})
+            </div>
+          </div>
+          <div class="bento-box">
+            <div class="bento-title">👥 Group Sampling (G = 8 to 16)</div>
+            <div class="bento-body">
+              For each question q, sample G rollouts from the old policy. The group baseline replaces the neural Critic network!
+            </div>
+          </div>
+          <div class="bento-box" style="border-color:#FF2442;margin-bottom:0;">
+            <div class="bento-title" style="color:#FF2442;">⚖️ Schulman Unbiased KL Regularizer</div>
+            <div class="bento-body">
+              D_KL = (π_ref / π_θ) - log(π_ref / π_θ) - 1. Keeps policy stable without reward model collapse.
+            </div>
+          </div>
+        </div>
+        <div class="card-footer-cite">
+          <span>arXiv:2501.12948 · Eq. 1–3</span>
+          <span>RLVR next →</span>
+        </div>
+      </div>
+      `,
+      // SLIDE 4: RLVR VERIFIERS
+      `
+      <div class="xhs-card">
+        <div class="card-top-meta">
+          <span class="pill-tag">REWARD DESIGN · RLVR</span>
+          <span class="slide-num">04 / 07</span>
+        </div>
+        <div>
+          <div style="font-size:23px;font-weight:900;line-height:1.18;margin-bottom:10px;">
+            Rule-Based <span class="hl-coral">RLVR Verifiers</span> 🧩<br/>
+            Zero Neural Cheating
+          </div>
+          <div class="bento-box">
+            <div class="bento-title">🎯 1. Accuracy Reward (Deterministic)</div>
+            <div class="bento-body">
+              For math & coding tasks, reward is binary (1 or 0) evaluated by SymPy math equality or unit test compiler. Zero reward hacking.
+            </div>
+          </div>
+          <div class="bento-box">
+            <div class="bento-title">🏷️ 2. Strict Format Reward</div>
+            <div class="bento-body">
+              Enforces <code>&lt;think&gt; ... &lt;/think&gt;</code> tags. Penalizes models that leak answers before completing chain-of-thought.
+            </div>
+          </div>
+          <div class="bento-box" style="margin-bottom:0;">
+            <div class="bento-title">🚫 Zero Outcome Smoothing</div>
+            <div class="bento-body">
+              No partial credit for confident-sounding wrong answers. Models learn truth or get zero.
+            </div>
+          </div>
+        </div>
+        <div class="card-footer-cite">
+          <span>arXiv:2501.12948 · §2.2.1</span>
+          <span>Aha moment next →</span>
+        </div>
+      </div>
+      `,
+      // SLIDE 5: THE AHA MOMENT
+      `
+      <div class="xhs-card dark-mode">
+        <div class="card-top-meta">
+          <span class="pill-tag red">EMERGENT BEHAVIOR</span>
+          <span class="slide-num">05 / 07</span>
+        </div>
+        <div>
+          <div style="font-size:23px;font-weight:900;line-height:1.18;margin-bottom:10px;">
+            The Emergence of the <span style="color:#FFE66D;">"Aha Moment"</span> 💡
+          </div>
+          <div class="bento-box">
+            <div class="bento-title" style="color:#FFE66D;">🔄 Spontaneous Backtracking</div>
+            <div class="bento-body">
+              Without any human demonstrations, R1-Zero naturally learned phrases like: <i>"Wait, let me rethink that..."</i> and <i>"Alternatively, let's verify."</i>
+            </div>
+          </div>
+          <div class="bento-box">
+            <div class="bento-title">📏 Test-Time Compute Scaling</div>
+            <div class="bento-body">
+              Average thinking token length automatically expanded from hundreds to thousands of tokens as problem difficulty grew.
+            </div>
+          </div>
+          <div class="bento-box" style="margin-bottom:0;border-color:#38BDF8;">
+            <div class="bento-title" style="color:#38BDF8;">📈 Pure Trial-and-Error Intelligence</div>
+            <div class="bento-body">
+              Proves complex reasoning strategies can emerge from pure RL and simple verifiers.
+            </div>
+          </div>
+        </div>
+        <div class="card-footer-cite">
+          <span>arXiv:2501.12948 · §2.2.3</span>
+          <span>Pipeline next →</span>
+        </div>
+      </div>
+      `,
+      // SLIDE 6: 4-STAGE PIPELINE
+      `
+      <div class="xhs-card">
+        <div class="card-top-meta">
+          <span class="pill-tag">SYSTEM DESIGN · R1 RECIPE</span>
+          <span class="slide-num">06 / 07</span>
+        </div>
+        <div>
+          <div style="font-size:22px;font-weight:900;line-height:1.18;margin-bottom:10px;">
+            The 4-Stage <span class="hl-yellow">Post-Training</span> Recipe 🌳
+          </div>
+          <div class="bento-box">
+            <div class="bento-title">Stage 1: Cold-Start Data (Thousands)</div>
+            <div class="bento-body">Fine-tune base model with long chain-of-thought seed examples to prevent language-mixing issues.</div>
+          </div>
+          <div class="bento-box">
+            <div class="bento-title">Stage 2: Reasoning-Oriented RL (GRPO)</div>
+            <div class="bento-body">Scale reasoning abilities on math, code, and logic tasks using GRPO until convergence.</div>
+          </div>
+          <div class="bento-box">
+            <div class="bento-title">Stage 3: Rejection Sampling SFT (800k)</div>
+            <div class="bento-body">Filter 600k reasoning traces + 200k general conversational data to align tone and formatting.</div>
+          </div>
+          <div class="bento-box" style="margin-bottom:0;">
+            <div class="bento-title">Stage 4: Secondary RL for All Scenarios</div>
+            <div class="bento-body">Final RL alignment combining rule-based math verifiers and helpfulness/safety reward models.</div>
+          </div>
+        </div>
+        <div class="card-footer-cite">
+          <span>arXiv:2501.12948 · §2.3</span>
+          <span>Final Scoreboard →</span>
+        </div>
+      </div>
+      `,
+      // SLIDE 7: THE SCOREBOARD
+      `
+      <div class="xhs-card" style="background:var(--rednote);color:#fff;background-image:none;">
+        <div class="card-top-meta">
+          <span class="pill-tag yellow">SAVE THIS FOR LATER 📌</span>
+          <span class="slide-num" style="color:#fff;opacity:0.9;">07 / 07</span>
+        </div>
+        <div>
+          <div style="font-size:26px;font-weight:900;line-height:1.15;margin-bottom:12px;">
+            The Scoreboard 🏆<br/>
+            <span style="color:#FFE66D;">Parity with OpenAI o1</span>
+          </div>
+          <div class="bento-box" style="color:#18181B;">
+            <div class="bento-title">📊 Mathematical Reasoning Benchmarks</div>
+            <div class="bento-body">
+              • AIME 2024 Pass@1: <b>79.8%</b> (vs o1-preview 44.6%, o1 79.2%)<br/>
+              • MATH-500: <b>97.3%</b> (vs o1 96.4%)<br/>
+              • Codeforces Percentile: <b>96.3%</b> (Rating 2029)
+            </div>
+          </div>
+          <div class="bento-box" style="color:#18181B;margin-bottom:0;">
+            <div class="bento-title">🏅 Open-Weights Distillation Impact</div>
+            <div class="bento-body">
+              Distilling R1 reasoning patterns into <b>Qwen-1.5B/7B/14B/32B</b> beats all prior open-source models on math & code!
+            </div>
+          </div>
+        </div>
+        <div style="background:#18181B;border-radius:14px;padding:12px 14px;font-size:11.5px;line-height:1.45;">
+          <b>📚 Citation</b>: DeepSeek-AI (2025). <i>DeepSeek-R1: Incentivizing Reasoning Capability via RL</i>. arXiv:2501.12948<br/>
+          <span style="color:#FFE66D;font-weight:800;">⭐ Tap SAVE & Follow for Ep. 03 (ReAct & Self-RAG) tomorrow!</span>
+        </div>
+      </div>
+      `
+    ];
+
+    let currentIdx = 0;
+
+    function renderAll() {
+      document.getElementById('slideMount').innerHTML = SLIDES[currentIdx];
+      document.getElementById('slideCounter').textContent = (currentIdx + 1) + ' / ' + SLIDES.length;
+
+      const dotsBar = document.getElementById('dotsBar');
+      dotsBar.innerHTML = SLIDES.map((_, idx) =>
+        `<div class="dot ${idx === currentIdx ? 'active' : ''}" onclick="setSlide(${idx})"></div>`
+      ).join('');
+
+      const gallery = document.getElementById('galleryGrid');
+      gallery.innerHTML = SLIDES.map((html, idx) => `
+        <div class="mini-card-wrap ${idx === currentIdx ? 'selected' : ''}" onclick="setSlide(${idx})">
+          ${html}
+        </div>
+      `).join('');
+    }
+
+    function changeSlide(delta) {
+      currentIdx = (currentIdx + delta + SLIDES.length) % SLIDES.length;
+      renderAll();
+    }
+
+    function setSlide(idx) {
+      currentIdx = idx;
+      renderAll();
+    }
+
+    function copyCaption() {
+      const box = document.getElementById('rawCaptionBox');
+      box.select();
+      navigator.clipboard.writeText(box.value);
+      alert('Copied authentic RedNote caption to clipboard!');
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const singleCardParam = params.get('card');
+    if (singleCardParam) {
+      const idx = Math.max(0, Math.min(SLIDES.length - 1, parseInt(singleCardParam, 10) - 1));
+      document.body.style.padding = '0';
+      document.body.style.margin = '0';
+      document.body.style.width = '540px';
+      document.body.style.height = '720px';
+      document.body.style.overflow = 'hidden';
+      document.body.innerHTML = `<div style="width:540px;height:720px;">${SLIDES[idx]}</div>`;
+    } else {
+      renderAll();
+    }
+  </script>
+</body>
+</html>

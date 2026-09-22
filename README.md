@@ -11,7 +11,7 @@ A curated daily series of foundational and frontier **Large Language Model (LLM)
 | Episode | Track | Public Paper & Citation | 3:4 Card Deck | Interactive Studio |
 | :--- | :--- | :--- | :---: | :---: |
 | **Ep. 01** | **Track A: Reasoning & Agent Harnesses** | **Stellar Colosseum**: *A Many-Agent Harness for Long-Horizon Research in Mathematics and Theoretical Computer Science* — Lin, Woodruff, Deng, Mao, Zuo, Mirrokni (Sept 2026) · [arXiv:2609.15983v2](https://arxiv.org/abs/2609.15983v2) | [📂 7 Cards (`1080×1440`)](episodes/ep01_stellar_colosseum/cards/) | [📱 Open Studio](https://kunruiw1991.github.io/rednote-llm-paper-summary/episodes/ep01_stellar_colosseum/) |
-| **Ep. 02** *(Upcoming)* | **Track B: Post-Training & RL** | **DeepSeek-R1**: *Incentivizing Reasoning Capability in LLMs via Reinforcement Learning (GRPO)* · [arXiv:2501.12948](https://arxiv.org/abs/2501.12948) | *Scheduled (Daily 2AM PT)* | *Scheduled* |
+| **Ep. 02** | **Track B: Post-Training & RL** | **DeepSeek-R1**: *Incentivizing Reasoning Capability in LLMs via Reinforcement Learning (GRPO & RLVR)* — DeepSeek-AI (Jan 2025) · [arXiv:2501.12948](https://arxiv.org/abs/2501.12948) | [📂 7 Cards (`1080×1440`)](episodes/ep02_deepseek_r1_grpo/cards/) | [📱 Open Studio](https://kunruiw1991.github.io/rednote-llm-paper-summary/episodes/ep02_deepseek_r1_grpo/) |
 | **Ep. 03** *(Upcoming)* | **Track C: RAG & Tool Use** | **ReAct & Self-RAG**: *Synergizing Reasoning and Acting + Self-Reflective Retrieval-Augmented Generation* · [arXiv:2210.03629](https://arxiv.org/abs/2210.03629) / [arXiv:2310.11511](https://arxiv.org/abs/2310.11511) | *Scheduled (Daily 2AM PT)* | *Scheduled* |
 | **Ep. 04** *(Upcoming)* | **Track D: Fast Inference & Systems** | **vLLM PagedAttention & Speculative Decoding**: *Efficient Memory Management for LLM Serving* · [arXiv:2309.06180](https://arxiv.org/abs/2309.06180) | *Scheduled (Daily 2AM PT)* | *Scheduled* |
 
@@ -65,4 +65,52 @@ Which mechanism are you adding to your agent harness first: the Readiness Gate o
 📌 SAVE this cheat sheet for your next AI architecture review! ✨
 
 #LLMPaperReading #AIAgents #StellarColosseum #MultiAgentSystems #MachineLearning #ArXivDaily #CodingLife #TechNotes
+```
+
+---
+
+## 🎴 Episode 02: *DeepSeek-R1 & GRPO* ([arXiv:2501.12948](https://arxiv.org/abs/2501.12948)) — 7-Card 3:4 Deck
+
+<p align="center">
+  <img src="episodes/ep02_deepseek_r1_grpo/cards/rednote_card_1.png" width="31%" alt="Slide 1 Cover" />
+  <img src="episodes/ep02_deepseek_r1_grpo/cards/rednote_card_2.png" width="31%" alt="Slide 2 Critic Bottleneck" />
+  <img src="episodes/ep02_deepseek_r1_grpo/cards/rednote_card_3.png" width="31%" alt="Slide 3 GRPO Advantage" />
+</p>
+<p align="center">
+  <img src="episodes/ep02_deepseek_r1_grpo/cards/rednote_card_4.png" width="31%" alt="Slide 4 RLVR Verifier" />
+  <img src="episodes/ep02_deepseek_r1_grpo/cards/rednote_card_5.png" width="31%" alt="Slide 5 Aha Moment" />
+  <img src="episodes/ep02_deepseek_r1_grpo/cards/rednote_card_6.png" width="31%" alt="Slide 6 4-Stage Recipe" />
+</p>
+<p align="center">
+  <img src="episodes/ep02_deepseek_r1_grpo/cards/rednote_card_7.png" width="31%" alt="Slide 7 Scoreboard & Citation" />
+</p>
+
+---
+
+## 📱 Copy-Paste RedNote Mobile Caption (Ep. 02)
+
+```text
+How DeepSeek-R1 ditched the Critic & conquered Math 🤯 7-Slide Visual Study! ☕️✨
+
+Why did standard PPO need a massive Value Critic network that consumed 100% extra VRAM? 😭
+
+DeepSeek-R1 introduced GRPO (Group Relative Policy Optimization) and pure rule-based RLVR to ignite self-reasoning without any neural reward model! 📈
+
+Swipe the 3:4 cards to master the post-training revolution! 👉
+
+Slide 2 👉 The PPO Value Critic Memory Footprint Problem 🛑
+Slide 3 👉 Group Relative Advantage: A_i = (r_i - mean)/std 🧮
+Slide 4 👉 RLVR Verifier: Accuracy + Strict <think> Format Enforcement 🧩
+Slide 5 👉 Emergent Reasoning: The "Aha Moment" & Dynamic Backtracking 💡
+Slide 6 👉 4-Stage Post-Training: R1-Zero -> Cold-Start -> Rejection SFT -> R1 🌳
+Slide 7 👉 The Scoreboard: AIME 79.8% & MATH-500 97.3% (Equal to OpenAI o1) 🏆
+
+📚 Public Paper Citation:
+DeepSeek-AI. (2025). "DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning." arXiv:2501.12948 (https://arxiv.org/abs/2501.12948)
+
+Which mechanism surprised you more: eliminating the Critic model or emergent self-correction? 👇💬
+
+📌 SAVE this cheat sheet for your next RL architecture review! ✨
+
+#DeepSeekR1 #GRPO #ReinforcementLearning #LLMPostTraining #ArXivDaily #MachineLearning #AIResearch
 ```
