@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RedNote (3:4) Studio — Ep.01 Stellar Colosseum (arXiv:2609.15983v2)</title>
+  <style>
+    :root {
+      --rednote: #FF2442;
+      --paper: #FAF8F5;
+      --paper-grid: #EFECE6;
+      --ink: #18181B;
+      --muted: #64748B;
+      --highlighter-yellow: #FFE66D;
+      --highlighter-coral: #FFD1D8;
+      --highlighter-mint: #C6F6D5;
+      --bento-dark: #18181B;
+      --bento-card: #FFFFFF;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", Roboto, sans-serif;
+      background: #F1F0EC;
+      color: var(--ink);
+      min-height: 100vh;
+      padding: 24px 16px 60px;
+    }
+    .topbar {
+      max-width: 1160px;
+      margin: 0 auto 22px;
+      background: #fff;
+      border-radius: 18px;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.06);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-logo {
+      background: var(--rednote);
+      color: #fff;
+      font-weight: 900;
+      font-size: 16px;
+      padding: 6px 12px;
+      border-radius: 10px;
+      letter-spacing: -0.3px;
+    }
+    .brand-title {
+      font-weight: 800;
+      font-size: 17px;
+    }
+    .brand-sub {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      border: none;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 13px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-red {
+      background: var(--rednote);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(255,36,66,0.3);
+    }
+    .btn-red:hover { transform: translateY(-1px); background: #e01b37; }
+    .btn-outline {
+      background: #F4F4F5;
+      color: var(--ink);
+    }
+    .btn-outline:hover { background: #E4E4E7; }
+
+    /* Main Workspace Layout: Phone Simulator Left + All 7 Cards Grid Right */
+    .workspace {
+      max-width: 1160px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 440px 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+    @media (max-width: 960px) {
+      .workspace { grid-template-columns: 1fr; }
+    }
+
+    /* RedNote Mobile App Frame */
+    .phone-frame {
+      background: #fff;
+      border-radius: 32px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.12);
+      overflow: hidden;
+      border: 6px solid #18181B;
+      position: sticky;
+      top: 20px;
+    }
+    .phone-header {
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #F1F5F9;
+    }
+    .author-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #FF2442, #FF7A8A);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 14px;
+    }
+    .author-name { font-weight: 700; font-size: 14px; }
+    .author-handle { font-size: 11px; color: var(--muted); }
+    .follow-pill {
+      border: 1.5px solid var(--rednote);
+      color: var(--rednote);
+      font-weight: 700;
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 999px;
+    }
+
+    /* 3:4 Carousel Stage inside Phone */
+    .carousel-stage {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      background: var(--paper);
+      overflow: hidden;
+    }
+    .page-counter {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: rgba(24,24,27,0.75);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+      z-index: 20;
+    }
+    .nav-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.9);
+      border: 1px solid rgba(0,0,0,0.1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+      cursor: pointer;
+      z-index: 20;
+      font-weight: 900;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .nav-prev { left: 10px; }
+    .nav-next { right: 10px; }
+
+    .dots-bar {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 0 4px;
+      background: #fff;
+    }
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #D4D4D8;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .dot.active {
+      background: var(--rednote);
+      width: 16px;
+      border-radius: 99px;
+    }
+
+    /* RedNote Caption & Engagement Footer inside Phone */
+    .phone-caption {
+      padding: 14px 18px 18px;
+      max-height: 330px;
+      overflow-y: auto;
+      font-size: 14px;
+      line-height: 1.58;
+      color: #27272A;
+    }
+    .phone-caption h2 {
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 10px;
+      line-height: 1.35;
+    }
+    .phone-caption p {
+      margin-bottom: 10px;
+    }
+    .hashtag {
+      color: #1D4ED8;
+      font-weight: 600;
+      margin-right: 6px;
+    }
+    .phone-footer {
+      border-top: 1px solid #F1F5F9;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      color: #52525B;
+      background: #FAFAFA;
+    }
+    .input-pill {
+      background: #F1F5F9;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      color: #94A3B8;
+      flex: 1;
+      margin-right: 12px;
+    }
+    .metrics-row {
+      display: flex;
+      gap: 14px;
+      font-weight: 700;
+    }
+
+    /* ==============================================================
+       3:4 CARD DESIGN SYSTEM (Authentic GoodNotes + Bento Aesthetic)
+       ============================================================== */
+    .xhs-card {
+      width: 100%;
+      height: 100%;
+      aspect-ratio: 3 / 4;
+      padding: 28px 26px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      background-color: var(--paper);
+      background-image:
+        linear-gradient(to right, var(--paper-grid) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--paper-grid) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    .xhs-card.dark-mode {
+      background-color: #141417;
+      background-image:
+        linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
+      color: #FAF8F5;
+    }
+    .card-top-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .pill-tag {
+      background: var(--ink);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 5px 11px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .pill-tag.red {
+      background: var(--rednote);
+    }
+    .pill-tag.yellow {
+      background: var(--highlighter-yellow);
+      color: var(--ink);
+      border: 1.5px solid var(--ink);
+    }
+    .slide-num {
+      font-weight: 900;
+      font-size: 13px;
+      opacity: 0.55;
+    }
+    .cover-headline {
+      font-size: 32px;
+      font-weight: 900;
+      line-height: 1.12;
+      letter-spacing: -0.8px;
+      margin: 12px 0;
+    }
+    .hl-yellow {
+      background: linear-gradient(180deg, transparent 55%, var(--highlighter-yellow) 55%);
+      padding: 0 4px;
+    }
+    .hl-coral {
+      background: var(--rednote);
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 6px;
+      display: inline-block;
+      transform: rotate(-1deg);
+    }
+    .hl-mint {
+      background: var(--highlighter-mint);
+      color: #065F46;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-weight: 800;
+    }
+    .bento-box {
+      background: #fff;
+      border: 2px solid var(--ink);
+      border-radius: 16px;
+      padding: 14px 16px;
+      box-shadow: 4px 4px 0px var(--ink);
+      margin-bottom: 10px;
+    }
+    .dark-mode .bento-box {
+      background: #222228;
+      border-color: #3F3F46;
+      box-shadow: 4px 4px 0px #000;
+      color: #FAF8F5;
+    }
+    .bento-title {
+      font-size: 14px;
+      font-weight: 800;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .bento-body {
+      font-size: 12.5px;
+      line-height: 1.42;
+      color: #3F3F46;
+    }
+    .dark-mode .bento-body {
+      color: #D4D4D8;
+    }
+    .big-stat-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 8px 0;
+    }
+    .stat-card {
+      background: #fff;
+      border: 2px solid var(--ink);
+      border-radius: 14px;
+      padding: 10px 12px;
+      text-align: center;
+      box-shadow: 3px 3px 0 var(--ink);
+    }
+    .stat-val {
+      font-size: 23px;
+      font-weight: 900;
+      color: var(--rednote);
+    }
+    .stat-lbl {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .card-footer-cite {
+      border-top: 1.5px dashed rgba(0,0,0,0.18);
+      padding-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: #52525B;
+    }
+    .dark-mode .card-footer-cite {
+      border-top-color: rgba(255,255,255,0.2);
+      color: #A1A1AA;
+    }
+
+    /* Right Panel: All 7 Cards Gallery + Caption Copy Box */
+    .right-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .panel-box {
+      background: #fff;
+      border-radius: 20px;
+      padding: 22px;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.05);
+    }
+    .panel-title {
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .panel-sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 16px;
+    }
+    .mini-card-wrap {
+      border-radius: 14px;
+      overflow: hidden;
+      border: 2px solid #E4E4E7;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      background: var(--paper);
+    }
+    .mini-card-wrap:hover, .mini-card-wrap.selected {
+      border-color: var(--rednote);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(255,36,66,0.18);
+    }
+    .caption-textarea {
+      width: 100%;
+      min-height: 260px;
+      border: 1.5px solid #E4E4E7;
+      border-radius: 12px;
+      padding: 14px;
+      font-family: inherit;
+      font-size: 13.5px;
+      line-height: 1.6;
+      background: #FAFAFA;
+      resize: vertical;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-logo">RedNote 3:4</div>
+      <div>
+        <div class="brand-title">LLM Paper Daily Carousel Studio — Ep. 01: Stellar Colosseum</div>
+        <div class="brand-sub">Synthesized via Stellar Colosseum (arXiv:2609.15983v2) · 3:4 GoodNotes + Bento Visual Cards + Mobile Copy</div>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button class="btn btn-outline" onclick="copyCaption()">📋 Copy RedNote Caption</button>
+      <button class="btn btn-red" onclick="window.print()">🖼️ Print / Save 3:4 Deck</button>
+    </div>
+  </div>
+
+  <div class="workspace">
+    <!-- LEFT: Authentic RedNote Mobile App Preview -->
+    <div class="phone-frame">
+      <div class="phone-header">
+        <div class="author-row">
+          <div class="avatar">KW</div>
+          <div>
+            <div class="author-name">Kunrui's LLM Lab Notes</div>
+            <div class="author-handle">Daily Paper Breakdown · Ep. 01</div>
+          </div>
+        </div>
+        <div class="follow-pill">+ Follow</div>
+      </div>
+
+      <div class="carousel-stage" id="activeSlideStage">
+        <div class="page-counter" id="slideCounter">1 / 7</div>
+        <button class="nav-arrow nav-prev" onclick="changeSlide(-1)">‹</button>
+        <button class="nav-arrow nav-next" onclick="changeSlide(1)">›</button>
+        <div id="slideMount" style="width:100%;height:100%;"></div>
+      </div>
+
+      <div class="dots-bar" id="dotsBar"></div>
+
+      <div class="phone-caption">
+        <h2>Are flat AI Agent teams BROKEN? 🤯 I read Google's 75-page Stellar Colosseum paper so you don't have to!</h2>
+        <p>Ever run 32 parallel LLM agents ("Battle-of-N") only to watch all 32 agree on the exact same subtle bug? 😭</p>
+        <p>Mode collapse is real. Majority voting != mathematical truth. 📉</p>
+        <p>I just finished reading <b>Stellar Colosseum (arXiv:2609.15983v2)</b> by Lin, Woodruff, Deng, Mao, Zuo & Mirrokni — and it completely re-architects how multi-agent reasoning works.</p>
+        <p>Swipe through the 3:4 cheat cards above! 👉</p>
+        <p>
+          🃏 <b>Slide 2</b>: Why flat Best-of-N collapses on 20–75 page proofs<br/>
+          🛑 <b>Slide 3</b>: Stage 1 & 2 — Strategy Cards + The 4-Way Readiness Gate<br/>
+          🧩 <b>Slide 4</b>: Stage 3 — Bazel-style Section DAG (surgical local retry!)<br/>
+          ⚔️ <b>Slide 5</b>: Stage 4 — 6-Vector Red-Team Falsifiers & Veto Semantics<br/>
+          🌳 <b>Slide 6</b>: Stage 5 — Overlapping Tree Synthesis (2.5x reuse!) + Graveyard<br/>
+          🏆 <b>Slide 7</b>: 4263 Codeforces Elo (+224 above human record!) & full citation
+        </p>
+        <p>Which stage are you stealing for your own agent stack? Drop a comment below! 👇💬</p>
+        <p>📌 <b>SAVE & COLLECT</b> this deck for your next LLM system design review!</p>
+        <p>
+          <span class="hashtag">#LLMPaperReading</span>
+          <span class="hashtag">#AIAgents</span>
+          <span class="hashtag">#StellarColosseum</span>
+          <span class="hashtag">#MultiAgentSystems</span>
+          <span class="hashtag">#MachineLearning</span>
+          <span class="hashtag">#ArXivDaily</span>
+        </p>
+      </div>
+
+      <div class="phone-footer">
+        <div class="input-pill">Say something nice...</div>
+        <div class="metrics-row">
+          <span>❤️ 1.4k</span>
+          <span>⭐ 2.8k</span>
+          <span>💬 196</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: All 7 3:4 Cards Overview + Copy-Paste Caption -->
+    <div class="right-panel">
+      <div class="panel-box">
+        <div class="panel-title">
+          <span>🎴 All 7 Swipeable 3:4 Visual Cards (Click any card to inspect)</span>
+          <span style="font-size:12px;color:#FF2442;font-weight:700;">Aspect Ratio: 3:4 (1080×1440 Spec)</span>
+        </div>
+        <div class="panel-sub">
+          On RedNote, 90% of technical value lives inside these visual 3:4 cards (< 45 words/card, iPad GoodNotes + Bento boxes), NOT in a wall-of-text markdown blog!
+        </div>
+        <div class="cards-grid" id="galleryGrid"></div>
+      </div>
+
+      <div class="panel-box">
+        <div class="panel-title">
+          <span>📝 Copy-Paste Mobile Caption (Aerated 1-Sentence RedNote Style)</span>
+          <button class="btn btn-red" onclick="copyCaption()" style="padding:6px 14px;font-size:12px;">Copy Text</button>
+        </div>
+        <div class="panel-sub">Formatted with single-line breathing room, slide guide cues (👉), save/collect CTA, and full public paper citation.</div>
+        <textarea class="caption-textarea" id="rawCaptionBox" readonly>Are flat AI Agent teams BROKEN? 🤯 I read the 75-page Stellar Colosseum paper so you don't have to! ☕️✨
+
+Ever run 32 parallel LLM agents ("Battle-of-N") only to watch all 32 agree on the exact same subtle boundary bug? 😭
+
+Mode collapse is real. Majority voting does NOT equal mathematical truth. 📉
+
+Enter: Stellar Colosseum (arXiv:2609.15983v2) by Honghao Lin, David P. Woodruff, Yuan Deng, Jieming Mao, Song Zuo & Vahab Mirrokni (Sept 2026). 🏛️
+
+Instead of flat generation + majority voting, it wraps LLMs in a 2-level adversarial research organization.
+
+Swipe the 3:4 cards to steal the blueprint! 👉
+
+Slide 2 👉 Why flat Best-of-N fails (Correlated blind spots & strategic collapse)
+Slide 3 👉 Stage 1 & 2: Typed Strategy Cards + The 4-Way Readiness Gate 🛑
+Slide 4 👉 Stage 3: Topological Section DAG (Surgical local retries like Bazel! 🧩)
+Slide 5 👉 Stage 4: 6-Vector Red-Team Falsifiers ("No bug found != proof of correctness" ⚔️)
+Slide 6 👉 Stage 5: Overlapping Tree Synthesis (2.5x reuse per layer) + The Graveyard 🪦
+Slide 7 👉 The Scoreboard: 71.0% on TCS-Bench & 4263 Codeforces Elo (+224 above the 4039 human world record!) 🏆
+
+📚 Public Paper Citation:
+Lin, H., Woodruff, D. P., Deng, Y., Mao, J., Zuo, S., & Mirrokni, V. (2026). "Stellar Colosseum: A Many-Agent Harness for Long-Horizon Research in Mathematics and Theoretical Computer Science." arXiv:2609.15983v2 (https://arxiv.org/abs/2609.15983v2)
+
+Which mechanism are you adding to your agent harness first: the Readiness Gate or the Failed-Approaches Graveyard? 👇💬
+
+📌 SAVE this cheat sheet for your next AI architecture review! ✨
+
+#LLMPaperReading #AIAgents #StellarColosseum #MultiAgentSystems #MachineLearning #ArXivDaily #CodingLife #TechNotes</textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Templates for the 7 3:4 Cards -->
+  <script>
+    const SLIDES = [
+      // SLIDE 1: COVER POSTER
+      `
+      <div class="xhs-card">
+        <div class="card-top-meta">
+          <span class="pill-tag red">EP. 01 · DAILY LLM PAPER NOTES</span>
+          <span class="slide-num">01 / 07</span>
+        </div>
+        <div>
+          <div style="font-size:13px;font-weight:800;color:#FF2442;margin-bottom:6px;">STOP USING FLAT BEST-OF-N VOTING! 🚨</div>
+          <div class="cover-headline">
+            Are Flat AI Agent Teams <span class="hl-coral">BROKEN?</span> 🤯<br/>
+            Meet <span class="hl-yellow">Stellar Colosseum</span>
+          </div>
+          <p style="font-size:13.5px;font-weight:600;color:#3F3F46;margin-top:8px;">
+            I read the 75-page multi-agent theorem-proving paper (arXiv:2609.15983v2) so you don't have to.
+          </p>
+        </div>
+        <div class="big-stat-row">
+          <div class="stat-card">
+            <div class="stat-val">4263 Elo</div>
+            <div class="stat-lbl">Codeforces (+224 vs Human WR)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val">71.0%</div>
+            <div class="stat-lbl">TCS-Bench (vs 30.3% Direct)</div>
+          </div>
+        </div>
+        <div class="bento-box" style="background:#18181B;color:#fff;margin-bottom:0;">
+          <div style="font-size:12px;font-weight:700;display:flex;justify-content:space-between;align-items:center;">
+            <span>📄 Lin, Woodruff, Deng, Mao, Zuo, Mirrokni (2026)</span>
+            <span style="color:#FFE66D;">Swipe →</span>
+          </div>
+        </div>
+      </div>
+      `,
+      // SLIDE 2: THE PAIN POINT
+      `
+      <div class="xhs-card dark-mode">
+        <div class="card-top-meta">
+          <span class="pill-tag yellow">THE CORE BOTTLENECK</span>
+          <span class="slide-num">02 / 07</span>
+        </div>
+        <div>
+          <div style="font-size:24px;font-weight:900;line-height:1.2;margin-bottom:12px;">
+            Why Flat <span style="color:#FF2442;">Best-of-N</span> Voting Collapses on Hard Tasks ❌
+          </div>
+          <div class="bento-box">
+            <div class="bento-title">1️⃣ Correlated Blind Spots</div>
+            <div class="bento-body">When you sample 32 drafts, 80% share the exact same boundary bug. Majority agreement != mathematical truth.</div>
+          </div>
+          <div class="bento-box">
+            <div class="bento-title">2️⃣ Strategic Uncertainty at Token 50</div>
+            <div class="bento-body">Picking the wrong reduction early dooms a 25-page proof when its bridge lemma fails on page 12.</div>
+          </div>
+          <div class="bento-box" style="margin-bottom:0;">
+            <div class="bento-title">3️⃣ Winner-Take-All Amnesia</div>
+            <div class="bento-body">Throwing away a failed 15-page attempt discards valid sub-lemmas and repeats the same dead ends forever.</div>
+          </div>
+        </div>
+        <div class="card-footer-cite">
+          <span>arXiv:2609.15983v2 · §2.1 & §3</span>
+          <span>Swipe for the fix →</span>
+        </div>
+      </div>
+      `,
+      // SLIDE 3: STAGE 1 & 2 (STRATEGY CARDS + READINESS GATE)
+      `
+      <div class="xhs-card">
+        <div class="card-top-meta">
+          <span class="pill-tag">STAGE 1 & 2 · PRE-FLIGHT GATE</span>
+          <span class="slide-num">03 / 07</span>
+        </div>
+        <div>
+          <div style="font-size:23px;font-weight:900;line-height:1.18;margin-bottom:10px;">
+            1. Typed <span class="hl-yellow">Strategy Cards</span> 🃏<br/>
+            2. The <span class="hl-coral">Readiness Gate</span> 🛑
+          </div>
+          <div class="bento-box">
+            <div class="bento-title">🃏 Competing RFC Blueprints (10 Axes)</div>
+            <div class="bento-body">Before writing any long proof, agents propose a typed <b>StrategyCard</b> with <b>1 Primary Route + ≤ 2 Backup Routes</b> and explicit <b>Gateway Tests</b>.</div>
+          </div>
+          <div class="bento-box" style="border-color:#FF2442;">
+            <div class="bento-title" style="color:#FF2442;">🛑 The 4-Way Readiness Gate (LRR)</div>
+            <div class="bento-body">
+              No verified plan? No compute! Audits every <b>FATAL_BRIDGE</b>:<br/>
+              ✅ <b>READY_FOR_DECOMPOSITION</b> (0 fatal bridges)<br/>
+              🟡 <b>ELIGIBLE_WITH_OBLIGATIONS</b> (minor only)<br/>
+              🔄 <b>NEEDS_EXPLORATION</b> / ⛔ <b>REJECTED</b>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer-cite">
+          <span>arXiv:2609.15983v2 · §4.1.1 & §4.2.1</span>
+          <span>Stage 3 next →</span>
+        </div>
+      </div>
+      `,
+      // SLIDE 4: STAGE 3 (SECTION DAG & SURGICAL RETRY)
+      `
+      <div class="xhs-card">
+        <div class="card-top-meta">
+          <span class="pill-tag">STAGE 3 · BAZEL FOR PROOFS</span>
+          <span class="slide-num">04 / 07</span>
+        </div>
+        <div>
+          <div style="font-size:23px;font-weight:900;line-height:1.18;margin-bottom:10px;">
+            Topological <span class="hl-yellow">Section DAG</span> 🧩<br/>
+            & Surgical Local Retry
+          </div>
+          <div class="bento-box" style="background:#18181B;color:#fff;">
+            <div style="font-family:monospace;font-size:11.5px;line-height:1.5;">
+              [Sec 1: Base Construction] ──► [Sec 2: Concentration]<br/>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼<br/>
+              [Sec 3: Parity Guard 🛠️] ──► [Sec 4: Global Assembly]
+            </div>
+          </div>
+          <div class="bento-box" style="margin-bottom:0;">
+            <div class="bento-title">🎯 Why DAGs Beat Monolithic Prompts</div>
+            <div class="bento-body">
+              • Each section gets its own full token budget (enabling <b>46p to 75p</b> symbolic proofs!).<br/>
+              • If <b>Section 3</b> fails its Local Falser audit, <b>only Section 3 retries locally</b> — Sections 1 & 2 stay cached!
+            </div>
+          </div>
+        </div>
+        <div class="card-footer-cite">
+          <span>arXiv:2609.15983v2 · §4.2.2 & §4.2.3</span>
+          <span>Swipe →</span>
+        </div>
+      </div>
+      `,
+      // SLIDE 5: STAGE 4 (6-VECTOR FALSIFICATION & VETO)
+      `
+      <div class="xhs-card dark-mode">
+        <div class="card-top-meta">
+          <span class="pill-tag red">STAGE 4 · RED-TEAM ATTACK</span>
+          <span class="slide-num">05 / 07</span>
+        </div>
+        <div>
+          <div style="font-size:23px;font-weight:900;line-height:1.18;margin-bottom:10px;">
+            6-Vector <span style="color:#FFE66D;">Falsifiers</span> ⚔️<br/>
+            & Strict Veto Semantics
+          </div>
+          <div class="bento-box">
+            <div class="bento-title" style="color:#FFE66D;">⚔️ Pure Attackers (Zero Sycophancy)</div>
+            <div class="bento-body">
+              Falsers are forbidden from polishing drafts. They hunt 6 defect vectors + run executable stress probes:<br/>
+              1. Small-n / Parity Counterexamples<br/>
+              2. Silent Hypothesis Strengthening<br/>
+              3. Circular Dependencies · 4. Theorem Misuse<br/>
+              5. Quantifier Flips · 6. Downstream Drift
+            </div>
+          </div>
+          <div class="bento-box" style="border-color:#FF2442;margin-bottom:0;">
+            <div class="bento-title" style="color:#FF2442;">📜 The Epistemic Rule</div>
+            <div class="bento-body">
+              <b>"Failure to find a defect != proof of correctness."</b><br/>
+              Every candidate is permanently bundled with its critique: <code>z_i = (candidate_i, critiques_i)</code>.
+            </div>
+          </div>
+        </div>
+        <div class="card-footer-cite">
+          <span>arXiv:2609.15983v2 · §4.1.2</span>
+          <span>Swipe →</span>
+        </div>
+      </div>
+      `,
+      // SLIDE 6: STAGE 5 (OVERLAPPING TREE + GRAVEYARD)
+      `
+      <div class="xhs-card">
+        <div class="card-top-meta">
+          <span class="pill-tag">STAGE 5 · TREE + GRAVEYARD</span>
+          <span class="slide-num">06 / 07</span>
+        </div>
+        <div>
+          <div style="font-size:22px;font-weight:900;line-height:1.18;margin-bottom:10px;">
+            Overlapping <span class="hl-yellow">Tree Synthesis</span> 🌳<br/>
+            & The <span class="hl-coral">Graveyard</span> 🪦
+          </div>
+          <div class="bento-box">
+            <div class="bento-title">🌳 2.5x Candidate Reuse (Eq. 1–5)</div>
+            <div class="bento-body">
+              Schedule <code>m = (32, 16, 8, 5, 1)</code> with fan-in <code>k = 5</code>.<br/>
+              Expected reuse per layer: <b>E[R] = (16 × 5) / 32 = 2.5×</b>!<br/>
+              Merges Arm A's valid Lemma 1 with Arm B's valid Section 3 while keeping prompt size ≤ 5.
+            </div>
+          </div>
+          <div class="bento-box" style="margin-bottom:0;">
+            <div class="bento-title">🪦 Shared Knowledge Directory (Graveyard)</div>
+            <div class="bento-body">
+              Stores <code>theorems_and_lemmas</code> + <code>failed_approaches</code>. Over 15 autonomous rounds (internet off), it rediscovered a <b>22-page Erdős counterexample</b>!
+            </div>
+          </div>
+        </div>
+        <div class="card-footer-cite">
+          <span>arXiv:2609.15983v2 · §4.1.3 & §5.7</span>
+          <span>Final Slide →</span>
+        </div>
+      </div>
+      `,
+      // SLIDE 7: EMPIRICAL SCOREBOARD + SAVE CTA
+      `
+      <div class="xhs-card" style="background:var(--rednote);color:#fff;background-image:none;">
+        <div class="card-top-meta">
+          <span class="pill-tag yellow">SAVE THIS FOR LATER 📌</span>
+          <span class="slide-num" style="color:#fff;opacity:0.9;">07 / 07</span>
+        </div>
+        <div>
+          <div style="font-size:26px;font-weight:900;line-height:1.15;margin-bottom:12px;">
+            The Scoreboard 🏆<br/>
+            <span style="color:#FFE66D;">Superhuman Reasoning</span>
+          </div>
+          <div class="bento-box" style="color:#18181B;">
+            <div class="bento-title">📊 TCS-Bench (300 FOCS/STOC/SODA Tasks)</div>
+            <div class="bento-body">
+              • Direct Single-Pass Pro: <b>30.3%</b> (91/300)<br/>
+              • Stellar Colosseum (Single): <b>54.0%</b> (+23.7%)<br/>
+              • Cross-Model Critique Gate: <b>71.0% (213/300)</b>
+            </div>
+          </div>
+          <div class="bento-box" style="color:#18181B;margin-bottom:0;">
+            <div class="bento-title">🏅 Codeforces (222 Problems > 1500 Rating)</div>
+            <div class="bento-body">
+              Solved <b>218 / 222 (98.20%)</b> → Calibrated Elo <b>4263</b><br/>
+              (Beats highest human record <b>4039</b> by <b>+224 Elo</b>!)
+            </div>
+          </div>
+        </div>
+        <div style="background:#18181B;border-radius:14px;padding:12px 14px;font-size:11.5px;line-height:1.45;">
+          <b>📚 Citation</b>: Lin, Woodruff, Deng, Mao, Zuo & Mirrokni (Sept 2026). <i>Stellar Colosseum</i>. arXiv:2609.15983v2<br/>
+          <span style="color:#FFE66D;font-weight:800;">⭐ Tap SAVE & Follow for Ep. 02 tomorrow!</span>
+        </div>
+      </div>
+      `
+    ];
+
+    let currentIdx = 0;
+
+    function renderAll() {
+      // Mount active slide
+      document.getElementById('slideMount').innerHTML = SLIDES[currentIdx];
+      document.getElementById('slideCounter').textContent = (currentIdx + 1) + ' / ' + SLIDES.length;
+
+      // Render dots
+      const dotsBar = document.getElementById('dotsBar');
+      dotsBar.innerHTML = SLIDES.map((_, idx) =>
+        `<div class="dot ${idx === currentIdx ? 'active' : ''}" onclick="setSlide(${idx})"></div>`
+      ).join('');
+
+      // Render gallery
+      const gallery = document.getElementById('galleryGrid');
+      gallery.innerHTML = SLIDES.map((html, idx) => `
+        <div class="mini-card-wrap ${idx === currentIdx ? 'selected' : ''}" onclick="setSlide(${idx})">
+          ${html}
+        </div>
+      `).join('');
+    }
+
+    function changeSlide(delta) {
+      currentIdx = (currentIdx + delta + SLIDES.length) % SLIDES.length;
+      renderAll();
+    }
+
+    function setSlide(idx) {
+      currentIdx = idx;
+      renderAll();
+    }
+
+    function copyCaption() {
+      const box = document.getElementById('rawCaptionBox');
+      box.select();
+      navigator.clipboard.writeText(box.value);
+      alert('Copied authentic RedNote caption to clipboard!');
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const singleCardParam = params.get('card');
+    if (singleCardParam) {
+      const idx = Math.max(0, Math.min(SLIDES.length - 1, parseInt(singleCardParam, 10) - 1));
+      document.body.style.padding = '0';
+      document.body.style.margin = '0';
+      document.body.style.width = '540px';
+      document.body.style.height = '720px';
+      document.body.style.overflow = 'hidden';
+      document.body.innerHTML = `<div style="width:540px;height:720px;">${SLIDES[idx]}</div>`;
+    } else {
+      renderAll();
+    }
+  </script>
+</body>
+</html>
