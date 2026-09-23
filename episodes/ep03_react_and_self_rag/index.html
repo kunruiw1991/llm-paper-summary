@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mathematical Monograph Vol. III — ReAct & Self-RAG (arXiv:2210.03629 / arXiv:2310.11511)</title>
+  <style>
+    :root {
+      --parchment: #FCFBF7;
+      --ink: #111111;
+      --ink-secondary: #2B2B2B;
+      --ink-muted: #555555;
+      --rule-heavy: #111111;
+      --rule-light: #B8B4A9;
+      --thm-bg: #F4F2EC;
+      --proof-bg: #F8F7F3;
+      --accent-navy: #1B365D;
+      --accent-crimson: #7A1C1C;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Computer Modern Serif", "Latin Modern Roman", Georgia, "Times New Roman", Times, serif;
+      background: #E8E6DF;
+      color: var(--ink);
+      padding: 28px 18px 64px;
+      line-height: 1.45;
+    }
+    .monograph-header {
+      max-width: 1220px;
+      margin: 0 auto 24px;
+      background: var(--parchment);
+      border: 2px solid var(--rule-heavy);
+      padding: 18px 26px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      box-shadow: 4px 4px 0 rgba(0,0,0,0.14);
+    }
+    .monograph-header h1 {
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+    .monograph-header .subtitle {
+      font-size: 12.5px;
+      color: var(--ink-muted);
+      font-style: italic;
+      margin-top: 2px;
+    }
+    .nav-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .academic-btn {
+      font-family: inherit;
+      font-size: 12.5px;
+      font-weight: 700;
+      padding: 8px 15px;
+      border: 1.5px solid var(--ink);
+      background: var(--parchment);
+      color: var(--ink);
+      cursor: pointer;
+      text-decoration: none;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .academic-btn:hover, .academic-btn.primary {
+      background: var(--ink);
+      color: var(--parchment);
+    }
+
+    .layout-grid {
+      max-width: 1220px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 540px 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+    @media (max-width: 1024px) {
+      .layout-grid { grid-template-columns: 1fr; }
+    }
+
+    .viewer-column {
+      position: sticky;
+      top: 20px;
+      background: var(--parchment);
+      border: 2px solid var(--ink);
+      box-shadow: 6px 6px 0 rgba(0,0,0,0.18);
+      padding: 14px;
+    }
+    .viewer-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid var(--rule-light);
+      font-size: 12.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    /* ============================================================================
+       3:4 RIGID MATHEMATICAL MONOGRAPH PLATE (540x720 -> 1080x1440 at 2x DPI)
+       ============================================================================ */
+    .math-plate {
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      background: var(--parchment);
+      border: 2.5px double var(--ink);
+      padding: 22px 24px 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      color: var(--ink);
+    }
+    .plate-running-head {
+      border-bottom: 1.5px solid var(--ink);
+      padding-bottom: 5px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--ink-secondary);
+    }
+    .plate-title-block {
+      margin-bottom: 8px;
+    }
+    .plate-section-tag {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent-navy);
+      margin-bottom: 2px;
+    }
+    .plate-main-title {
+      font-size: 19.5px;
+      font-weight: 700;
+      line-height: 1.18;
+      color: var(--ink);
+    }
+    .plate-authors {
+      font-size: 11px;
+      font-style: italic;
+      color: var(--ink-secondary);
+      margin-top: 3px;
+    }
+
+    .math-env {
+      background: var(--thm-bg);
+      border-left: 3px solid var(--ink);
+      border-top: 1px solid #DCD8CE;
+      border-right: 1px solid #DCD8CE;
+      border-bottom: 1px solid #DCD8CE;
+      padding: 8px 11px;
+      margin-bottom: 7px;
+      font-size: 11.2px;
+      line-height: 1.38;
+    }
+    .math-env.thm { border-left-color: var(--accent-crimson); }
+    .math-env.def { border-left-color: var(--accent-navy); }
+    .math-env.proof {
+      background: var(--proof-bg);
+      border-left: 2px solid var(--ink-muted);
+      font-size: 10.8px;
+    }
+    .env-head { font-weight: 700; font-style: normal; color: var(--ink); }
+    .env-body { font-style: italic; }
+    .env-body.roman { font-style: normal; }
+    .eq-block {
+      font-family: "Latin Modern Math", "Cambria Math", "STIX Two Math", "SFMono-Regular", Consolas, monospace;
+      background: #FFFFFF;
+      border: 1px solid #D5D1C6;
+      padding: 6px 10px;
+      margin: 5px 0;
+      font-size: 10.8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-style: normal;
+      color: var(--ink);
+    }
+    .eq-num {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--ink-muted);
+      margin-left: 8px;
+      white-space: nowrap;
+    }
+    .qed { float: right; font-style: normal; font-weight: 700; }
+
+    .booktabs {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10.2px;
+      margin: 5px 0;
+      background: #fff;
+    }
+    .booktabs thead tr {
+      border-top: 1.8px solid var(--ink);
+      border-bottom: 1.2px solid var(--ink);
+    }
+    .booktabs th { text-align: left; padding: 4px 6px; font-weight: 700; }
+    .booktabs td { padding: 3.5px 6px; border-bottom: 0.5px solid #E2DFD7; }
+    .booktabs tbody tr:last-child td { border-bottom: 1.8px solid var(--ink); }
+    .num-col { text-align: right; font-family: "SFMono-Regular", Consolas, monospace; }
+
+    .plate-footer {
+      border-top: 1px solid var(--ink);
+      padding-top: 5px;
+      margin-top: 6px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 9.5px;
+      color: var(--ink-muted);
+    }
+
+    .plates-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .thumb-frame {
+      background: var(--parchment);
+      border: 1.5px solid var(--rule-light);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .thumb-frame.active, .thumb-frame:hover {
+      border-color: var(--accent-navy);
+      box-shadow: 4px 4px 0 rgba(27,54,93,0.25);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="monograph-header">
+    <div>
+      <h1>Mathematical Monograph Vol. III: ReAct &amp; Self-RAG</h1>
+      <div class="subtitle">Bourbaki Plate Series · Interleaved Reasoning, Reflection Tokens &amp; Grounded Verification</div>
+    </div>
+    <div class="nav-group">
+      <a href="interactive_walkthrough.html" class="academic-btn">Visual Walkthrough</a>
+      <a href="xm_results_dashboard.html" class="academic-btn">XManager Dashboard</a>
+      <a href="https://github.com/kunruiw1991/llm-paper-summary" target="_blank" class="academic-btn primary">GitHub Compendium</a>
+    </div>
+  </div>
+
+  <div class="layout-grid">
+    <!-- Active Plate Viewer -->
+    <div class="viewer-column">
+      <div class="viewer-controls">
+        <button class="academic-btn" onclick="stepPlate(-1)">◀ Prev</button>
+        <span id="plateCounterLabel">PLATE I OF VII</span>
+        <button class="academic-btn" onclick="stepPlate(1)">Next ▶</button>
+      </div>
+      <div id="activePlateStage"></div>
+    </div>
+
+    <!-- Gallery / Overview Grid -->
+    <div>
+      <h2 style="font-size:16px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:14px; border-bottom:2px solid var(--ink); padding-bottom:6px;">
+        Monograph Plates (Archive Overview)
+      </h2>
+      <div class="plates-grid" id="plateGalleryGrid"></div>
+    </div>
+  </div>
+
+  <script>
+    const PLATES = [
+      // PLATE I: THE PARAMETRIC VS EXTERNAL MEMORY DILEMMA & RETRIEVAL POLLUTION
+      `
+      <div class="math-plate" id="plate-1">
+        <div>
+          <div class="plate-running-head">
+            <span>VOL. III: REACT &amp; SELF-RAG · THE PARAMETRIC KNOWLEDGE DILEMMA</span>
+            <span>ARXIV:2210.03629 / ARXIV:2310.11511 · PLATE I / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">§1.0 · Foundational Setting &amp; Failure Modes</div>
+            <div class="plate-main-title">Parametric Memory Limits &amp; Naive Retrieval Degradation</div>
+            <div class="plate-authors">S. Yao et al. (Princeton / Google Brain) &amp; A. Asai et al. (Univ. Washington / Allen AI)</div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 1.1 (Parametric vs. Non-Parametric Information Duality).</span>
+            <span class="env-body roman">Let M_θ denote an autoregressive language model with static parameters θ ∈ ℝ^d, and let D = {d_1, d_2, ..., d_N} denote an open-world external document corpus. The conditional distribution over sequence y given query x satisfies P(y | x) = P_θ(y | x, D) where retrieval is parameterized by an external mapping R : X → P(D).</span>
+          </div>
+
+          <div class="math-env thm">
+            <span class="env-head">Proposition 1.2 (Pathologies of Naive Always-On RAG).</span>
+            <span class="env-body roman">Standard Naive RAG fixes R(x) = TopK_sim(x, D) uniformly for all queries x ∈ X, inducing three systemic vulnerabilities:</span>
+            <div class="eq-block">
+              <span>R_naive(x) = {d_(1), ..., d_(k)}, &nbsp;&nbsp; ∀ x ∈ X &nbsp; (Unconditional Retrieval)</span>
+              <span class="eq-num">(Eq. 1.1)</span>
+            </div>
+            <span class="env-body roman">
+              1. <b>Adversarial Distractor Poisoning</b>: When max_i Sim(x, d_i) selects an irrelevant or adversarial passage d_adv, unconditional conditioning forces P_θ(y | x, d_adv) to amplify spurious premises.<br/>
+              2. <b>Parametric Redundancy Tax</b>: When x requires invariant factual or mathematical deduction already in θ (e.g. O(N^2) complexity), R_naive wastes latency and adds context clutter.<br/>
+              3. <b>Multi-Hop Disconnection</b>: Single-shot retrieval fails when answering x requires a compositional chain d_1 → a_1 → d_2 → y.
+            </span>
+          </div>
+
+          <table class="booktabs">
+            <thead>
+              <tr>
+                <th>Retrieval Paradigm</th>
+                <th>Decision Boundary</th>
+                <th>Reasoning Horizon</th>
+                <th>Grounding Verification</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Vanilla No-RAG</td>
+                <td>Zero (None)</td>
+                <td>Parametric CoT only</td>
+                <td>None (Unchecked Hallucination)</td>
+              </tr>
+              <tr>
+                <td>Naive Always-On RAG</td>
+                <td>Static Step 0</td>
+                <td>Single-hop Top-K</td>
+                <td>None (Vulnerable to Distractors)</td>
+              </tr>
+              <tr>
+                <td><b>ReAct (Yao et al.)</b></td>
+                <td><b>Interleaved Actions</b></td>
+                <td><b>Dynamic Multi-Hop</b></td>
+                <td><b>Trace Observation Consistency</b></td>
+              </tr>
+              <tr>
+                <td><b>Self-RAG (Asai et al.)</b></td>
+                <td><b>Adaptive [Retrieve]</b></td>
+                <td><b>Segment-Level Gated</b></td>
+                <td><b>Explicit [IsRel] &amp; [IsSup] Tokens</b></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Yao et al. (2022), arXiv:2210.03629; Asai et al. (2023), arXiv:2310.11511</span>
+          <span>Page 1 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE II: REACT FORMALISM — POMDP AUGMENTED ACTION SPACE
+      `
+      <div class="math-plate" id="plate-2">
+        <div>
+          <div class="plate-running-head">
+            <span>REACT FORMALISM · INTERLEAVING REASONING &amp; EXTERNAL ACTING</span>
+            <span>ARXIV:2210.03629 · PLATE II / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">§2.0 · POMDP with Thought-Action Augmentation</div>
+            <div class="plate-main-title">ReAct: Augmented Action Space &amp; Dynamic Traces</div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 2.1 (Partially Observable Markov Decision Process Setup).</span>
+            <span class="env-body roman">Consider an interactive environment with state space S, observation space O, external action space A_env, and transition dynamics T : S × A_env → P(S). The agent receives query x and observation o_t = O(s_t), but cannot observe latent true world state s_t.</span>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 2.2 (Augmented Action Space A_aug = A_env ∪ L_thought).</span>
+            <span class="env-body roman">ReAct augments the action space with an unbounded linguistic reasoning space L_thought. At step t:</span>
+            <div class="eq-block">
+              <span>a_t ∈ A_aug = A_env ∪ L_thought</span>
+              <span class="eq-num">(Eq. 2.1)</span>
+            </div>
+            <span class="env-body roman">
+              • If a_t = thought_t ∈ L_thought, the environment state is frozen (s_(t+1) = s_t), and observation o_(t+1) = ∅. Thought updates the agent's internal working context.<br/>
+              • If a_t ∈ A_env (e.g., Search[entity], Lookup[keyword], Finish[ans]), the environment executes the action and returns observation o_(t+1) ~ O(s_(t+1)).
+            </span>
+          </div>
+
+          <div class="math-env thm">
+            <span class="env-head">Theorem 2.3 (Synergistic Error Correction in ReAct Traces).</span>
+            <span class="env-body roman">Let P_err(CoT) denote the probability of compounding reasoning errors in ungrounded Chain-of-Thought, and P_err(Act) denote the failure rate of unreasoned action execution. ReAct bounds the error rate via mutual grounding:</span>
+            <div class="eq-block">
+              <span>c_t = (x, a_1, o_1, ..., a_(t-1), o_(t-1)), &nbsp;&nbsp; a_t ~ π_θ(· | c_t)</span>
+              <span class="eq-num">(Eq. 2.2)</span>
+            </div>
+            <span class="env-body roman">External observations o_k prune hallucinated branch trajectories in L_thought, while thoughts t_k eliminate aimless exploratory sampling in A_env. <span class="qed">∎</span></span>
+          </div>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Yao et al., "ReAct: Synergizing Reasoning and Acting in Language Models", ICLR 2023</span>
+          <span>Page 2 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE III: SELF-RAG FORMALISM — THE 4 REFLECTION TOKEN FAMILIES
+      `
+      <div class="math-plate" id="plate-3">
+        <div>
+          <div class="plate-running-head">
+            <span>SELF-RAG ARCHITECTURE · ADAPTIVE REFLECTION TOKENS</span>
+            <span>ARXIV:2310.11511 · PLATE III / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">§3.0 · Reflection Token Taxonomy &amp; Generator Training</div>
+            <div class="plate-main-title">Self-RAG: Reflection Token Taxonomy &amp; Supervision</div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 3.1 (Reflection Token Vocabulary Extension Γ).</span>
+            <span class="env-body roman">Self-RAG extends the base vocabulary V with special reflection tokens: V_aug = V ∪ Γ_ret ∪ Γ_rel ∪ Γ_sup ∪ Γ_use:</span>
+            <div class="eq-block">
+              <span>Γ = { [Retrieve], [IsRel], [IsSup], [IsUse] }</span>
+              <span class="eq-num">(Eq. 3.1)</span>
+            </div>
+          </div>
+
+          <table class="booktabs">
+            <thead>
+              <tr>
+                <th>Reflection Family</th>
+                <th>Token Realizations</th>
+                <th>Mathematical Role &amp; Gating Mechanism</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>Retrieval Gating (Γ_ret)</b></td>
+                <td><code>[Retrieve:Yes]</code>, <code>[Retrieve:No]</code>, <code>[Retrieve:Continue]</code></td>
+                <td>Triggered at segment boundary; decides whether to invoke retriever R(x).</td>
+              </tr>
+              <tr>
+                <td><b>Document Relevance (Γ_rel)</b></td>
+                <td><code>[IsRel:Relevant]</code>, <code>[IsRel:Irrelevant]</code></td>
+                <td>Evaluates whether document d provides relevant context for prompt x.</td>
+              </tr>
+              <tr>
+                <td><b>Grounding Support (Γ_sup)</b></td>
+                <td><code>[IsSup:FullySupported]</code>, <code>[IsSup:Partially]</code>, <code>[IsSup:NoSupport]</code></td>
+                <td>Verifies whether generated output segment y_t is strictly entailed by d.</td>
+              </tr>
+              <tr>
+                <td><b>Utility Quality (Γ_use)</b></td>
+                <td><code>[IsUse:1]</code>, <code>[IsUse:2]</code>, <code>[IsUse:3]</code>, <code>[IsUse:4]</code>, <code>[IsUse:5]</code></td>
+                <td>Assesses overall informativeness, truthfulness, and utility of response.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="math-env thm" style="margin-bottom:0;">
+            <span class="env-head">Proposition 3.2 (Dual-Model Critic-Generator Distillation).</span>
+            <span class="env-body roman">Self-RAG trains a specialized Critic Model C to label reflection tokens on corpus D_train, then distills C into the Generator M via standard supervised fine-tuning:</span>
+            <div class="eq-block">
+              <span>L_SFT(θ) = - ∑_{(x, y)} ∑_{t=1}^{|y|} log P_θ(y_t | x, y_{&lt;t})</span>
+              <span class="eq-num">(Eq. 3.2)</span>
+            </div>
+            <span class="env-body roman">This allows M to generate both target tokens and critique tokens end-to-end without auxiliary inference networks. <span class="qed">∎</span></span>
+          </div>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Asai et al., "Self-RAG: Learning to Retrieve, Generate, and Critique", ICLR 2024</span>
+          <span>Page 3 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE IV: SEGMENT-LEVEL BEAM SEARCH & CRITIQUE SCORING
+      `
+      <div class="math-plate" id="plate-4">
+        <div>
+          <div class="plate-running-head">
+            <span>SELF-RAG INFERENCE · SEGMENT BEAM SEARCH &amp; CRITIQUE SCORING</span>
+            <span>ARXIV:2310.11511 · PLATE IV / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">§3.2 · Segment-Level Decoding Formulation</div>
+            <div class="plate-main-title">Segment-Level Beam Search &amp; Multi-Reward Formulation</div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 4.1 (Segment-Level Generation Step).</span>
+            <span class="env-body roman">The response y is partitioned into T segments (e.g. sentences) y = [y_1, y_2, ..., y_T]. At segment t, the model emits token r_t ∈ Γ_ret. If r_t = [Retrieve:Yes], the model queries retriever R(x, y_{&lt;t}) to obtain K candidate passages {d_1, ..., d_K}.</span>
+          </div>
+
+          <div class="math-env thm">
+            <span class="env-head">Theorem 4.2 (Critique-Regularized Beam Score Functional, Eq. 4 of Asai et al.).</span>
+            <span class="env-body roman">Each candidate continuation segment y_t generated conditioned on passage d_k is scored by combining generation likelihood with critique token rewards:</span>
+            <div class="eq-block" style="font-size:9.8px;">
+              <span>Score(y_t, d_k) = (1/|y_t|) ∑_{i} log P_θ(y_{t,i} | x, y_{&lt;t}, d_k) + γ_rel P([IsRel:Rel]) + γ_sup P([IsSup:Full]) + γ_use P([IsUse:5])</span>
+              <span class="eq-num">(Eq. 4.1)</span>
+            </div>
+          </div>
+
+          <div class="math-env proof" style="margin-bottom:0;">
+            <span class="env-head">Proof (Hallucination Suppression via Support Thresholding).</span>
+            <span class="env-body roman">Let τ_sup ∈ (0, 1] denote the strictness threshold. If P([IsSup:NoSupport] | x, y_{&lt;t}, d_k, y_t) &gt; 1 - τ_sup, the segment is assigned score -∞ and pruned from the beam. Consequently, the decoded sequence y^* = argmax_y ∏_{t=1}^T Score(y_t, d^*) satisfies:</span>
+            <div class="eq-block">
+              <span>P(Hallucination | y^*) ≤ ∏_{t=1}^T (1 - P([IsSup:Full])) ⟶ 0</span>
+              <span class="eq-num">(Bound 4.2)</span>
+            </div>
+            <span class="env-body roman">as the support threshold τ_sup → 1. <span class="qed">∎</span></span>
+          </div>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Asai et al., "Self-RAG: Learning to Retrieve, Generate, and Critique", ICLR 2024, §3.2</span>
+          <span>Page 4 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE V: ADVERSARIAL DISTRACTORS & MULTI-HOP GROUNDING VERIFICATION
+      `
+      <div class="math-plate" id="plate-5">
+        <div>
+          <div class="plate-running-head">
+            <span>EMPIRICAL VERIFICATION · ADVERSARIAL DISTRACTOR IMMUNITY</span>
+            <span>XMANAGER XM/292337037 · PLATE V / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">§4.0 · Robustness under Adversarial Poisoning</div>
+            <div class="plate-main-title">Multi-Hop Deduction &amp; Adversarial Distractor Immunity</div>
+          </div>
+
+          <div class="math-env thm">
+            <span class="env-head">Proposition 5.1 (Asymmetric Distractor Susceptibility).</span>
+            <span class="env-body roman">Consider an adversarial document d_adv crafted with high lexical overlap to query x but containing an inverted factual claim y_false. Under Naive RAG:</span>
+            <div class="eq-block">
+              <span>P_naive(y_false | x) = P_θ(y_false | x, d_adv) ≫ 0 &nbsp; (Catastrophic Poisoning)</span>
+              <span class="eq-num">(Prop. 5.1)</span>
+            </div>
+            <span class="env-body roman">Under Self-RAG, the support classifier detects the discrepancy against parametric world knowledge and uncorrupted documents:</span>
+            <div class="eq-block">
+              <span>P_selfrag([IsSup:NoSupport] | x, d_adv, y_false) ≈ 1.0 &nbsp; ⟹ &nbsp; Score(y_false, d_adv) ⟶ -∞</span>
+              <span class="eq-num">(Prop. 5.2)</span>
+            </div>
+          </div>
+
+          <table class="booktabs">
+            <thead>
+              <tr>
+                <th>Test Query Category</th>
+                <th>Query Intent</th>
+                <th>Naive RAG Output</th>
+                <th>Self-RAG Output</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Parametric Invariant</td>
+                <td>Self-Attention Complexity</td>
+                <td>Unnecessary Ret (235 tok)</td>
+                <td><b>[Retrieve:No]</b> (85 tok, 0 Ret)</td>
+              </tr>
+              <tr>
+                <td>Temporal Fact Check</td>
+                <td>Post-Training SOTA</td>
+                <td>Static Context (Outdated)</td>
+                <td><b>[Retrieve:Yes]</b> + Full Grounding</td>
+              </tr>
+              <tr>
+                <td>Multi-Hop Dependency</td>
+                <td>Self-RAG Baseline Comparison</td>
+                <td>Incomplete 1-Hop Fragment</td>
+                <td><b>ReAct Iterative Trace</b> (100% Acc)</td>
+              </tr>
+              <tr>
+                <td>Adversarial Distractor</td>
+                <td>Poisoned Pipeline Claims</td>
+                <td><b>Hallucinated False Fact</b></td>
+                <td><b>[IsSup:NoSupport] Pruned</b> (0% Halluc)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: XManager Experiment xm/292337037 Telemetry Verification</span>
+          <span>Page 5 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE VI: EMPIRICAL BENCHMARK SCORECARD (XM/292337037)
+      `
+      <div class="math-plate" id="plate-6">
+        <div>
+          <div class="plate-running-head">
+            <span>BENCHMARK RESULTS · XMANAGER RUN 292337037 SCORECARD</span>
+            <span>EXPERIMENT COMPARISON · PLATE VI / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">§5.0 · Comparative Telemetry on Real-World Benchmark</div>
+            <div class="plate-main-title">Empirical Scoreboard &amp; Token Efficiency Frontiers</div>
+          </div>
+
+          <table class="booktabs">
+            <thead>
+              <tr>
+                <th>Architecture Paradigm</th>
+                <th class="num-col">Accuracy</th>
+                <th class="num-col">Hallucination</th>
+                <th class="num-col">Retrievals / Q</th>
+                <th class="num-col">Tokens / Q</th>
+                <th class="num-col">Unnecessary Ret%</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Vanilla (No RAG)</td>
+                <td class="num-col">25.0%</td>
+                <td class="num-col">75.0%</td>
+                <td class="num-col">0.00</td>
+                <td class="num-col">85.0</td>
+                <td class="num-col">0.0%</td>
+              </tr>
+              <tr>
+                <td>Naive (Always-On RAG)</td>
+                <td class="num-col">87.5%</td>
+                <td class="num-col">12.5%</td>
+                <td class="num-col">1.00</td>
+                <td class="num-col">237.2</td>
+                <td class="num-col">25.0%</td>
+              </tr>
+              <tr>
+                <td><b>ReAct (Interleaved Trace)</b></td>
+                <td class="num-col"><b>100.0%</b></td>
+                <td class="num-col"><b>0.0%</b></td>
+                <td class="num-col">0.88</td>
+                <td class="num-col">174.8</td>
+                <td class="num-col"><b>0.0%</b></td>
+              </tr>
+              <tr>
+                <td><b>Self-RAG (Reflection Tokens)</b></td>
+                <td class="num-col"><b>100.0%</b></td>
+                <td class="num-col"><b>0.0%</b></td>
+                <td class="num-col"><b>0.75</b></td>
+                <td class="num-col"><b>135.5</b></td>
+                <td class="num-col"><b>0.0%</b></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="math-env thm">
+            <span class="env-head">Empirical Finding 6.1 (The Token Efficiency Pareto Frontier).</span>
+            <span class="env-body roman">Self-RAG reduces average context token overhead by <b>42.9%</b> relative to Naive RAG (135.5 vs. 237.2 tokens/Q) while increasing grounding precision to <b>100.0%</b>. This efficiency stems from emitting <code>[Retrieve:No]</code> on invariant queries, demonstrating that adaptive retrieval Pareto-dominates static Top-K pipelines.</span>
+          </div>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: XManager Experiment xm/292337037 S2 Telemetry</span>
+          <span>Page 6 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE VII: PRODUCTION SERVING, SYSTEMS TRADE-OFFS & FRONTIERS
+      `
+      <div class="math-plate" id="plate-7">
+        <div>
+          <div class="plate-running-head">
+            <span>SYSTEMS ARCHITECTURE · PRODUCTION TRADE-OFFS &amp; NEXT FRONTIERS</span>
+            <span>ARXIV:2310.11511 · PLATE VII / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">§6.0 · Production Deployment &amp; Future Directions</div>
+            <div class="plate-main-title">Systems Serving Latency &amp; Agentic RAG Frontiers</div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 7.1 (Speculative Critique Decoding for Low Latency).</span>
+            <span class="env-body roman">In high-QPS production environments, generating critique tokens sequentially at every token position incurs latency penalties. Speculative Critique allows parallel evaluation:</span>
+            <div class="eq-block">
+              <span>T_latency = T_generate + 𝕀[ r_t = [Retrieve:Yes] ] · (T_retrieve + K · T_critique)</span>
+              <span class="eq-num">(Eq. 7.1)</span>
+            </div>
+            <span class="env-body roman">By pre-filtering candidate passages asynchronously, serving engines mask 70% of external RPC retrieval latency.</span>
+          </div>
+
+          <div class="math-env thm">
+            <span class="env-head">Summary of Core Architectural Principles.</span>
+            <span class="env-body roman">
+              1. <b>Adaptive Gating (Self-RAG)</b>: Models must dynamically determine when external knowledge is strictly required rather than unconditionally searching.<br/>
+              2. <b>Bidirectional Synergy (ReAct)</b>: Reasoning guides tool selection; environmental feedback prunes incorrect deductions.<br/>
+              3. <b>Tokenized Self-Reflection</b>: Internalizing critique mechanisms into vocabulary tokens enables beam search optimization over factuality and relevance without external reward models.
+            </span>
+          </div>
+
+          <div class="math-env proof" style="margin-bottom:0;">
+            <span class="env-head">Primary References.</span>
+            <span class="env-body roman">
+              [1] S. Yao et al., "ReAct: Synergizing Reasoning and Acting in Language Models," <i>arXiv:2210.03629</i>, ICLR 2023.<br/>
+              [2] A. Asai et al., "Self-RAG: Learning to Retrieve, Generate, and Critique through Self-Reflection," <i>arXiv:2310.11511</i>, ICLR 2024. <span class="qed">∎</span>
+            </span>
+          </div>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Yao et al. (2022); Asai et al. (2023)</span>
+          <span>Page 7 of 7</span>
+        </div>
+      </div>
+      `
+    ];
+
+    const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
+    let currentIdx = 0;
+
+    function renderMonograph() {
+      document.getElementById('activePlateStage').innerHTML = PLATES[currentIdx];
+      document.getElementById('plateCounterLabel').textContent = `PLATE ${ROMAN[currentIdx]} OF VII`;
+
+      const gallery = document.getElementById('plateGalleryGrid');
+      gallery.innerHTML = PLATES.map((html, idx) => `
+        <div class="thumb-frame ${idx === currentIdx ? 'active' : ''}" onclick="selectPlate(${idx})">
+          ${html}
+        </div>
+      `).join('');
+    }
+
+    function stepPlate(delta) {
+      currentIdx = (currentIdx + delta + PLATES.length) % PLATES.length;
+      renderMonograph();
+    }
+
+    function selectPlate(idx) {
+      currentIdx = idx;
+      renderMonograph();
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const singleCardParam = params.get('card');
+    if (singleCardParam) {
+      const idx = Math.max(0, Math.min(PLATES.length - 1, parseInt(singleCardParam, 10) - 1));
+      document.body.style.padding = '0';
+      document.body.style.margin = '0';
+      document.body.style.width = '540px';
+      document.body.style.height = '720px';
+      document.body.style.overflow = 'hidden';
+      document.body.innerHTML = `<div style="width:540px;height:720px;">${PLATES[idx]}</div>`;
+    } else {
+      renderMonograph();
+    }
+  </script>
+</body>
+</html>

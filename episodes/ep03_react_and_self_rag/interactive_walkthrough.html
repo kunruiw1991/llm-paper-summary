@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReAct & Self-RAG (arXiv:2210.03629 / arXiv:2310.11511) — Interactive Visual Walkthrough</title>
+<style>
+  :root {
+    --bg: #090d16;
+    --panel: #111726;
+    --panel-alt: #172036;
+    --card: #1c2642;
+    --border: #28375e;
+    --text: #eaf0fc;
+    --muted: #94a7cb;
+    --accent: #38bdf8;
+    --accent-2: #818cf8;
+    --success: #34d399;
+    --warning: #fbbf24;
+    --danger: #f87171;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    line-height: 1.55;
+  }
+
+  a { color: var(--accent); text-decoration: underline; }
+  a:hover { color: #7dd3fc; }
+
+  header {
+    background: linear-gradient(135deg, #0d1527 0%, #152243 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 22px 28px;
+  }
+
+  .badge-pill {
+    display: inline-block;
+    background: rgba(56, 189, 248, 0.16);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    letter-spacing: 0.4px;
+    margin-bottom: 8px;
+  }
+
+  h1 { margin: 0 0 6px 0; font-size: 24px; font-weight: 800; color: #ffffff; }
+  .subtitle { margin: 0; color: var(--muted); font-size: 14px; max-width: 1080px; }
+
+  .nav-tabs {
+    display: flex;
+    gap: 6px;
+    padding: 12px 28px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    flex-wrap: wrap;
+  }
+
+  .nav-tab {
+    background: var(--panel-alt);
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 9px 15px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+  }
+
+  .nav-tab:hover { color: var(--text); border-color: var(--accent); }
+  .nav-tab.active {
+    background: linear-gradient(135deg, #0284c7, #4f46e5);
+    color: #ffffff;
+    border-color: #38bdf8;
+    box-shadow: 0 2px 10px rgba(2, 132, 199, 0.35);
+  }
+
+  main {
+    padding: 24px 28px 60px 28px;
+    max-width: 1440px;
+    margin: 0 auto;
+  }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  @media (max-width: 1024px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+    margin-bottom: 18px;
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .card-title {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+    color: #ffffff;
+  }
+
+  .math-box {
+    background: #090f1f;
+    border: 1px solid #24355a;
+    border-left: 4px solid var(--accent);
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-family: var(--font-mono);
+    font-size: 13.5px;
+    color: #dbeafe;
+    margin: 10px 0;
+    overflow-x: auto;
+  }
+
+  .btn {
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: var(--font-sans);
+  }
+
+  .btn:hover { background: #223258; border-color: var(--accent); }
+  .btn-primary { background: #0284c7; border-color: #38bdf8; color: #fff; }
+  .btn-primary:hover { background: #0369a1; }
+  .btn-success { background: #059669; border-color: #10b981; color: #fff; }
+
+  .status-pill {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 700;
+    font-family: var(--font-mono);
+  }
+
+  .pill-ready { background: rgba(52, 211, 153, 0.18); color: #34d399; border: 1px solid #34d399; }
+  .pill-reject { background: rgba(248, 113, 113, 0.18); color: #f87171; border: 1px solid #f87171; }
+  .pill-info { background: rgba(56, 189, 248, 0.18); color: #38bdf8; border: 1px solid #38bdf8; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-top: 8px; }
+  th, td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; }
+  th { background: var(--panel-alt); color: var(--accent); font-weight: 700; }
+  tr:hover td { background: rgba(255, 255, 255, 0.02); }
+
+  .quiz-option {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: var(--panel-alt);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 14px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    font-size: 13.5px;
+    transition: all 0.15s ease;
+  }
+  .quiz-option:hover { border-color: var(--accent); background: #1e2d4d; }
+  .quiz-option.correct { background: rgba(52, 211, 153, 0.2); border-color: #34d399; color: #d1fae5; }
+  .quiz-option.wrong { background: rgba(248, 113, 113, 0.2); border-color: #f87171; color: #fee2e2; }
+
+  .explanation-box {
+    margin-top: 10px;
+    padding: 12px 14px;
+    border-radius: 6px;
+    background: #0b1326;
+    border: 1px solid var(--border);
+    font-size: 13px;
+    display: none;
+  }
+  .explanation-box.visible { display: block; }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="badge-pill">EPISODE 3 • TRACK C: RAG, TOOL-USE &amp; GROUNDING • INTERACTIVE LAB</span>
+  <h1>ReAct &amp; Self-RAG: Grounded Reasoning, Tool Execution &amp; Self-Reflection</h1>
+  <p class="subtitle">
+    Interactive first-principles exploration of ReAct (<a href="https://arxiv.org/abs/2210.03629" target="_blank">arXiv:2210.03629</a>) and Self-RAG (<a href="https://arxiv.org/abs/2310.11511" target="_blank">arXiv:2310.11511</a>).
+    Discover why Naive RAG is vulnerable to distractor poisoning, how ReAct creates an interleaved Thought-Action-Observation POMDP trace, and how Self-RAG utilizes special reflection tokens ([Retrieve], [IsRel], [IsSup], [IsUse]) with segment beam critique.
+  </p>
+</header>
+
+<nav class="nav-tabs" id="main-nav">
+  <button class="nav-tab active" onclick="switchTab('tab1')">1. The Naive RAG Failure Mode</button>
+  <button class="nav-tab" onclick="switchTab('tab2')">2. ReAct: POMDP Thought-Action Loop</button>
+  <button class="nav-tab" onclick="switchTab('tab3')">3. Self-RAG: 4 Reflection Token Families</button>
+  <button class="nav-tab" onclick="switchTab('tab4')">4. Segment Beam Search &amp; Critique Scoring</button>
+  <button class="nav-tab" onclick="switchTab('tab5')">5. Multi-Hop Adversarial Verifier</button>
+  <button class="nav-tab" onclick="switchTab('tab6')">6. Graded Self-Check Quiz (5 Questions)</button>
+</nav>
+
+<main>
+  <!-- TAB 1 -->
+  <section id="tab1" class="tab-panel active">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Why Naive RAG Fails: Distractor Poisoning &amp; Fixed-Budget Retrieval</h2>
+        <span class="status-pill pill-reject">THE RETRIEVAL TAX</span>
+      </div>
+      <p style="color:var(--muted); font-size:14px; margin-top:0;">
+        Standard "Naive RAG" always performs retrieval at step 0 regardless of whether the query requires external grounding, and passes top-k documents directly into the prompt context.
+      </p>
+      <div class="grid-2">
+        <div class="card" style="background:var(--panel-alt); border-color:#7f1d1d;">
+          <h3 class="card-title" style="color:#fca5a5;">❌ Naive Always-On RAG Vulnerabilities</h3>
+          <ul style="font-size:13.5px; color:var(--muted); padding-left:20px;">
+            <li><strong>Distractor Corruption:</strong> If an adversarial or outdated document has high lexical overlap, the model naively integrates the false premise into its generation.</li>
+            <li><strong>Context Window Waste:</strong> Queries about fundamental parametric facts (e.g. O(N^2) complexity of attention) pay retrieval latency and token clutter.</li>
+            <li><strong>Single-Hop Horizon:</strong> Cannot plan multi-step information gathering paths where Query B depends on the answer to Query A.</li>
+          </ul>
+        </div>
+        <div class="card" style="background:var(--panel-alt); border-color:#065f46;">
+          <h3 class="card-title" style="color:#6ee7b7;">✅ Self-RAG &amp; ReAct Solutions</h3>
+          <ul style="font-size:13.5px; color:var(--muted); padding-left:20px;">
+            <li><strong>Adaptive Gating:</strong> Model emits <span class="status-pill pill-info">[Retrieve:No]</span> to answer purely from parametric weights without touching the index.</li>
+            <li><strong>Critique-Guided Filtering:</strong> Documents are evaluated via <span class="status-pill pill-info">[IsRel]</span> and generated spans via <span class="status-pill pill-info">[IsSup]</span>, pruning false claims before output.</li>
+            <li><strong>Interleaved Multi-Step Trajectories:</strong> ReAct alternates Thought -> Action -> Observation until the complete multi-hop dependency is resolved.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 2 -->
+  <section id="tab2" class="tab-panel">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">ReAct: Synergizing Reasoning and Acting in Language Models (Yao et al., 2022)</h2>
+        <span class="status-pill pill-ready">POMDP FORMULATION</span>
+      </div>
+      <p style="color:var(--muted); font-size:14px;">
+        ReAct models problem solving as a Partially Observable Markov Decision Process (POMDP) where the action space is augmented: A_aug = A_env ∪ L_thought.
+      </p>
+      <div class="math-box">
+        At step t: c_t = (q, a_1, o_1, ..., a_(t-1), o_(t-1))<br>
+        Policy generates either:<br>
+        1. Thought t_t ∈ L_thought (Internal deduction, plan adjustment, sub-goal decomposition)<br>
+        2. Action a_t ∈ A_env (e.g. Search[entity], Lookup[keyword], Finish[answer])<br>
+        Environment returns Observation o_t ∈ O
+      </div>
+      <div class="card" style="background:var(--panel-alt); margin-top:14px;">
+        <h3 class="card-title">Interactive Multi-Hop ReAct Step Simulator</h3>
+        <p style="font-size:13px; color:var(--muted);">Click to step through how ReAct resolves a 2-hop question: <em>"Which architecture combines self-critique tokens with RAG, and what baseline does it beat?"</em></p>
+        <button class="btn btn-primary" onclick="stepReactSim()">Step Next ReAct Phase</button>
+        <button class="btn" onclick="resetReactSim()">Reset</button>
+        <div id="react-trace-box" class="math-box" style="margin-top:12px; min-height:140px; white-space:pre-wrap;">[Click 'Step Next ReAct Phase' to begin]</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 3 -->
+  <section id="tab3" class="tab-panel">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Self-RAG: Learning to Retrieve, Generate, and Critique through Self-Reflection</h2>
+        <span class="status-pill pill-info">4 CRITIQUE TOKEN FAMILIES</span>
+      </div>
+      <p style="color:var(--muted); font-size:14px;">
+        Self-RAG introduces special reflection tokens trained via SFT on GPT-4 critique traces and self-reflection preference tuning:
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Token Family</th>
+            <th>Emitted Token Values</th>
+            <th>Functional Role in Pipeline</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Retrieval Gating</strong></td>
+            <td><code>[Retrieve:Yes]</code>, <code>[Retrieve:No]</code>, <code>[Retrieve:Continue]</code></td>
+            <td>Decides at every segment boundary whether external retrieval is required or parametric knowledge suffices.</td>
+          </tr>
+          <tr>
+            <td><strong>Relevance Critique</strong></td>
+            <td><code>[IsRel:Relevant]</code>, <code>[IsRel:Irrelevant]</code></td>
+            <td>Evaluates whether the retrieved document contains actionable knowledge for the current prompt.</td>
+          </tr>
+          <tr>
+            <td><strong>Support / Grounding</strong></td>
+            <td><code>[IsSup:FullySupported]</code>, <code>[IsSup:PartiallySupported]</code>, <code>[IsSup:NoSupport]</code></td>
+            <td>Detects factual hallucinations by verifying if the generated span is strictly entailed by the document.</td>
+          </tr>
+          <tr>
+            <td><strong>Utility Score</strong></td>
+            <td><code>[IsUse:1]</code>, <code>[IsUse:2]</code>, <code>[IsUse:3]</code>, <code>[IsUse:4]</code>, <code>[IsUse:5]</code></td>
+            <td>Quantifies the overall informativeness and clarity of the generated answer segment.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- TAB 4 -->
+  <section id="tab4" class="tab-panel">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Segment-Level Beam Search &amp; Critique Scoring Formulation</h2>
+        <span class="status-pill pill-ready">EQUATION (4) &amp; BEAM DECODING</span>
+      </div>
+      <p style="color:var(--muted); font-size:14px;">
+        During inference, candidate segment beams are scored using soft token probability rewards:
+      </p>
+      <div class="math-box">
+        Score(y_t, d) = P_LM(y_t | x, d) + γ_rel * P([IsRel:Relevant]) + γ_sup * P([IsSup:FullySupported]) + γ_use * P([IsUse:5])<br>
+        If [IsSup:NoSupport] > threshold → Beam is heavily penalized or pruned to eliminate hallucinations!
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 5 -->
+  <section id="tab5" class="tab-panel">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Multi-Hop &amp; Adversarial Distractor Verifier Lab</h2>
+        <span class="status-pill pill-info">LIVE BENCHMARK TELEMETRY</span>
+      </div>
+      <p style="color:var(--muted); font-size:14px;">Inspect actual performance across test queries from our XManager experiment:</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Query ID</th>
+            <th>Type</th>
+            <th>Naive RAG Outcome</th>
+            <th>Self-RAG Outcome</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>q01_transformer_complexity</td>
+            <td>Parametric Fact</td>
+            <td>Unnecessary Retrieval (235 tok)</td>
+            <td><strong>[Retrieve:No]</strong> (85 tok, 0 retrieval)</td>
+          </tr>
+          <tr>
+            <td>q02_rag_synergy</td>
+            <td>Multi-Hop</td>
+            <td>Partial Context (Missing link)</td>
+            <td><strong>Full Grounding</strong> via ReAct/Self-RAG</td>
+          </tr>
+          <tr>
+            <td>q07_adversarial</td>
+            <td>Adversarial Distractor</td>
+            <td><strong>Hallucinated</strong> (Poisoned by distractor)</td>
+            <td><strong>[IsSup:NoSupport]</strong> Filtered, 100% Correct</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- TAB 6 -->
+  <section id="tab6" class="tab-panel">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Graded Self-Check Quiz (First-Principles Verification)</h2>
+        <span class="status-pill pill-ready">MASTERY CHECK</span>
+      </div>
+      <div id="quiz-container">
+        <!-- Q1 -->
+        <div class="card" style="background:var(--panel-alt); margin-bottom:14px;">
+          <p><strong>Q1: Why does Naive Always-On RAG produce hallucinations even when retrieval accuracy is high?</strong></p>
+          <button class="quiz-option" onclick="checkAnswer(this, false, 'q1')">A) Because LLMs cannot attend to more than 512 tokens.</button>
+          <button class="quiz-option" onclick="checkAnswer(this, true, 'q1')">B) Top-k retrieval may return adversarial distractors or irrelevant passages which the model blindly summarizes without support verification.</button>
+          <button class="quiz-option" onclick="checkAnswer(this, false, 'q1')">C) Because cosine similarity is mathematically undefined on dense embeddings.</button>
+          <div id="q1-expl" class="explanation-box">Correct! Without explicit critique tokens like [IsRel] and [IsSup], the generator cannot discern between authoritative facts and irrelevant or poisoning passages.</div>
+        </div>
+
+        <!-- Q2 -->
+        <div class="card" style="background:var(--panel-alt); margin-bottom:14px;">
+          <p><strong>Q2: In ReAct, what is the key difference between a "Thought" and an "Action"?</strong></p>
+          <button class="quiz-option" onclick="checkAnswer(this, true, 'q2')">A) A Thought is internal reasoning that updates the model context without altering external state; an Action interacts with external tools/environments.</button>
+          <button class="quiz-option" onclick="checkAnswer(this, false, 'q2')">B) Thoughts require gradient updates, whereas Actions do not.</button>
+          <button class="quiz-option" onclick="checkAnswer(this, false, 'q2')">C) Thoughts are strictly generated in English, while Actions are Python code.</button>
+          <div id="q2-expl" class="explanation-box">Correct! ReAct augments the action space A_aug = A_env ∪ L_thought, allowing dynamic reasoning steps to precede tool interactions.</div>
+        </div>
+
+        <!-- Q3 -->
+        <div class="card" style="background:var(--panel-alt); margin-bottom:14px;">
+          <p><strong>Q3: What role does the [Retrieve:No] token play in Self-RAG?</strong></p>
+          <button class="quiz-option" onclick="checkAnswer(this, false, 'q3')">A) It throws an exception and halts execution.</button>
+          <button class="quiz-option" onclick="checkAnswer(this, true, 'q3')">B) It gates the retriever off when the model has sufficient parametric confidence, avoiding retrieval latency and token overhead.</button>
+          <button class="quiz-option" onclick="checkAnswer(this, false, 'q3')">C) It forces the model to search local disk instead of the web.</button>
+          <div id="q3-expl" class="explanation-box">Correct! Adaptive retrieval gating allows Self-RAG to save up to 43% in context tokens on standard parametric queries.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  const index = parseInt(tabId.replace('tab', '')) - 1;
+  document.querySelectorAll('.nav-tab')[index].classList.add('active');
+}
+
+let reactStep = 0;
+const reactSteps = [
+  "Thought 1: I need to identify which architecture utilizes critique tokens with RAG. I should search for self-critique retrieval papers.\nAction 1: Search[architecture critique tokens RAG]",
+  "Observation 1: Self-RAG (Asai et al., 2023) introduces special reflection tokens: [Retrieve], [IsRel], [IsSup], and [IsUse] to self-critique generation segments.\n\nThought 2: Now I need to check what baselines Self-RAG beats on open-domain QA.\nAction 2: Search[Self-RAG baseline comparison open domain QA]",
+  "Observation 2: In empirical evaluations, Self-RAG outperforms standard Retrieval-Augmented Generation (Naive RAG) and Llama-2-chat baselines while maintaining zero distractor corruption.\n\nThought 3: I have gathered all necessary information. I can now synthesize the final response.\nAction 3: Finish[Self-RAG (Asai et al., 2023) introduces self-critique reflection tokens and significantly outperforms Naive RAG baselines.]"
+];
+
+function stepReactSim() {
+  if (reactStep < reactSteps.length) {
+    document.getElementById('react-trace-box').innerText = reactSteps[reactStep];
+    reactStep++;
+  } else {
+    document.getElementById('react-trace-box').innerText += "\n\n[Trajectory Complete - Goal Reached]";
+  }
+}
+
+function resetReactSim() {
+  reactStep = 0;
+  document.getElementById('react-trace-box').innerText = "[Click 'Step Next ReAct Phase' to begin]";
+}
+
+function checkAnswer(btn, isCorrect, qId) {
+  const parent = btn.parentElement;
+  parent.querySelectorAll('.quiz-option').forEach(b => {
+    b.disabled = true;
+  });
+  if (isCorrect) {
+    btn.classList.add('correct');
+  } else {
+    btn.classList.add('wrong');
+  }
+  document.getElementById(qId + '-expl').classList.add('visible');
+}
+</script>
+</body>
+</html>
