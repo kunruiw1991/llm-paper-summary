@@ -280,13 +280,68 @@
 
   <div class="monograph-header">
     <div>
-      <h1>MATHEMATICAL RESEARCH MONOGRAPH SERIES · VOLUME I (THEORETICAL COMPUTER SCIENCE)</h1>
-      <div class="subtitle">Stellar Colosseum: Formal Multi-Agent Harness, Overlapping Random-Sample Trees, and Section-DAG Veto Verification (Lin et al., Sept 2026 · arXiv:2609.15983v2)</div>
+      <h1>MATHEMATICAL RESEARCH MONOGRAPH SERIES · VOLUMES I–III COMPENDIUM</h1>
+      <div class="subtitle">Tracks A → B → C → D: Multi-Agent Harnesses (Vol. I), RLVR &amp; GRPO (Vol. II), and ReAct &amp; Self-RAG (Vol. III)</div>
     </div>
     <div class="nav-group">
-      <a class="academic-btn" href="https://arxiv.org/abs/2609.15983v2" target="_blank">arXiv:2609.15983v2</a>
-      <button class="academic-btn primary" onclick="window.print()">Export Monograph PDF</button>
+      <a class="academic-btn primary" href="episodes/ep01_stellar_colosseum/">Vol. I: Stellar Colosseum</a>
+      <a class="academic-btn" href="episodes/ep02_deepseek_r1_grpo/">Vol. II: DeepSeek-R1 &amp; GRPO</a>
+      <a class="academic-btn" href="episodes/ep03_react_and_self_rag/">Vol. III: ReAct &amp; Self-RAG</a>
+      <a class="academic-btn" href="episodes/ep03_react_and_self_rag/interactive_walkthrough.html">Vol. III Interactive Lab</a>
+      <button class="academic-btn" onclick="window.print()">Export PDF</button>
     </div>
+  </div>
+
+  <div style="max-width:1220px;margin:0 auto 22px;background:var(--parchment);border:2px solid var(--ink);padding:16px 24px;box-shadow:4px 4px 0 rgba(0,0,0,0.12);">
+    <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;color:var(--accent-crimson);">
+      Curriculum Progress &amp; Interactive 1-on-1 Mastery Log (Tracks A → B → C → D)
+    </div>
+    <table class="booktabs" style="font-size:11.5px;">
+      <thead>
+        <tr>
+          <th>Volume</th>
+          <th>Track</th>
+          <th>Primary Papers</th>
+          <th>Interactive 4-Lesson Mastery</th>
+          <th>Key Empirical &amp; Mathematical Takeaways</th>
+          <th>Monograph &amp; Lab Links</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b>Vol. I</b> (<code>ep01</code>)</td>
+          <td>Track A: Reasoning Harnesses</td>
+          <td>Stellar Colosseum (arXiv:2609.15983v2)</td>
+          <td><b>COMPLETED (4/4)</b></td>
+          <td>Typed StrategyCards, hypergeometric reuse <code>E[R] = 2.50</code>, 6-vector adversarial falsification, Section-DAG global veto.</td>
+          <td><a href="episodes/ep01_stellar_colosseum/">Reader</a> · <a href="episodes/ep01_stellar_colosseum/plates/">Plates I–VII</a></td>
+        </tr>
+        <tr>
+          <td><b>Vol. II</b> (<code>ep02</code>)</td>
+          <td>Track B: Post-Training &amp; RL</td>
+          <td>DeepSeek-R1 &amp; GRPO (arXiv:2501.12948)</td>
+          <td><b>COMPLETED (4/4)</b></td>
+          <td>Critic-free group advantage <code>A_i = (r_i - μ)/σ</code>, zero-sum control variate, Schulman <code>k_3</code> KL convexity, RLVR.</td>
+          <td><a href="episodes/ep02_deepseek_r1_grpo/">Reader</a> · <a href="episodes/ep02_deepseek_r1_grpo/plates/">Plates I–VII</a></td>
+        </tr>
+        <tr>
+          <td><b>Vol. III</b> (<code>ep03</code>)</td>
+          <td>Track C: RAG &amp; Tool-Use</td>
+          <td>ReAct (2210.03629) &amp; Self-RAG (2310.11511)</td>
+          <td><b>COMPLETED (4/4)</b></td>
+          <td>Cosine similarity vs. parametric confidence (<code>[Retrieve:No]</code> saves 42.9% tokens), ReAct POMDP recovery, <code>[IsRel]</code> vs. <code>[IsSup]</code>, tunable decoding weights <code>(w_sup, w_use)</code>.</td>
+          <td><a href="episodes/ep03_react_and_self_rag/">Reader</a> · <a href="episodes/ep03_react_and_self_rag/interactive_walkthrough.html">Lab</a> · <a href="episodes/ep03_react_and_self_rag/xm_results_dashboard.html">Telemetry</a></td>
+        </tr>
+        <tr>
+          <td><b>Vol. IV</b> (<code>ep04</code>)</td>
+          <td>Track D: Fast Inference Systems</td>
+          <td>vLLM PagedAttention (2309.06180) &amp; Speculative Decoding</td>
+          <td><i>Up Next (Prep Queued)</i></td>
+          <td>OS virtual page-table KV-cache mapping (<code>&lt; 4%</code> fragmentation) &amp; draft-target speculative rejection sampling equivalence.</td>
+          <td><i>Scheduled Next</i></td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 
   <div class="layout-grid">
