@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>XManager xm/292693865 — vLLM PagedAttention & Speculative Decoding Telemetry</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --green: #22c55e;
+      --red: #ef4444;
+      --amber: #f59e0b;
+      --purple: #a855f7;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      padding: 28px;
+    }
+    .container { max-width: 1180px; margin: 0 auto; }
+    header { margin-bottom: 24px; }
+    h1 { margin: 0 0 8px; font-size: 26px; color: #fff; }
+    .subtitle { color: var(--muted); font-size: 15px; }
+    .nav-links { margin-top: 10px; font-size: 14px; }
+    .nav-links a { color: var(--accent); text-decoration: none; margin-right: 18px; font-weight: 500; }
+    .nav-links a:hover { text-decoration: underline; }
+    
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .kpi {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 18px;
+    }
+    .kpi-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+    .kpi-val { font-size: 28px; font-weight: 700; margin-top: 6px; }
+    .kpi-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+    .green { color: var(--green); }
+    .red { color: var(--red); }
+    .accent { color: var(--accent); }
+    .amber { color: var(--amber); }
+    .purple { color: var(--purple); }
+
+    .section-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px 24px;
+      margin-bottom: 24px;
+    }
+    .section-title { font-size: 18px; font-weight: 700; margin-top: 0; margin-bottom: 14px; color: #fff; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+    th {
+      text-align: left;
+      padding: 10px 12px;
+      background: #0b1324;
+      color: var(--muted);
+      font-weight: 600;
+      border-bottom: 2px solid var(--border);
+    }
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+    .num { text-align: right; font-family: monospace; font-size: 13.5px; }
+
+    .bar-container {
+      background: #0b1324;
+      border-radius: 6px;
+      height: 12px;
+      overflow: hidden;
+      margin-top: 6px;
+      display: flex;
+    }
+    .bar-used { background: var(--green); height: 100%; }
+    .bar-waste { background: var(--red); height: 100%; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>XManager Experiment Telemetry & Benchmark Inspector</h1>
+      <div class="subtitle">Episode 4 · Track D: vLLM PagedAttention (arXiv:2309.06180) & Speculative Decoding (arXiv:2211.17192)</div>
+      <div class="nav-links">
+        <a href="https://github.com/kunruiw1991/llm-paper-summary" target="_blank">🔗 XManager UI (Experiment Benchmark 292693865)</a>
+        <a href="monograph.html">📖 Bourbaki Monograph (7 Plates)</a>
+        <a href="interactive_walkthrough.html">🔬 Interactive Visual Lab</a>
+      </div>
+    </header>
+
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-label">Paged Memory Waste</div>
+        <div class="kpi-val green">2.29%</div>
+        <div class="kpi-sub">vs. 63.80% in Contiguous static (27.8× reduction)</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Peak Speculative Speedup</div>
+        <div class="kpi-val purple">6.38×</div>
+        <div class="kpi-sub">at lookahead γ = 8 (8.93 tokens/pass)</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Mean Token Acceptance Rate</div>
+        <div class="kpi-val accent">94.9%</div>
+        <div class="kpi-sub">across draft alignment sweep (90.8% – 99.2%)</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Distribution Divergence</div>
+        <div class="kpi-val green">0.000</div>
+        <div class="kpi-sub">Exact mathematical match via rejection sampling</div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <h2 class="section-title">Part I: KV-Cache Memory Management & Fragmentation Breakdown</h2>
+      <p style="color: var(--muted); font-size: 14px; margin-top: 0;">
+        Comparison of 48 dynamic generation requests executed under 8192-slot memory limits. Static contiguous allocation reserves <code>max_seq_len</code> upfront per request, losing over 63% to fragmentation and internal slot reservation. PagedAttention dynamically maps 16-token blocks on-demand.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Architecture Mode</th>
+            <th class="num">Physical Slots</th>
+            <th class="num">Used Slots</th>
+            <th class="num">Internal Frag %</th>
+            <th class="num">External Frag %</th>
+            <th class="num">Total Waste %</th>
+            <th class="num">Throughput</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Contiguous Static</strong></td>
+            <td class="num">8,192</td>
+            <td class="num">1,110</td>
+            <td class="num red">45.8%</td>
+            <td class="num red">18.0%</td>
+            <td class="num red">63.80%</td>
+            <td class="num">84.0 tok/s</td>
+          </tr>
+          <tr>
+            <td><strong>vLLM PagedAttention</strong></td>
+            <td class="num">8,192</td>
+            <td class="num">1,110</td>
+            <td class="num green">2.29%</td>
+            <td class="num green">0.00%</td>
+            <td class="num green"><b>2.29%</b></td>
+            <td class="num">84.0 tok/s</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style="margin-top: 20px;">
+        <div style="font-size: 13px; color: var(--muted); margin-bottom: 4px;">Contiguous Static Memory Footprint (Green: Active Tokens, Red: Wasted Reservation)</div>
+        <div class="bar-container">
+          <div class="bar-used" style="width: 36.2%;"></div>
+          <div class="bar-waste" style="width: 63.8%;"></div>
+        </div>
+
+        <div style="font-size: 13px; color: var(--muted); margin-bottom: 4px; margin-top: 14px;">PagedAttention Memory Footprint (Green: Active Tokens, Red: Minor Terminal Block Waste)</div>
+        <div class="bar-container">
+          <div class="bar-used" style="width: 97.71%;"></div>
+          <div class="bar-waste" style="width: 2.29%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <h2 class="section-title">Part II: Speculative Decoding Speedup & Acceptance Rate vs. Horizon γ</h2>
+      <p style="color: var(--muted); font-size: 14px; margin-top: 0;">
+        Empirical evaluation of speculative rejection sampling. When draft alignment is strong (β > 0.90), increasing lookahead γ drives generated tokens per forward pass from 1.00 up to 8.93, translating to a 6.38× effective wall-clock speedup.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Decoding Mode</th>
+            <th class="num">Lookahead γ</th>
+            <th class="num">Target Passes</th>
+            <th class="num">Tokens / Pass</th>
+            <th class="num">Acceptance Rate</th>
+            <th class="num">Effective Speedup</th>
+            <th class="num">Exact Match</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Standard Autoregressive</td>
+            <td class="num">0</td>
+            <td class="num">128</td>
+            <td class="num">1.00</td>
+            <td class="num">100.0%</td>
+            <td class="num">1.00×</td>
+            <td class="num green">True</td>
+          </tr>
+          <tr>
+            <td>Speculative Decoding</td>
+            <td class="num">1</td>
+            <td class="num">66</td>
+            <td class="num">1.94</td>
+            <td class="num">93.9%</td>
+            <td class="num">1.85×</td>
+            <td class="num green">True</td>
+          </tr>
+          <tr>
+            <td>Speculative Decoding</td>
+            <td class="num">2</td>
+            <td class="num">44</td>
+            <td class="num">2.95</td>
+            <td class="num">97.7%</td>
+            <td class="num">2.69×</td>
+            <td class="num green">True</td>
+          </tr>
+          <tr>
+            <td>Speculative Decoding</td>
+            <td class="num">4</td>
+            <td class="num">28</td>
+            <td class="num">4.71</td>
+            <td class="num">92.9%</td>
+            <td class="num">3.93×</td>
+            <td class="num green">True</td>
+          </tr>
+          <tr>
+            <td>Speculative Decoding</td>
+            <td class="num">6</td>
+            <td class="num">20</td>
+            <td class="num">6.45</td>
+            <td class="num">90.8%</td>
+            <td class="num">4.96×</td>
+            <td class="num green">True</td>
+          </tr>
+          <tr>
+            <td><strong>Speculative Decoding</strong></td>
+            <td class="num"><b>8</b></td>
+            <td class="num">15</td>
+            <td class="num"><b>8.93</b></td>
+            <td class="num"><b>99.2%</b></td>
+            <td class="num purple"><b>6.38×</b></td>
+            <td class="num green">True</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

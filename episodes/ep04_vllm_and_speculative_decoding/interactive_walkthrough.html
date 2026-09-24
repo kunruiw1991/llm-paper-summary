@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>vLLM PagedAttention & Speculative Decoding — Interactive Visual Lab</title>
+<style>
+  :root {
+    --bg: #090d16;
+    --panel: #111726;
+    --panel-alt: #172036;
+    --card: #1c2642;
+    --border: #28375e;
+    --text: #eaf0fc;
+    --muted: #94a7cb;
+    --accent: #38bdf8;
+    --accent-2: #818cf8;
+    --success: #34d399;
+    --warning: #fbbf24;
+    --danger: #f87171;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    line-height: 1.55;
+  }
+
+  a { color: var(--accent); text-decoration: underline; }
+  a:hover { color: #7dd3fc; }
+
+  header {
+    background: linear-gradient(135deg, #0d1527 0%, #152243 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 22px 28px;
+  }
+  .badge-pill {
+    display: inline-block;
+    background: rgba(56, 189, 248, 0.16);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    letter-spacing: 0.4px;
+    margin-bottom: 8px;
+  }
+  h1 { margin: 0 0 6px 0; font-size: 24px; font-weight: 800; color: #ffffff; }
+  .subtitle { margin: 0; color: var(--muted); font-size: 14px; max-width: 1080px; }
+
+  .nav-bar {
+    display: flex;
+    gap: 16px;
+    margin-top: 14px;
+    font-size: 13.5px;
+  }
+  .nav-bar a {
+    text-decoration: none;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .nav-bar a:hover { text-decoration: underline; }
+
+  main {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 24px 28px 60px;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+  }
+  .tab-btn {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--muted);
+    font-size: 15px;
+    font-weight: 700;
+    padding: 10px 16px;
+    cursor: pointer;
+  }
+  .tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .card-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-top: 0;
+    margin-bottom: 12px;
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* Block memory visualization */
+  .memory-pool {
+    display: grid;
+    grid-template-columns: repeat(16, 1fr);
+    gap: 4px;
+    background: #080c14;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    margin-top: 10px;
+  }
+  .block-cell {
+    aspect-ratio: 1;
+    background: #1c2642;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-family: var(--font-mono);
+    color: var(--muted);
+    transition: all 0.2s ease;
+  }
+  .block-cell.free { background: #131d33; color: #4b5f8a; }
+  .block-cell.req0 { background: #0284c7; color: #fff; font-weight: 700; }
+  .block-cell.req1 { background: #7c3aed; color: #fff; font-weight: 700; }
+  .block-cell.req2 { background: #059669; color: #fff; font-weight: 700; }
+  .block-cell.req3 { background: #d97706; color: #fff; font-weight: 700; }
+  .block-cell.wasted { background: #b91c1c; color: #fff; }
+
+  /* Speculative Step Visualizer */
+  .spec-step-box {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .token-bubble {
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+  .token-bubble.draft { border-color: var(--accent); }
+  .token-bubble.accepted { background: rgba(52, 211, 153, 0.2); border-color: var(--success); color: var(--success); }
+  .token-bubble.rejected { background: rgba(248, 113, 113, 0.2); border-color: var(--danger); color: var(--danger); text-decoration: line-through; }
+  .token-bubble.recovered { background: rgba(251, 191, 36, 0.2); border-color: var(--warning); color: var(--warning); font-weight: 700; }
+
+  .ctrl-btn {
+    background: var(--accent);
+    color: #041226;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 13px;
+    transition: background 0.15s ease;
+  }
+  .ctrl-btn:hover { background: #7dd3fc; }
+
+  .log-console {
+    background: #080c14;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: #a5b4fc;
+    height: 180px;
+    overflow-y: auto;
+  }
+</style>
+</head>
+<body>
+
+  <header>
+    <div class="badge-pill">RESEARCH LAB · TRACK D (SYSTEMS & FAST INFERENCE)</div>
+    <h1>vLLM PagedAttention & Speculative Decoding Interactive Lab</h1>
+    <div class="subtitle">
+      Hands-on simulation of virtual memory block paging, internal/external fragmentation dynamics, and parallel speculative rejection sampling.
+    </div>
+    <div class="nav-bar">
+      <a href="monograph.html">📖 Bourbaki Research Monograph (7 Plates)</a>
+      <a href="xm_results_dashboard.html">📊 XManager Experiment Telemetry (xm/292693865)</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('pagedTab', this)">1. PagedAttention Memory Allocation</button>
+      <button class="tab-btn" onclick="switchTab('specTab', this)">2. Speculative Rejection Sampling</button>
+    </div>
+
+    <!-- TAB 1: PagedAttention -->
+    <div id="pagedTab" class="tab-content active">
+      <div class="grid-2">
+        <div>
+          <div class="card">
+            <div class="card-title">
+              <span>Physical GPU Memory Pool (64 Blocks × 16 Tokens = 1024 Slots)</span>
+              <button class="ctrl-btn" onclick="stepDecode()">+ Step Decode Token</button>
+            </div>
+            <p style="font-size:13px; color:var(--muted); margin-top:0;">
+              Watch requests allocate non-contiguous physical blocks on demand. When a sequence crosses a 16-token boundary, a new block is snagged from the free list without moving existing memory.
+            </p>
+            <div class="memory-pool" id="memPoolGrid"></div>
+            <div style="display:flex; justify-content:space-between; margin-top:12px; font-size:12px; color:var(--muted);">
+              <span><span style="color:#0284c7;">■</span> Req #0</span>
+              <span><span style="color:#7c3aed;">■</span> Req #1</span>
+              <span><span style="color:#059669;">■</span> Req #2</span>
+              <span><span style="color:#d97706;">■</span> Req #3</span>
+              <span><span style="color:#4b5f8a;">■</span> Free Pool</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Virtual Block Tables (Logical-to-Physical Mapping)</div>
+            <div id="blockTablesView" style="font-family:var(--font-mono); font-size:12px; color:var(--muted);"></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="card">
+            <div class="card-title">Memory Systems KPI Comparison</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
+              <div style="background:#080c14; padding:12px; border-radius:6px; border:1px solid var(--border);">
+                <div style="font-size:11px; text-transform:uppercase; color:var(--muted);">Static Allocation Waste</div>
+                <div style="font-size:24px; font-weight:700; color:var(--danger);" id="staticWasteKpi">63.8%</div>
+                <div style="font-size:11px; color:var(--muted); margin-top:2px;">Reserved MaxSeqLen</div>
+              </div>
+              <div style="background:#080c14; padding:12px; border-radius:6px; border:1px solid var(--border);">
+                <div style="font-size:11px; text-transform:uppercase; color:var(--muted);">PagedAttention Waste</div>
+                <div style="font-size:24px; font-weight:700; color:var(--success);" id="pagedWasteKpi">2.3%</div>
+                <div style="font-size:11px; color:var(--muted); margin-top:2px;">Terminal block tail only</div>
+              </div>
+            </div>
+            <div class="card-title" style="font-size:14px;">Kernel Execution Trace</div>
+            <div class="log-console" id="pagedLog"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: Speculative Decoding -->
+    <div id="specTab" class="tab-content">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">
+            <span>Speculative Step Simulator (Lookahead γ = 4)</span>
+            <button class="ctrl-btn" onclick="runSpeculativeStep()">Run Speculative Step</button>
+          </div>
+          <p style="font-size:13px; color:var(--muted); margin-top:0;">
+            Lightweight draft model proposes 4 tokens in sequence. Target model evaluates them in 1 parallel forward pass via rejection sampling α = min(1, p(x)/q(x)).
+          </p>
+
+          <div style="font-size:13px; font-weight:700; margin-top:14px;">Proposed Draft Tokens (q):</div>
+          <div class="spec-step-box" id="draftTokensBox"></div>
+
+          <div style="font-size:13px; font-weight:700; margin-top:16px;">Target Verification (p vs q):</div>
+          <div class="spec-step-box" id="verifiedTokensBox"></div>
+
+          <div style="font-size:13px; font-weight:700; margin-top:16px;">Final Emitted Tokens:</div>
+          <div class="spec-step-box" id="emittedTokensBox"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Speculative Decoding Statistics</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
+            <div style="background:#080c14; padding:12px; border-radius:6px; border:1px solid var(--border);">
+              <div style="font-size:11px; text-transform:uppercase; color:var(--muted);">Tokens / Forward Pass</div>
+              <div style="font-size:24px; font-weight:700; color:var(--accent);" id="tokPassKpi">3.80</div>
+              <div style="font-size:11px; color:var(--muted); margin-top:2px;">Target verification passes</div>
+            </div>
+            <div style="background:#080c14; padding:12px; border-radius:6px; border:1px solid var(--border);">
+              <div style="font-size:11px; text-transform:uppercase; color:var(--muted);">Effective Wall-Clock Speedup</div>
+              <div style="font-size:24px; font-weight:700; color:var(--success);" id="speedupKpi">3.24×</div>
+              <div style="font-size:11px; color:var(--muted); margin-top:2px;">Draft cost c = 0.05</div>
+            </div>
+          </div>
+          <div class="card-title" style="font-size:14px;">Rejection Sampling Verification Log</div>
+          <div class="log-console" id="specLog"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    // PagedAttention Simulation State
+    const TOTAL_BLOCKS = 64;
+    const BLOCK_SIZE = 16;
+    let blockOwners = new Array(TOTAL_BLOCKS).fill(-1);
+    let reqs = [
+      { id: 0, promptLen: 28, decoded: 0, blocks: [] },
+      { id: 1, promptLen: 36, decoded: 0, blocks: [] },
+      { id: 2, promptLen: 20, decoded: 0, blocks: [] },
+      { id: 3, promptLen: 42, decoded: 0, blocks: [] }
+    ];
+
+    function allocateInitialBlocks() {
+      let nextFree = 0;
+      reqs.forEach((r, idx) => {
+        let needed = Math.ceil(r.promptLen / BLOCK_SIZE);
+        for (let b = 0; b < needed; b++) {
+          blockOwners[nextFree] = idx;
+          r.blocks.push(nextFree);
+          nextFree++;
+        }
+      });
+      renderPagedView();
+      logPaged("Initialized 4 requests across physical blocks with zero contiguous requirement.");
+    }
+
+    function renderPagedView() {
+      const grid = document.getElementById('memPoolGrid');
+      grid.innerHTML = '';
+      for (let i = 0; i < TOTAL_BLOCKS; i++) {
+        const owner = blockOwners[i];
+        let cls = 'free';
+        let txt = i;
+        if (owner >= 0) {
+          cls = 'req' + owner;
+        }
+        grid.innerHTML += `<div class="block-cell ${cls}">${txt}</div>`;
+      }
+
+      const table = document.getElementById('blockTablesView');
+      table.innerHTML = reqs.map(r => `
+        <div style="margin-bottom:6px;">
+          <strong style="color:#fff;">Req #${r.id}</strong> (Tokens: ${r.promptLen + r.decoded}): 
+          Logical Blocks [${r.blocks.map((b, lIdx) => `${lIdx} ↦ Phys #${b}`).join(', ')}]
+        </div>
+      `).join('');
+    }
+
+    function stepDecode() {
+      reqs.forEach((r, idx) => {
+        r.decoded += 1;
+        let totalTokens = r.promptLen + r.decoded;
+        let neededBlocks = Math.ceil(totalTokens / BLOCK_SIZE);
+        if (neededBlocks > r.blocks.length) {
+          // Allocate new block
+          let freeIdx = blockOwners.indexOf(-1);
+          if (freeIdx >= 0) {
+            blockOwners[freeIdx] = idx;
+            r.blocks.push(freeIdx);
+            logPaged(`Req #${idx} crossed block boundary (Token ${totalTokens}) -> Allocated Physical Block #${freeIdx}`);
+          }
+        }
+      });
+      renderPagedView();
+    }
+
+    function logPaged(msg) {
+      const el = document.getElementById('pagedLog');
+      el.innerHTML = `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>` + el.innerHTML;
+    }
+
+    // Speculative Decoding Simulation
+    const sampleWords = ["the", "transformer", "attention", "mechanism", "achieves", "superior", "throughput", "with", "paged", "kv", "cache"];
+    let specHistory = [];
+
+    function runSpeculativeStep() {
+      const gamma = 4;
+      const draftTokensBox = document.getElementById('draftTokensBox');
+      const verifiedTokensBox = document.getElementById('verifiedTokensBox');
+      const emittedTokensBox = document.getElementById('emittedTokensBox');
+
+      draftTokensBox.innerHTML = '';
+      verifiedTokensBox.innerHTML = '';
+      emittedTokensBox.innerHTML = '';
+
+      let drafts = [];
+      for (let i = 0; i < gamma; i++) {
+        let w = sampleWords[Math.floor(Math.random() * sampleWords.length)];
+        let p_t = 0.65 + Math.random() * 0.3;
+        let q_t = 0.60 + Math.random() * 0.3;
+        drafts.push({ word: w, p: p_t, q: q_t });
+      }
+
+      drafts.forEach(d => {
+        draftTokensBox.innerHTML += `<div class="token-bubble draft">${d.word} <span style="font-size:10px; color:var(--muted);">(q=${d.q.toFixed(2)})</span></div>`;
+      });
+
+      let acceptedCount = 0;
+      let rejected = false;
+      let emitted = [];
+
+      for (let i = 0; i < gamma; i++) {
+        let d = drafts[i];
+        let alpha = Math.min(1.0, d.p / d.q);
+        let accept = Math.random() < alpha;
+
+        if (accept && !rejected) {
+          acceptedCount++;
+          emitted.push(d.word);
+          verifiedTokensBox.innerHTML += `<div class="token-bubble accepted">✓ ${d.word} <span style="font-size:10px;">(α=${alpha.toFixed(2)})</span></div>`;
+        } else if (!rejected) {
+          rejected = true;
+          let recovered = sampleWords[Math.floor(Math.random() * sampleWords.length)];
+          emitted.push(recovered);
+          verifiedTokensBox.innerHTML += `<div class="token-bubble rejected">✗ ${d.word} <span style="font-size:10px;">(α=${alpha.toFixed(2)})</span></div>`;
+          verifiedTokensBox.innerHTML += `<div class="token-bubble recovered">⟳ ${recovered} (Residual)</div>`;
+          logSpec(`Draft token #${i+1} '${d.word}' rejected (α=${alpha.toFixed(2)}) -> Resampled '${recovered}' from residual distribution.`);
+          break;
+        }
+      }
+
+      if (!rejected) {
+        let extra = sampleWords[Math.floor(Math.random() * sampleWords.length)];
+        emitted.push(extra);
+        verifiedTokensBox.innerHTML += `<div class="token-bubble recovered">+ ${extra} (Bonus target pass)</div>`;
+        acceptedCount++;
+        logSpec(`All ${gamma} draft tokens accepted! Bonus target token '${extra}' emitted.`);
+      }
+
+      emitted.forEach(e => {
+        emittedTokensBox.innerHTML += `<div class="token-bubble" style="background:#0284c7; color:#fff; font-weight:700;">${e}</div>`;
+      });
+
+      specHistory.push(emitted.length);
+      let avg = (specHistory.reduce((a, b) => a + b, 0) / specHistory.length).toFixed(2);
+      document.getElementById('tokPassKpi').textContent = avg;
+      let sp = ((avg) / (1 + gamma * 0.05)).toFixed(2);
+      document.getElementById('speedupKpi').textContent = sp + '×';
+    }
+
+    function logSpec(msg) {
+      const el = document.getElementById('specLog');
+      el.innerHTML = `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>` + el.innerHTML;
+    }
+
+    window.onload = function() {
+      allocateInitialBlocks();
+      runSpeculativeStep();
+    };
+  </script>
+</body>
+</html>
