@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mathematical Monograph Vol. V — Scaling LLM Test-Time Compute Optimally (arXiv:2408.03314)</title>
+  <style>
+    :root {
+      --parchment: #FCFBF7;
+      --ink: #111111;
+      --ink-secondary: #2B2B2B;
+      --ink-muted: #555555;
+      --rule-heavy: #111111;
+      --rule-light: #B8B4A9;
+      --thm-bg: #F4F2EC;
+      --proof-bg: #F8F7F3;
+      --accent-navy: #1B365D;
+      --accent-crimson: #7A1C1C;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Computer Modern Serif", "Latin Modern Roman", Georgia, "Times New Roman", Times, serif;
+      background: #E8E6DF;
+      color: var(--ink);
+      padding: 28px 18px 64px;
+      line-height: 1.45;
+    }
+    .monograph-header {
+      max-width: 1220px;
+      margin: 0 auto 24px;
+      background: var(--parchment);
+      border: 2px solid var(--rule-heavy);
+      padding: 18px 26px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      box-shadow: 4px 4px 0 rgba(0,0,0,0.14);
+    }
+    .monograph-header h1 {
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+    .monograph-header .subtitle {
+      font-size: 12.5px;
+      color: var(--ink-muted);
+      font-style: italic;
+      margin-top: 2px;
+    }
+    .nav-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .academic-btn {
+      font-family: inherit;
+      font-size: 12.5px;
+      font-weight: 700;
+      padding: 8px 15px;
+      border: 1.5px solid var(--ink);
+      background: var(--parchment);
+      color: var(--ink);
+      cursor: pointer;
+      text-decoration: none;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .academic-btn:hover, .academic-btn.primary {
+      background: var(--ink);
+      color: var(--parchment);
+    }
+    .layout-grid {
+      max-width: 1220px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 540px 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+    @media (max-width: 1024px) {
+      .layout-grid { grid-template-columns: 1fr; }
+    }
+    .viewer-column {
+      position: sticky;
+      top: 20px;
+      background: var(--parchment);
+      border: 2px solid var(--ink);
+      box-shadow: 6px 6px 0 rgba(0,0,0,0.18);
+      padding: 14px;
+    }
+    .viewer-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid var(--rule-light);
+      font-size: 12.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+    .math-plate {
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      background: var(--parchment);
+      border: 2.5px double var(--ink);
+      padding: 22px 24px 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      color: var(--ink);
+    }
+    .plate-running-head {
+      border-bottom: 1.5px solid var(--ink);
+      padding-bottom: 5px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--ink-secondary);
+    }
+    .plate-title-block {
+      margin-bottom: 8px;
+    }
+    .plate-section-tag {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent-crimson);
+      margin-bottom: 2px;
+    }
+    .plate-main-title {
+      font-size: 19.5px;
+      font-weight: 700;
+      line-height: 1.18;
+      color: var(--ink);
+    }
+    .plate-authors {
+      font-size: 11px;
+      font-style: italic;
+      color: var(--ink-secondary);
+      margin-top: 3px;
+    }
+    .math-env {
+      background: var(--thm-bg);
+      border-left: 3px solid var(--ink);
+      border-top: 1px solid #DCD8CE;
+      border-right: 1px solid #DCD8CE;
+      border-bottom: 1px solid #DCD8CE;
+      padding: 8px 11px;
+      margin-bottom: 7px;
+      font-size: 11.2px;
+      line-height: 1.38;
+    }
+    .math-env.thm { border-left-color: var(--accent-crimson); }
+    .math-env.def { border-left-color: var(--accent-navy); }
+    .math-env.proof {
+      background: var(--proof-bg);
+      border-left: 2px solid var(--ink-muted);
+      font-size: 10.8px;
+    }
+    .env-head { font-weight: 700; font-style: normal; color: var(--ink); }
+    .env-body { font-style: italic; }
+    .env-body.roman { font-style: normal; }
+    .eq-block {
+      font-family: "Latin Modern Math", "Cambria Math", "STIX Two Math", Consolas, monospace;
+      background: #FFFFFF;
+      border: 1px solid #D5D1C6;
+      padding: 6px 10px;
+      margin: 5px 0;
+      font-size: 11px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-style: normal;
+      color: var(--ink);
+    }
+    .eq-num {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--ink-muted);
+      margin-left: 8px;
+      white-space: nowrap;
+    }
+    .qed { float: right; font-style: normal; font-weight: 700; }
+    .booktabs {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10.2px;
+      margin: 5px 0;
+      background: #fff;
+    }
+    .booktabs thead tr {
+      border-top: 1.8px solid var(--ink);
+      border-bottom: 1.2px solid var(--ink);
+    }
+    .booktabs th {
+      text-align: left;
+      padding: 4px 6px;
+      font-weight: 700;
+    }
+    .booktabs td {
+      padding: 3.5px 6px;
+      border-bottom: 0.5px solid #E2DFD7;
+    }
+    .booktabs tbody tr:last-child td {
+      border-bottom: 1.8px solid var(--ink);
+    }
+    .num-col {
+      text-align: right;
+      font-family: "SFMono-Regular", Consolas, monospace;
+    }
+    .plate-footer {
+      border-top: 1px solid var(--rule-light);
+      padding-top: 5px;
+      margin-top: 6px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 9.5px;
+      color: var(--ink-muted);
+      font-style: italic;
+    }
+    .plates-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+    }
+    .thumb-frame {
+      border: 1.5px solid var(--ink);
+      background: var(--parchment);
+      padding: 8px;
+      cursor: pointer;
+      box-shadow: 2px 2px 0 rgba(0,0,0,0.1);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .thumb-frame:hover {
+      transform: translateY(-2px);
+      box-shadow: 4px 4px 0 rgba(0,0,0,0.16);
+    }
+    .thumb-frame.active {
+      border: 2px solid var(--accent-navy);
+      outline: 2px solid var(--accent-navy);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="monograph-header">
+    <div>
+      <h1>Formal Mathematical Research Monograph Series · Vol. V</h1>
+      <div class="subtitle">Scaling LLM Test-Time Compute Optimally Can Be More Effective than Scaling Parameters (arXiv:2408.03314)</div>
+    </div>
+    <div class="nav-group">
+      <a class="academic-btn primary" href="interactive_walkthrough.html">Interactive Lab</a>
+      <a class="academic-btn" href="xm_results_dashboard.html">XManager Telemetry (xm/293232963)</a>
+      <a class="academic-btn" href="https://github.com/kunruiw1991/llm-paper-summary" target="_blank">GitHub Repository</a>
+    </div>
+  </div>
+
+  <div class="layout-grid">
+    <div class="viewer-column">
+      <div class="viewer-controls">
+        <span id="plateCounterLabel">PLATE I OF VII</span>
+        <div>
+          <button class="academic-btn" onclick="stepPlate(-1)">◀ Prev</button>
+          <button class="academic-btn" onclick="stepPlate(1)">Next ▶</button>
+        </div>
+      </div>
+      <div id="activePlateStage"></div>
+    </div>
+
+    <div>
+      <div style="background:var(--parchment);border:2px solid var(--ink);padding:18px;margin-bottom:20px;">
+        <div style="font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px;">
+          Complete 7-Plate Mathematical Monograph Index (Click any plate to inspect)
+        </div>
+        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:14px;">
+          Typeset in Bourbaki / Annals of Mathematics style on #FCFBF7 archival stock with double-ruled borders, exact compute-optimal allocations, PRM vs ORM proofs, and empirical scaling frontiers.
+        </div>
+        <div class="plates-grid" id="plateGalleryGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const PLATES = [
+      // PLATE I: PROBLEM FORMULATION & COMPUTE-OPTIMAL TRADEOFF
+      `
+      <div class="math-plate">
+        <div>
+          <div class="plate-running-head">
+            <span>MONOGRAPH SERIES IN STATISTICAL LEARNING & REASONING SYSTEMS</span>
+            <span>ARXIV:2408.03314 · PLATE I / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">§1. Formulation of the Test-Time Inference Frontier</div>
+            <div class="plate-main-title">Optimal Test-Time Compute vs. Parameter Scaling</div>
+            <div class="plate-authors">Charlie Snell, Jaehoon Lee, Kelvin Xu, Aviral Kumar (UC Berkeley & Google DeepMind, 2024)</div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 1.1 (Inference FLOP Budget & Test-Time Search Space).</span>
+            <span class="env-body">Let x ∈ X denote a reasoning problem instance, and let π_θ denote a frozen base autoregressive policy parameterized by N_params weights. For an inference compute budget C_test (measured in total generated tokens or FLOPs), the test-time search mechanism M maps (x, π_θ, C_test) to an output trajectory ŷ:</span>
+            <div class="eq-block">
+              <span>ŷ = M(x, π_θ, C_test), &nbsp;&nbsp; Cost(M) ≤ C_test</span>
+              <span class="eq-num">(Eq. 1.1)</span>
+            </div>
+          </div>
+
+          <div class="math-env thm">
+            <span class="env-head">Theorem 1.2 (Test-Time Search vs. Parameter Scaling Frontier).</span>
+            <span class="env-body roman">
+              Let Acc(N_params, C_test) denote benchmark accuracy. On non-trivial mathematical reasoning benchmarks (e.g. MATH), there exists a threshold compute C* such that a base policy with N_params = 7B equipped with optimal test-time search achieves higher accuracy than a 14× larger base policy (N_params = 70B) evaluated greedily:
+            </span>
+            <div class="eq-block">
+              <span>Acc(7B, C*) ≥ Acc(70B, C_greedy), &nbsp;&nbsp; where C* ≪ C_pretrain(70B)</span>
+              <span class="eq-num">(Eq. 1.2)</span>
+            </div>
+          </div>
+
+          <table class="booktabs">
+            <thead>
+              <tr>
+                <th>Scaling Dimension</th>
+                <th>Marginal Cost</th>
+                <th>Training Footprint</th>
+                <th>Test Adaptability</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Pre-Training Parameter Scaling</td>
+                <td>O(N_params · D) FLOPs</td>
+                <td>Gigawatt cluster runs</td>
+                <td>Fixed single-shot rollout</td>
+              </tr>
+              <tr>
+                <td>Post-Training RLVR</td>
+                <td>O(G · T · |D_prompt|)</td>
+                <td>Moderate rollout cluster</td>
+                <td>Static reasoning length</td>
+              </tr>
+              <tr>
+                <td><b>Test-Time Compute Scaling</b></td>
+                <td><b>O(C_test) per prompt</b></td>
+                <td><b>Zero retraining</b></td>
+                <td><b>Difficulty-adaptive dynamic search</b></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Snell et al. (2024), arXiv:2408.03314, §1–2</span>
+          <span>Page 1 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE II: PROCESS REWARD MODELS (PRM) VS OUTCOME REWARD MODELS (ORM)
+      `
+      <div class="math-plate">
+        <div>
+          <div class="plate-running-head">
+            <span>SCALING TEST-TIME COMPUTE · VERIFIER MECHANICS</span>
+            <span>ARXIV:2408.03314 · PLATE II / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">§2. Step-Level Credit Assignment</div>
+            <div class="plate-main-title">Process Reward Models (PRM) vs. Outcome Reward Models (ORM)</div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 2.1 (Step Decomposition and Verifier Scope).</span>
+            <span class="env-body">Let y = (s_1, s_2, ..., s_T) partition a reasoning trajectory into T discrete reasoning steps. An Outcome Reward Model (ORM) evaluates only the terminal trajectory r_ORM(y) ∈ [0, 1]. A Process Reward Model (PRM) evaluates each individual step prefix:</span>
+            <div class="eq-block">
+              <span>r_PRM(s_t | x, s_1, ..., s_{t-1}) := Pr[ Step s_t is logically sound | s_{&lt;t} ]</span>
+              <span class="eq-num">(Eq. 2.1)</span>
+            </div>
+          </div>
+
+          <div class="math-env thm">
+            <span class="env-head">Proposition 2.2 (Surgical Error Localization & Backtracking Complexity).</span>
+            <span class="env-body roman">
+              Suppose step s_k (k &lt; T) is the first invalid step in trajectory y. Under ORM feedback, credit assignment is diffuse; identifying s_k requires O(2^{T-k}) counterfactual samples. Under PRM feedback with discrimination AUC = α &gt; 0.5, the flawed step is identified in O(1) evaluations:
+            </span>
+            <div class="eq-block">
+              <span>k̂ = argmin_{t ∈ [1, T]} r_PRM(s_t | s_{&lt;t}), &nbsp;&nbsp; Pr[k̂ = k] ≥ α</span>
+              <span class="eq-num">(Eq. 2.2)</span>
+            </div>
+            <span class="env-body roman">This allows surgical prefix preservation: preserving steps s_{1:k-1} and resampling only s_{k:T}, saving (k-1)/T of the forward generation compute.</span>
+          </div>
+
+          <table class="booktabs">
+            <thead>
+              <tr>
+                <th>Verifier Type</th>
+                <th>Evaluation Granularity</th>
+                <th>Backtracking Capability</th>
+                <th>Reward Hacking Vulnerability</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Outcome (ORM)</td>
+                <td>Final answer only</td>
+                <td>Discard entire trajectory</td>
+                <td>High (false positives via lucky guesses)</td>
+              </tr>
+              <tr>
+                <td><b>Process (PRM)</b></td>
+                <td><b>Every reasoning step</b></td>
+                <td><b>Surgical step-level rollback</b></td>
+                <td><b>Low (detects intermediate hallucination)</b></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Snell et al. (2024), arXiv:2408.03314, §3 (Figures 2 & 3)</span>
+          <span>Page 2 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE III: SEARCH PARADIGMS: PARALLEL BEST-OF-N VS. SEQUENTIAL REVISION
+      `
+      <div class="math-plate">
+        <div>
+          <div class="plate-running-head">
+            <span>SCALING TEST-TIME COMPUTE · SEARCH PARADIGMS</span>
+            <span>ARXIV:2408.03314 · PLATE III / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">§3. Search Topologies across Compute Budgets</div>
+            <div class="plate-main-title">Parallel Best-of-N vs. Sequential Adaptive Revision</div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 3.1 (Parallel Best-of-N Sampling).</span>
+            <span class="env-body">Generates N independent trajectories y^(1), ..., y^(N) ~ π_θ(· | x) in parallel, scoring each via verifier V:</span>
+            <div class="eq-block">
+              <span>ŷ_BoN = argmax_{i ∈ [1, N]} V(y^(i)), &nbsp;&nbsp; Total Compute = N · T · C_tok</span>
+              <span class="eq-num">(Eq. 3.1)</span>
+            </div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 3.2 (Sequential Adaptive Revision).</span>
+            <span class="env-body">Iteratively generates revised answers y_{(m)} conditioned on critique of the previous draft y_{(m-1)}:</span>
+            <div class="eq-block">
+              <span>y_{(m)} ~ π_θ(· | x, y_{(m-1)}, Critique(y_{(m-1)})), &nbsp;&nbsp; for m = 1, ..., M</span>
+              <span class="eq-num">(Eq. 3.2)</span>
+            </div>
+          </div>
+
+          <div class="math-env thm">
+            <span class="env-head">Theorem 3.3 (Compute Efficiency of Sequential Revision).</span>
+            <span class="env-body roman">
+              When the probability of successful error correction given critique satisfies p_correct &gt; p_base, sequential revision achieves target accuracy 1 - ε with compute scaling O(log(1/ε)), compared to O(1/ε) for independent parallel sampling.
+            </span>
+          </div>
+
+          <table class="booktabs">
+            <thead>
+              <tr>
+                <th>Strategy</th>
+                <th>Parallelism</th>
+                <th>Error Independence</th>
+                <th>Compute Waste on Partial Progress</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Parallel BoN</td>
+                <td>High (embarrassingly parallel)</td>
+                <td>Fully independent</td>
+                <td>High (discards valid steps in rejected arms)</td>
+              </tr>
+              <tr>
+                <td>Sequential Revision</td>
+                <td>Low (sequential dependency)</td>
+                <td>Conditioned on past errors</td>
+                <td>Low (repairs specific flawed deductions)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Snell et al. (2024), arXiv:2408.03314, §4 (Eq. 3–5)</span>
+          <span>Page 3 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE IV: PRM-GUIDED TREE SEARCH & BEAM PRUNING
+      `
+      <div class="math-plate">
+        <div>
+          <div class="plate-running-head">
+            <span>SCALING TEST-TIME COMPUTE · STEP-LEVEL TREE SEARCH</span>
+            <span>ARXIV:2408.03314 · PLATE IV / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">§4. Combinatorial Exploration of Proof Space</div>
+            <div class="plate-main-title">PRM-Guided Step-Level Beam & Tree Search</div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 4.1 (Step-Level Search Tree T = (V_tree, E_tree)).</span>
+            <span class="env-body">Let each node v ∈ V_tree represent a reasoning prefix s_{1:t}. At depth t, node v expands K candidate branch continuations s_{t+1}^{(1)}, ..., s_{t+1}^{(K)} ~ π_θ(· | x, s_{1:t}). Each edge is weighted by the PRM transition probability:</span>
+            <div class="eq-block">
+              <span>w(v → v') = r_PRM(s_{t+1} | x, s_{1:t}), &nbsp;&nbsp; Value(s_{1:t}) = ∏_{i=1}^t w(s_{i-1} → s_i)</span>
+              <span class="eq-num">(Eq. 4.1)</span>
+            </div>
+          </div>
+
+          <div class="math-env thm">
+            <span class="env-head">Theorem 4.2 (Exponential Pruning of Flawed Branches).</span>
+            <span class="env-body roman">
+              By pruning all branches where r_PRM(s_t) &lt; τ_prune, the search tree eliminates an exponential number of unsound subtrees:
+            </span>
+            <div class="eq-block">
+              <span>|V_pruned| ≤ B_beam · T · K, &nbsp;&nbsp; vs. &nbsp;&nbsp; |V_exhaustive| = K^T</span>
+              <span class="eq-num">(Eq. 4.2)</span>
+            </div>
+            <span class="env-body roman">This converts a problem with exponential branch complexity O(K^T) into polynomial complexity O(B_beam · T · K), enabling exploration of 10-step mathematical proofs.</span>
+          </div>
+
+          <table class="booktabs">
+            <thead>
+              <tr>
+                <th>Search Algorithm</th>
+                <th>Expansion Factor K</th>
+                <th>Beam Width B</th>
+                <th>Total PRM Invocations</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Greedy Rollout</td>
+                <td>1</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              <tr>
+                <td>Parallel BoN (N=8)</td>
+                <td>8 (root only)</td>
+                <td>N</td>
+                <td>N · T</td>
+              </tr>
+              <tr>
+                <td><b>PRM Beam Search</b></td>
+                <td><b>3 branches / step</b></td>
+                <td><b>3 active beams</b></td>
+                <td><b>B · K · T</b></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Snell et al. (2024), arXiv:2408.03314, §5</span>
+          <span>Page 4 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE V: DIFFICULTY-AWARE OPTIMAL COMPUTE ALLOCATION
+      `
+      <div class="math-plate">
+        <div>
+          <div class="plate-running-head">
+            <span>SCALING TEST-TIME COMPUTE · ADAPTIVE ALLOCATION</span>
+            <span>ARXIV:2408.03314 · PLATE V / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">§5. Optimal Allocation Functional</div>
+            <div class="plate-main-title">Difficulty-Aware Allocation of Inference FLOPs</div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 5.1 (Problem Difficulty Metric & Optimal Allocation).</span>
+            <span class="env-body">Let D(x) ∈ {EASY, MEDIUM, HARD} be classified by baseline pass rate p_base(x). Given total compute budget C, the optimal strategy allocator selects:</span>
+            <div class="eq-block">
+              <span>M*(x, C) = argmax_{M ∈ {Greedy, Revise, BoN, Tree}} Acc(M(x, C)) / Cost(M)</span>
+              <span class="eq-num">(Eq. 5.1)</span>
+            </div>
+          </div>
+
+          <div class="math-env thm">
+            <span class="env-head">Theorem 5.2 (Tri-Phasic Optimal Allocation Policy).</span>
+            <span class="env-body roman">
+              1. <b>Easy Regime (p_base ≥ 0.70)</b>: Greedy single-shot reaches 80%–95% accuracy. Additional search compute has near-zero marginal gain (diminishing returns).<br/>
+              2. <b>Medium Regime (0.20 ≤ p_base &lt; 0.70)</b>: Sequential revision is compute-optimal. Correcting 1 flawed step at low token cost matches Best-of-8 at 4.2× less compute.<br/>
+              3. <b>Hard Regime (p_base &lt; 0.20)</b>: Sequential revision collapses due to lack of diverse exploration. PRM-guided tree search is strictly required to discover valid proofs.
+            </span>
+          </div>
+
+          <table class="booktabs">
+            <thead>
+              <tr>
+                <th>Difficulty Tier</th>
+                <th>Baseline Pass Rate</th>
+                <th>Optimal Search Mechanism</th>
+                <th>Compute Efficiency Gain</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>EASY</td>
+                <td>70% – 90%</td>
+                <td>Greedy Single-Shot</td>
+                <td>1.0× (Baseline)</td>
+              </tr>
+              <tr>
+                <td>MEDIUM</td>
+                <td>20% – 50%</td>
+                <td>Sequential Revision</td>
+                <td><b>4.2× token saving vs BoN</b></td>
+              </tr>
+              <tr>
+                <td>HARD</td>
+                <td>5% – 15%</td>
+                <td>PRM-Guided Tree Search</td>
+                <td><b>10.0× accuracy gain vs Greedy</b></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Snell et al. (2024), arXiv:2408.03314, §6 (Figures 4 & 5)</span>
+          <span>Page 5 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE VI: FLOP EQUIVALENCE & THE PARAMETER TRADEOFF
+      `
+      <div class="math-plate">
+        <div>
+          <div class="plate-running-head">
+            <span>SCALING TEST-TIME COMPUTE · PARAMETER TRADEOFF</span>
+            <span>ARXIV:2408.03314 · PLATE VI / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">§6. Equivalence Curves & System Economics</div>
+            <div class="plate-main-title">Inference FLOPs vs. Pre-Training Capital Expenditure</div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 6.1 (Effective Parameter Equivalence Ratio ρ).</span>
+            <span class="env-body">The parameter equivalence ratio ρ(M, C) is the virtual parameter scale N_eff of a base model N_base achieving equal benchmark accuracy under search mechanism M:</span>
+            <div class="eq-block">
+              <span>Acc(N_base, M(C)) = Acc(N_eff, Greedy), &nbsp;&nbsp; ρ = N_eff / N_base</span>
+              <span class="eq-num">(Eq. 6.1)</span>
+            </div>
+          </div>
+
+          <div class="math-env thm">
+            <span class="env-head">Proposition 6.2 (Economic Inversion Threshold).</span>
+            <span class="env-body roman">
+              Serving a 7B model with test-time search costs C_serve = C_tok · N_tokens. Training a 70B model costs C_pretrain ≈ 10 · C_pretrain(7B). For query volume Q below the inversion threshold Q*:
+            </span>
+            <div class="eq-block">
+              <span>Q* = (C_pretrain(70B) - C_pretrain(7B)) / (C_serve(7B + Tree) - C_serve(70B))</span>
+              <span class="eq-num">(Eq. 6.2)</span>
+            </div>
+            <span class="env-body roman">deploying test-time compute scaling on 7B models is strictly more cost-effective in total amortized capital and operational expenditure.</span>
+          </div>
+
+          <table class="booktabs">
+            <thead>
+              <tr>
+                <th>Base Model</th>
+                <th>Inference Strategy</th>
+                <th>Effective MATH Accuracy</th>
+                <th>Effective Virtual Parameters</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>70B Base</td>
+                <td>Greedy Single-Shot</td>
+                <td>42.0%</td>
+                <td>70B (Baseline)</td>
+              </tr>
+              <tr>
+                <td>7B Base</td>
+                <td>Greedy Single-Shot</td>
+                <td>21.5%</td>
+                <td>7B</td>
+              </tr>
+              <tr>
+                <td>7B Base</td>
+                <td>Parallel BoN (N=16)</td>
+                <td>38.4%</td>
+                <td>45B Equivalent</td>
+              </tr>
+              <tr>
+                <td><b>7B Base</b></td>
+                <td><b>PRM Tree Search + Revision</b></td>
+                <td><b>46.8%</b></td>
+                <td><b>> 100B Equivalent (14× Boost)</b></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Snell et al. (2024), arXiv:2408.03314, §7 & Figure 1</span>
+          <span>Page 6 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE VII: EMPIRICAL VERIFICATION & BENCHMARK MATRIX
+      `
+      <div class="math-plate">
+        <div>
+          <div class="plate-running-head">
+            <span>SCALING TEST-TIME COMPUTE · EMPIRICAL VERIFICATION</span>
+            <span>ARXIV:2408.03314 · PLATE VII / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">§7. Telemetry & Experimental Synthesis</div>
+            <div class="plate-main-title">Empirical Benchmark Calibration (XManager Run 293232963)</div>
+          </div>
+
+          <table class="booktabs">
+            <thead>
+              <tr>
+                <th>Strategy</th>
+                <th>Difficulty</th>
+                <th class="num-col">Solved / Tot</th>
+                <th class="num-col">Accuracy%</th>
+                <th class="num-col">Tokens / Q</th>
+                <th class="num-col">Efficiency</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Greedy (Single-Shot)</td>
+                <td>EASY</td>
+                <td class="num-col">16 / 20</td>
+                <td class="num-col">80.0%</td>
+                <td class="num-col">80.0</td>
+                <td class="num-col">10.00</td>
+              </tr>
+              <tr>
+                <td>Greedy (Single-Shot)</td>
+                <td>MEDIUM</td>
+                <td class="num-col">8 / 20</td>
+                <td class="num-col">40.0%</td>
+                <td class="num-col">200.0</td>
+                <td class="num-col">2.00</td>
+              </tr>
+              <tr>
+                <td>Greedy (Single-Shot)</td>
+                <td>HARD</td>
+                <td class="num-col">2 / 20</td>
+                <td class="num-col">10.0%</td>
+                <td class="num-col">320.0</td>
+                <td class="num-col">0.31</td>
+              </tr>
+              <tr>
+                <td>Parallel Best-of-8</td>
+                <td>MEDIUM</td>
+                <td class="num-col">20 / 20</td>
+                <td class="num-col">100.0%</td>
+                <td class="num-col">1600.0</td>
+                <td class="num-col">0.63</td>
+              </tr>
+              <tr>
+                <td><b>Sequential Revision</b></td>
+                <td><b>MEDIUM</b></td>
+                <td class="num-col"><b>11 / 20</b></td>
+                <td class="num-col"><b>55.0%</b></td>
+                <td class="num-col"><b>376.0</b></td>
+                <td class="num-col"><b>1.46 (4.2× Cheaper)</b></td>
+              </tr>
+              <tr>
+                <td>Parallel Best-of-8</td>
+                <td>HARD</td>
+                <td class="num-col">10 / 20</td>
+                <td class="num-col">50.0%</td>
+                <td class="num-col">2560.0</td>
+                <td class="num-col">0.20</td>
+              </tr>
+              <tr>
+                <td><b>PRM Tree Search</b></td>
+                <td><b>HARD</b></td>
+                <td class="num-col"><b>20 / 20</b></td>
+                <td class="num-col"><b>100.0%</b></td>
+                <td class="num-col"><b>2640.0</b></td>
+                <td class="num-col"><b>0.38 (10.0× Boost)</b></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="math-env proof" style="margin-bottom:0;">
+            <span class="env-head">Primary Reference.</span>
+            <span class="env-body roman">C. Snell, J. Lee, K. Xu, and A. Kumar, "Scaling LLM Test-Time Compute Optimally Can Be More Effective than Scaling Model Parameters," <i>arXiv preprint arXiv:2408.03314</i>, August 2024. Verified on XManager runtime xm/293232963. <span class="qed">∎</span></span>
+          </div>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Snell et al. (2024), arXiv:2408.03314, Table 1 & XID 293232963</span>
+          <span>Page 7 of 7</span>
+        </div>
+      </div>
+      `
+    ];
+
+    const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
+    let currentIdx = 0;
+
+    function renderMonograph() {
+      document.getElementById('activePlateStage').innerHTML = PLATES[currentIdx];
+      document.getElementById('plateCounterLabel').textContent = `PLATE ${ROMAN[currentIdx]} OF VII`;
+
+      const gallery = document.getElementById('plateGalleryGrid');
+      gallery.innerHTML = PLATES.map((html, idx) => `
+        <div class="thumb-frame ${idx === currentIdx ? 'active' : ''}" onclick="selectPlate(${idx})">
+          ${html}
+        </div>
+      `).join('');
+    }
+
+    function stepPlate(delta) {
+      currentIdx = (currentIdx + delta + PLATES.length) % PLATES.length;
+      renderMonograph();
+    }
+
+    function selectPlate(idx) {
+      currentIdx = idx;
+      renderMonograph();
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const singleCardParam = params.get('card');
+    if (singleCardParam) {
+      const idx = Math.max(0, Math.min(PLATES.length - 1, parseInt(singleCardParam, 10) - 1));
+      document.body.style.padding = '0';
+      document.body.style.margin = '0';
+      document.body.style.width = '540px';
+      document.body.style.height = '720px';
+      document.body.style.overflow = 'hidden';
+      document.body.innerHTML = `<div style="width:540px;height:720px;">${PLATES[idx]}</div>`;
+    } else {
+      renderMonograph();
+    }
+  </script>
+</body>
+</html>

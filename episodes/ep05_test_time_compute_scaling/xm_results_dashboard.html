@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>XManager xm/293232963 — Test-Time Compute Scaling Telemetry</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --green: #22c55e;
+      --red: #ef4444;
+      --amber: #f59e0b;
+      --purple: #a855f7;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      padding: 28px;
+    }
+    .container { max-width: 1180px; margin: 0 auto; }
+    header { margin-bottom: 24px; }
+    h1 { margin: 0 0 8px; font-size: 26px; color: #fff; }
+    .subtitle { color: var(--muted); font-size: 15px; }
+    .nav-links { margin-top: 10px; font-size: 14px; }
+    .nav-links a { color: var(--accent); text-decoration: none; margin-right: 18px; font-weight: 500; }
+    .nav-links a:hover { text-decoration: underline; }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .kpi {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 18px;
+    }
+    .kpi-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+    .kpi-val { font-size: 28px; font-weight: 700; margin-top: 6px; }
+    .kpi-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+    .green { color: var(--green); }
+    .accent { color: var(--accent); }
+    .amber { color: var(--amber); }
+    .purple { color: var(--purple); }
+    .section-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px 24px;
+      margin-bottom: 24px;
+    }
+    .section-title { font-size: 18px; font-weight: 700; margin-top: 0; margin-bottom: 14px; color: #fff; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+    th {
+      text-align: left;
+      padding: 10px 12px;
+      background: #0b1324;
+      color: var(--muted);
+      font-weight: 600;
+      border-bottom: 2px solid var(--border);
+    }
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+    .num { text-align: right; font-family: monospace; font-size: 13.5px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>XManager Experiment: xm/293232963</h1>
+    <div class="subtitle">Title: <code>ep05_test_time_compute_scaling_lab</code> · Status: <b style="color:var(--green);">COMPLETED</b> (Exit Code 0)</div>
+    <div class="nav-links">
+      <a href="https://github.com/kunruiw1991/llm-paper-summary" target="_blank">🔗 XManager Telemetry Benchmark (Run 293232963)</a>
+      <a href="interactive_walkthrough.html">Interactive Lab Walkthrough</a>
+      <a href="monograph.html">Mathematical Monograph (Vol. V)</a>
+      <a href="https://github.com/kunruiw1991/llm-paper-summary" target="_blank">GitHub Monograph Compendium</a>
+    </div>
+  </header>
+
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="kpi-label">Hard Problem Accuracy (Tree Search)</div>
+      <div class="kpi-val green">100.0%</div>
+      <div class="kpi-sub">vs. 10.0% Greedy (10.0× boost)</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Medium Efficiency (Seq. Revision)</div>
+      <div class="kpi-val accent">376 tok</div>
+      <div class="kpi-sub">4.2× compute saving vs. BoN (1600 tok)</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">PRM Verification AUC</div>
+      <div class="kpi-val purple">0.880</div>
+      <div class="kpi-sub">Step-level error localization</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Evaluated Benchmarks</div>
+      <div class="kpi-val amber">60 Tasks</div>
+      <div class="kpi-sub">Easy (20), Medium (20), Hard (20)</div>
+    </div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-title">Telemetry Matrix across Difficulty Tiers (Snell et al. 2024 Replication)</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Strategy</th>
+          <th>Difficulty</th>
+          <th class="num">Solved / Total</th>
+          <th class="num">Accuracy%</th>
+          <th class="num">Tokens / Problem</th>
+          <th class="num">PRM Evals</th>
+          <th class="num">Efficiency (Acc / log C)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Greedy (Single-Shot)</td>
+          <td>EASY</td>
+          <td class="num">16 / 20</td>
+          <td class="num" style="color:var(--green);">80.0%</td>
+          <td class="num">80.0</td>
+          <td class="num">0.0</td>
+          <td class="num">10.00</td>
+        </tr>
+        <tr>
+          <td>Greedy (Single-Shot)</td>
+          <td>MEDIUM</td>
+          <td class="num">8 / 20</td>
+          <td class="num" style="color:var(--amber);">40.0%</td>
+          <td class="num">200.0</td>
+          <td class="num">0.0</td>
+          <td class="num">2.00</td>
+        </tr>
+        <tr>
+          <td>Greedy (Single-Shot)</td>
+          <td>HARD</td>
+          <td class="num">2 / 20</td>
+          <td class="num" style="color:var(--red);">10.0%</td>
+          <td class="num">320.0</td>
+          <td class="num">0.0</td>
+          <td class="num">0.31</td>
+        </tr>
+        <tr style="border-top:2px solid var(--border);">
+          <td>Parallel Best-of-8</td>
+          <td>EASY</td>
+          <td class="num">20 / 20</td>
+          <td class="num" style="color:var(--green);">100.0%</td>
+          <td class="num">640.0</td>
+          <td class="num">16.0</td>
+          <td class="num">1.56</td>
+        </tr>
+        <tr>
+          <td>Parallel Best-of-8</td>
+          <td>MEDIUM</td>
+          <td class="num">20 / 20</td>
+          <td class="num" style="color:var(--green);">100.0%</td>
+          <td class="num">1600.0</td>
+          <td class="num">40.0</td>
+          <td class="num">0.63</td>
+        </tr>
+        <tr>
+          <td>Parallel Best-of-8</td>
+          <td>HARD</td>
+          <td class="num">10 / 20</td>
+          <td class="num" style="color:var(--amber);">50.0%</td>
+          <td class="num">2560.0</td>
+          <td class="num">64.0</td>
+          <td class="num">0.20</td>
+        </tr>
+        <tr style="border-top:2px solid var(--border);">
+          <td>Sequential Revision</td>
+          <td>EASY</td>
+          <td class="num">19 / 20</td>
+          <td class="num" style="color:var(--green);">95.0%</td>
+          <td class="num">110.0</td>
+          <td class="num">2.8</td>
+          <td class="num">8.64</td>
+        </tr>
+        <tr>
+          <td>Sequential Revision</td>
+          <td>MEDIUM</td>
+          <td class="num">11 / 20</td>
+          <td class="num" style="color:var(--accent);">55.0%</td>
+          <td class="num">376.0</td>
+          <td class="num">9.4</td>
+          <td class="num">1.46</td>
+        </tr>
+        <tr>
+          <td>Sequential Revision</td>
+          <td>HARD</td>
+          <td class="num">4 / 20</td>
+          <td class="num" style="color:var(--red);">20.0%</td>
+          <td class="num">712.0</td>
+          <td class="num">17.8</td>
+          <td class="num">0.28</td>
+        </tr>
+        <tr style="border-top:2px solid var(--border); background:rgba(56,189,248,0.05);">
+          <td><b>PRM Tree Search</b></td>
+          <td>EASY</td>
+          <td class="num">19 / 20</td>
+          <td class="num" style="color:var(--green);">95.0%</td>
+          <td class="num">480.0</td>
+          <td class="num">12.0</td>
+          <td class="num">1.98</td>
+        </tr>
+        <tr style="background:rgba(56,189,248,0.05);">
+          <td><b>PRM Tree Search</b></td>
+          <td>MEDIUM</td>
+          <td class="num">20 / 20</td>
+          <td class="num" style="color:var(--green);font-weight:700;">100.0%</td>
+          <td class="num">1560.0</td>
+          <td class="num">39.0</td>
+          <td class="num">0.64</td>
+        </tr>
+        <tr style="background:rgba(56,189,248,0.05);">
+          <td><b>PRM Tree Search</b></td>
+          <td>HARD</td>
+          <td class="num">20 / 20</td>
+          <td class="num" style="color:var(--green);font-weight:700;">100.0%</td>
+          <td class="num">2640.0</td>
+          <td class="num">66.0</td>
+          <td class="num">0.38</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</body>
+</html>

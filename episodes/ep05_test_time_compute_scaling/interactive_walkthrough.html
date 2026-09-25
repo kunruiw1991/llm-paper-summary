@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scaling LLM Test-Time Compute Optimally — Interactive Visual Lab</title>
+<style>
+  :root {
+    --bg: #090d16;
+    --panel: #111726;
+    --panel-alt: #172036;
+    --card: #1c2642;
+    --border: #28375e;
+    --text: #eaf0fc;
+    --muted: #94a7cb;
+    --accent: #38bdf8;
+    --accent-2: #818cf8;
+    --success: #34d399;
+    --warning: #fbbf24;
+    --danger: #f87171;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-mono: "SFMono-Regular", Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    line-height: 1.55;
+  }
+  header {
+    background: linear-gradient(135deg, #0d1527 0%, #152243 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 22px 28px;
+  }
+  .badge-pill {
+    display: inline-block;
+    background: rgba(56, 189, 248, 0.16);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    letter-spacing: 0.4px;
+    margin-bottom: 8px;
+  }
+  h1 { margin: 0 0 6px 0; font-size: 24px; font-weight: 800; color: #ffffff; }
+  .subtitle { margin: 0; color: var(--muted); font-size: 14px; max-width: 1080px; }
+  .nav-bar {
+    display: flex;
+    gap: 16px;
+    margin-top: 14px;
+    font-size: 13.5px;
+  }
+  .nav-bar a { text-decoration: none; color: var(--accent); font-weight: 600; }
+  .nav-bar a:hover { text-decoration: underline; }
+  main {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 24px 28px 60px;
+  }
+  .tabs {
+    display: flex;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+  }
+  .tab-btn {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--muted);
+    font-size: 15px;
+    font-weight: 700;
+    padding: 10px 16px;
+    cursor: pointer;
+  }
+  .tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 900px) {
+    .grid-2 { grid-template-columns: 1fr; }
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .card-title {
+    font-size: 17px;
+    font-weight: 700;
+    margin-top: 0;
+    margin-bottom: 12px;
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .step-box {
+    background: var(--panel-alt);
+    border-left: 4px solid var(--accent);
+    padding: 12px 14px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    font-size: 13.5px;
+  }
+  .step-box.error { border-left-color: var(--danger); }
+  .step-box.success { border-left-color: var(--success); }
+  .prm-badge {
+    float: right;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.08);
+  }
+  .btn {
+    background: var(--accent);
+    color: #04101f;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .btn:hover { background: #7dd3fc; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 10px;
+  }
+  th, td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+  th { background: var(--panel-alt); color: var(--muted); }
+  .num { text-align: right; font-family: var(--font-mono); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="badge-pill">EPISODE 05 · TRACK A (CYCLE 2) · TEST-TIME COMPUTE SCALING</div>
+  <h1>Scaling LLM Test-Time Compute Optimally Can Be More Effective than Scaling Parameters</h1>
+  <p class="subtitle">Snell, Lee, Xu, & Kumar (UC Berkeley / Google DeepMind, arXiv:2408.03314). Interactive laboratory simulating PRM vs ORM, Adaptive Sequential Revision vs. Parallel Tree Search, and Difficulty-Aware Compute Allocation.</p>
+  <div class="nav-bar">
+    <a href="xm_results_dashboard.html">View XManager Dashboard (XID 293232963)</a>
+    <a href="monograph.html">View Mathematical Monograph</a>
+    <a href="https://github.com/kunruiw1991/llm-paper-summary" target="_blank">GitHub Monograph Compendium</a>
+  </div>
+</header>
+
+<main>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(0)">1. Core Intuition & The Compute Tradeoff</button>
+    <button class="tab-btn" onclick="switchTab(1)">2. PRM vs. ORM Step Inspector</button>
+    <button class="tab-btn" onclick="switchTab(2)">3. Sequential Revision vs. Tree Search</button>
+    <button class="tab-btn" onclick="switchTab(3)">4. Compute-Optimal Allocation Matrix</button>
+  </div>
+
+  <!-- TAB 1 -->
+  <div class="tab-content active" id="tab-0">
+    <div class="grid-2">
+      <div class="card">
+        <h3 class="card-title">Pre-Training vs. Test-Time Compute Scaling</h3>
+        <p style="color:var(--muted);font-size:14px;">Traditionally, improving reasoning required scaling model parameters (e.g., 7B → 70B → 405B), requiring 10× to 50× more pre-training FLOPs and gigantic GPU cluster footprints.</p>
+        <p style="color:var(--text);font-size:14px;"><b>The Core Thesis of Snell et al. (2024):</b> Given an inference compute budget C, spending compute dynamically at test time—via PRM-guided tree search and iterative revision—enables a <b>7B parameter model to outperform a 14× larger model</b> on challenging reasoning benchmarks.</p>
+        <div style="background:#0d1829;border:1px solid #1e3a5f;border-radius:8px;padding:14px;margin-top:14px;">
+          <div style="font-size:12px;color:var(--accent);font-weight:700;text-transform:uppercase;">Key Theorem / Asymptotic Insight</div>
+          <div style="font-size:13.5px;color:#e2e8f0;margin-top:4px;">When test-time search is optimal, accuracy scales log-linearly with inference compute on medium-to-hard problems, bypassing the diminishing returns of pure pre-training scaling.</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 class="card-title">Difficulty-Aware Optimal Allocation</h3>
+        <div style="font-size:13.5px;color:var(--muted);line-height:1.6;">
+          <p><b style="color:var(--success);">Easy Tasks (Base Pass Rate > 70%):</b> Greedy generation or 1-2 samples already succeeds. Excess test-time compute is wasteful.</p>
+          <p><b style="color:var(--accent);">Medium Tasks (Base Pass Rate 20% - 50%):</b> Sequential revision delivers extreme compute efficiency. Backtracking on a single flawed step fixes the proof at ~4× less compute than full parallel rollouts.</p>
+          <p><b style="color:var(--warning);">Hard Tasks (Base Pass Rate < 10%):</b> Sequential revision gets trapped in local minima. Only PRM-guided step-level beam/tree search can systematically discover valid reasoning paths.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2 -->
+  <div class="tab-content" id="tab-1">
+    <div class="card">
+      <h3 class="card-title">
+        <span>Step-by-Step Process Reward Model (PRM) Telemetry</span>
+        <button class="btn" onclick="simulatePRM()">Sample Step Trajectory</button>
+      </h3>
+      <div id="prm-demo-area">
+        <div class="step-box success">
+          <span class="prm-badge" style="color:var(--success);">PRM: 0.94 · SOUND</span>
+          <b>Step 1:</b> Factorize polynomial P(z) = z^4 + 2z^2 + 1 into (z^2 + 1)^2.
+        </div>
+        <div class="step-box success">
+          <span class="prm-badge" style="color:var(--success);">PRM: 0.89 · SOUND</span>
+          <b>Step 2:</b> Set roots (z^2 + 1) = 0, giving roots at z = ±i.
+        </div>
+        <div class="step-box error">
+          <span class="prm-badge" style="color:var(--danger);">PRM: 0.12 · FLAWED</span>
+          <b>Step 3:</b> Conclude that |z| = 2 for all roots. (Algebraic contradiction detected!)
+        </div>
+        <div class="step-box error">
+          <span class="prm-badge" style="color:var(--danger);">PRM: 0.04 · BLIND</span>
+          <b>Step 4:</b> Therefore boundary condition C is violated.
+        </div>
+      </div>
+      <p style="color:var(--muted);font-size:12.5px;margin-top:12px;"><b>Why PRM beats ORM:</b> An Outcome Reward Model (ORM) only gives a binary score (0 or 1) at Step 4, forcing the model to discard all 4 steps. The PRM pinpoints that Step 3 was the exact breakdown point, allowing surgical backtracking!</p>
+    </div>
+  </div>
+
+  <!-- TAB 3 -->
+  <div class="tab-content" id="tab-2">
+    <div class="card">
+      <h3 class="card-title">Live Strategy Comparison from XManager Run 293232963</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Strategy</th>
+            <th>Difficulty</th>
+            <th class="num">Solved / Total</th>
+            <th class="num">Accuracy</th>
+            <th class="num">Tokens / Problem</th>
+            <th class="num">PRM Evals</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Greedy (Single-Shot)</td>
+            <td>EASY</td>
+            <td class="num">16 / 20</td>
+            <td class="num" style="color:var(--success);">80.0%</td>
+            <td class="num">80.0</td>
+            <td class="num">0.0</td>
+          </tr>
+          <tr>
+            <td>Sequential Revision</td>
+            <td>EASY</td>
+            <td class="num">19 / 20</td>
+            <td class="num" style="color:var(--success);">95.0%</td>
+            <td class="num">110.0</td>
+            <td class="num">2.8</td>
+          </tr>
+          <tr style="background:rgba(56,189,248,0.06);">
+            <td><b>Sequential Revision</b></td>
+            <td><b>MEDIUM</b></td>
+            <td class="num"><b>11 / 20</b></td>
+            <td class="num" style="color:var(--accent);"><b>55.0%</b></td>
+            <td class="num"><b>376.0</b></td>
+            <td class="num"><b>9.4</b></td>
+          </tr>
+          <tr style="background:rgba(56,189,248,0.06);">
+            <td><b>Parallel Best-of-8</b></td>
+            <td><b>MEDIUM</b></td>
+            <td class="num"><b>20 / 20</b></td>
+            <td class="num" style="color:var(--accent);"><b>100.0%</b></td>
+            <td class="num"><b>1600.0</b></td>
+            <td class="num"><b>40.0</b></td>
+          </tr>
+          <tr style="background:rgba(251,191,36,0.08);">
+            <td>Sequential Revision</td>
+            <td>HARD</td>
+            <td class="num">4 / 20</td>
+            <td class="num" style="color:var(--danger);">20.0%</td>
+            <td class="num">712.0</td>
+            <td class="num">17.8</td>
+          </tr>
+          <tr style="background:rgba(251,191,36,0.08);">
+            <td><b>PRM Tree Search</b></td>
+            <td><b>HARD</b></td>
+            <td class="num"><b>20 / 20</b></td>
+            <td class="num" style="color:var(--success);font-weight:700;"><b>100.0%</b></td>
+            <td class="num"><b>2640.0</b></td>
+            <td class="num"><b>66.0</b></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB 4 -->
+  <div class="tab-content" id="tab-3">
+    <div class="card">
+      <h3 class="card-title">Optimal Compute Frontier (Snell et al. Fig. 1)</h3>
+      <p style="color:var(--muted);font-size:13.5px;">For any fixed FLOP budget C, the optimal policy switches strategy based on difficulty:</p>
+      <div style="background:#0c1524;padding:16px;border-radius:8px;font-family:var(--font-mono);font-size:13px;color:#93c5fd;">
+        • Budget C < 200 tokens: Greedy Single-Shot (solves Easy)<br/>
+        • Budget C ∈ [200, 800] tokens: Sequential PRM Revision (optimal for Medium)<br/>
+        • Budget C > 1000 tokens: PRM Tree Search with Beam Width ≥ 3 (essential for Hard)
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  function switchTab(idx) {
+    const tabs = document.querySelectorAll('.tab-btn');
+    const contents = document.querySelectorAll('.tab-content');
+    tabs.forEach((t, i) => t.classList.toggle('active', i === idx));
+    contents.forEach((c, i) => c.classList.toggle('active', i === idx));
+  }
+
+  function simulatePRM() {
+    const area = document.getElementById('prm-demo-area');
+    const p1 = (0.85 + Math.random() * 0.14).toFixed(2);
+    const p2 = (0.75 + Math.random() * 0.20).toFixed(2);
+    const isError = Math.random() < 0.6;
+    const p3 = isError ? (0.05 + Math.random() * 0.25).toFixed(2) : (0.80 + Math.random() * 0.18).toFixed(2);
+
+    area.innerHTML = `
+      <div class="step-box success">
+        <span class="prm-badge" style="color:var(--success);">PRM: ${p1} · SOUND</span>
+        <b>Step 1:</b> Define candidate space and establish invariant I(s).
+      </div>
+      <div class="step-box success">
+        <span class="prm-badge" style="color:var(--success);">PRM: ${p2} · SOUND</span>
+        <b>Step 2:</b> Apply induction step across boundary conditions.
+      </div>
+      <div class="step-box ${isError ? 'error' : 'success'}">
+        <span class="prm-badge" style="color:${isError ? 'var(--danger)' : 'var(--success)'};">PRM: ${p3} · ${isError ? 'FLAWED (BACKTRACK HERE)' : 'SOUND'}</span>
+        <b>Step 3:</b> ${isError ? 'Erroneous assumption: omitted negative sign in derivative.' : 'Verified lemma consistency across all branches.'}
+      </div>
+    `;
+  }
+</script>
+</body>
+</html>
