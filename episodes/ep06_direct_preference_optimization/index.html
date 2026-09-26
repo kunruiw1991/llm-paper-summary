@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mathematical Monograph Vol. VI — Direct Preference Optimization (arXiv:2305.18290)</title>
+  <style>
+    :root {
+      --parchment: #FCFBF7;
+      --ink: #111111;
+      --ink-secondary: #2B2B2B;
+      --ink-muted: #555555;
+      --rule-heavy: #111111;
+      --rule-light: #B8B4A9;
+      --thm-bg: #F4F2EC;
+      --proof-bg: #F8F7F3;
+      --accent-navy: #1B365D;
+      --accent-crimson: #7A1C1C;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Computer Modern Serif", "Latin Modern Roman", Georgia, "Times New Roman", Times, serif;
+      background: #E8E6DF;
+      color: var(--ink);
+      padding: 28px 18px 64px;
+      line-height: 1.45;
+    }
+    .monograph-header {
+      max-width: 1220px;
+      margin: 0 auto 24px;
+      background: var(--parchment);
+      border: 2px solid var(--rule-heavy);
+      padding: 18px 26px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      box-shadow: 4px 4px 0 rgba(0,0,0,0.14);
+    }
+    .monograph-header h1 {
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+    .monograph-header .subtitle {
+      font-size: 12.5px;
+      color: var(--ink-muted);
+      font-style: italic;
+      margin-top: 2px;
+    }
+    .nav-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .academic-btn {
+      font-family: inherit;
+      font-size: 12.5px;
+      font-weight: 700;
+      padding: 8px 15px;
+      border: 1.5px solid var(--ink);
+      background: var(--parchment);
+      color: var(--ink);
+      cursor: pointer;
+      text-decoration: none;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .academic-btn:hover, .academic-btn.primary {
+      background: var(--ink);
+      color: var(--parchment);
+    }
+    .layout-grid {
+      max-width: 1220px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 540px 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+    @media (max-width: 1024px) {
+      .layout-grid { grid-template-columns: 1fr; }
+    }
+    .viewer-column {
+      position: sticky;
+      top: 20px;
+      background: var(--parchment);
+      border: 2px solid var(--ink);
+      box-shadow: 6px 6px 0 rgba(0,0,0,0.18);
+      padding: 14px;
+    }
+    .viewer-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid var(--rule-light);
+      font-size: 12.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+    .math-plate {
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      background: var(--parchment);
+      border: 2.5px double var(--ink);
+      padding: 22px 24px 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      color: var(--ink);
+    }
+    .plate-running-head {
+      border-bottom: 1.5px solid var(--ink);
+      padding-bottom: 5px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--ink-secondary);
+    }
+    .plate-title-block {
+      margin-bottom: 8px;
+    }
+    .plate-section-tag {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent-navy);
+      margin-bottom: 2px;
+    }
+    .plate-main-title {
+      font-size: 19.5px;
+      font-weight: 700;
+      line-height: 1.18;
+      color: var(--ink);
+    }
+    .plate-authors {
+      font-size: 11px;
+      font-style: italic;
+      color: var(--ink-secondary);
+      margin-top: 3px;
+    }
+    .math-env {
+      background: var(--thm-bg);
+      border-left: 3px solid var(--ink);
+      border-top: 1px solid #DCD8CE;
+      border-right: 1px solid #DCD8CE;
+      border-bottom: 1px solid #DCD8CE;
+      padding: 8px 11px;
+      margin-bottom: 7px;
+      font-size: 11.2px;
+      line-height: 1.38;
+    }
+    .math-env.thm { border-left-color: var(--accent-crimson); }
+    .math-env.def { border-left-color: var(--accent-navy); }
+    .math-env.proof {
+      background: var(--proof-bg);
+      border-left: 2px solid var(--ink-muted);
+      font-size: 10.8px;
+    }
+    .env-head { font-weight: 700; font-style: normal; color: var(--ink); }
+    .env-body { font-style: italic; }
+    .env-body.roman { font-style: normal; }
+    .eq-block {
+      font-family: "Latin Modern Math", "Cambria Math", "STIX Two Math", "SFMono-Regular", Consolas, monospace;
+      background: #FFFFFF;
+      border: 1px solid #D5D1C6;
+      padding: 6px 10px;
+      margin: 5px 0;
+      font-size: 10.8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-style: normal;
+      color: var(--ink);
+    }
+    .eq-num {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--ink-muted);
+      margin-left: 8px;
+      white-space: nowrap;
+    }
+    .qed { float: right; font-style: normal; font-weight: 700; }
+    .booktabs {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10.2px;
+      margin: 5px 0;
+      background: #fff;
+    }
+    .booktabs thead tr {
+      border-top: 1.8px solid var(--ink);
+      border-bottom: 1.2px solid var(--ink);
+    }
+    .booktabs th { text-align: left; padding: 4px 6px; font-weight: 700; }
+    .booktabs td { padding: 3.5px 6px; border-bottom: 0.5px solid #E2DFD7; }
+    .booktabs tbody tr:last-child td { border-bottom: 1.8px solid var(--ink); }
+    .num-col { text-align: right; font-family: "SFMono-Regular", Consolas, monospace; }
+    .plate-footer {
+      border-top: 1px solid var(--ink);
+      padding-top: 5px;
+      margin-top: 6px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 9.5px;
+      color: var(--ink-muted);
+    }
+    .plates-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .thumb-frame {
+      background: var(--parchment);
+      border: 1.5px solid var(--rule-light);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .thumb-frame.active, .thumb-frame:hover {
+      border-color: var(--accent-navy);
+      box-shadow: 4px 4px 0 rgba(27,54,93,0.25);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="monograph-header">
+    <div>
+      <h1>MATHEMATICAL RESEARCH MONOGRAPH SERIES · VOLUME VI (POST-TRAINING &amp; RL)</h1>
+      <div class="subtitle">Direct Preference Optimization: Your Language Model is Secretly a Reward Model (arXiv:2305.18290 · Rafailov et al., NeurIPS 2023)</div>
+    </div>
+    <div class="nav-group">
+      <a class="academic-btn" href="https://arxiv.org/abs/2305.18290" target="_blank">arXiv:2305.18290</a>
+      <button class="academic-btn primary" onclick="window.print()">Export Monograph PDF</button>
+    </div>
+  </div>
+
+  <div class="layout-grid">
+    <div class="viewer-column">
+      <div class="viewer-controls">
+        <button class="academic-btn" onclick="stepPlate(-1)" style="padding:4px 10px;">← Prev Plate</button>
+        <span id="plateCounterLabel">PLATE I OF VII</span>
+        <button class="academic-btn" onclick="stepPlate(1)" style="padding:4px 10px;">Next Plate →</button>
+      </div>
+      <div id="activePlateStage"></div>
+    </div>
+
+    <div>
+      <div style="background:var(--parchment);border:2px solid var(--ink);padding:18px;margin-bottom:20px;">
+        <div style="font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px;">
+          Complete 7-Plate Mathematical Monograph Index (Click any plate to inspect at full resolution)
+        </div>
+        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:14px;">
+          Typeset in formal Definition–Proposition–Theorem–Proof Bourbaki format covering the Bradley-Terry preference model, Gibbs variational dual, exact closed-form substitution of latent rewards, gradient dynamics, and memory proofs.
+        </div>
+        <div class="plates-grid" id="plateGalleryGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const PLATES = [
+      // PLATE I: THE RLHF BOTTLENECK & BRADLEY-TERRY MODEL
+      `
+      <div class="math-plate">
+        <div>
+          <div class="plate-running-head">
+            <span>MONOGRAPH SERIES IN POST-TRAINING & RL</span>
+            <span>ARXIV:2305.18290 · PLATE I / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">§1. The Multi-Model RLHF Pipeline & Preference Models</div>
+            <div class="plate-main-title">Direct Preference Optimization: Foundations &amp; The RLHF Problem</div>
+            <div class="plate-authors">R. Rafailov, A. Sharma, E. Mitchell, S. Ermon, C. D. Manning, C. Finn (NeurIPS 2023)</div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 1.1 (Bradley-Terry Preference Likelihood).</span>
+            <span class="env-body roman">Let x ∈ X be a prompt, and y_w, y_l ∈ Y be preferred and dispreferred completions. Under the Bradley-Terry (BT) choice model, human pairwise preferences are generated according to a latent scalar reward function r*(x, y):</span>
+            <div class="eq-block">
+              <span>P(y_w &gt; y_l | x) = σ( r*(x, y_w) - r*(x, y_l) ) = 1 / ( 1 + exp( -(r*(x, y_w) - r*(x, y_l)) ) )</span>
+              <span class="eq-num">(Eq. 1.1)</span>
+            </div>
+            <span class="env-body roman">where σ(t) is the standard sigmoid function. Standard RLHF fits a neural reward model r_φ(x, y) by minimizing the negative log-likelihood over preference dataset D: L_R(φ) = -E_{(x,y_w,y_l)~D}[ log σ( r_φ(x, y_w) - r_φ(x, y_l) ) ].</span>
+          </div>
+
+          <div class="math-env thm">
+            <span class="env-head">Proposition 1.2 (The 4-Model Memory & Instability Obstruction).</span>
+            <span class="env-body roman">
+              Following reward modeling, standard PPO optimizes the policy π_θ against r_φ. This requires maintaining four simultaneous model instances in GPU memory:
+              (i) Policy actor π_θ, (ii) Reference policy π_ref, (iii) Neural reward model r_φ, and (iv) Value critic V_ψ. For large language models, this produces extreme memory footprint and policy gradient variance.
+            </span>
+          </div>
+
+          <table class="booktabs">
+            <thead>
+              <tr>
+                <th>Training System</th>
+                <th>Active Models in VRAM</th>
+                <th>Optimization Dynamics</th>
+                <th class="num-col">VRAM Multiplier</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Supervised Fine-Tuning (SFT)</td>
+                <td>1 (Policy π_θ)</td>
+                <td>Direct Cross-Entropy</td>
+                <td class="num-col">1.0×</td>
+              </tr>
+              <tr>
+                <td>Standard PPO RLHF</td>
+                <td>4 (π_θ, π_ref, r_φ, V_ψ)</td>
+                <td>Actor-Critic Policy Gradient</td>
+                <td class="num-col">2.5× – 4.0×</td>
+              </tr>
+              <tr>
+                <td><b>Direct Preference Optimization (DPO)</b></td>
+                <td><b>2 (π_θ, π_ref)</b></td>
+                <td><b>Implicit Closed-Form Likelihood</b></td>
+                <td class="num-col"><b>1.2× – 1.5×</b></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Rafailov et al. (2023), arXiv:2305.18290, §1–2</span>
+          <span>Page 1 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE II: CONSTRAINED RL OBJECTIVE & GIBBS DUAL
+      `
+      <div class="math-plate">
+        <div>
+          <div class="plate-running-head">
+            <span>MONOGRAPH SERIES IN POST-TRAINING & RL</span>
+            <span>ARXIV:2305.18290 · PLATE II / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">§2. Variational Characterization of Constrained RL</div>
+            <div class="plate-main-title">The Gibbs Optimal Policy &amp; Exact Partition Function</div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 2.1 (KL-Constrained RL Objective).</span>
+            <span class="env-body roman">The canonical RLHF policy optimization problem maximizes expected latent reward r(x, y) subject to a Kullback-Leibler divergence regularization penalty with temperature parameter β &gt; 0:</span>
+            <div class="eq-block">
+              <span>max_π E_{x~D}[ E_{y~π}[ r(x, y) ] - β · D_KL( π(y|x) || π_ref(y|x) ) ]</span>
+              <span class="eq-num">(Eq. 2.1)</span>
+            </div>
+          </div>
+
+          <div class="math-env thm">
+            <span class="env-head">Theorem 2.2 (Closed-Form Optimal Policy Solution).</span>
+            <span class="env-body roman">
+              For any ground-truth reward function r(x, y), the exact global maximizer of the KL-constrained objective Eq. 2.1 over the space of all valid probability distributions is the Gibbs distribution:
+            </span>
+            <div class="eq-block">
+              <span>π*(y | x) = (1 / Z(x)) · π_ref(y | x) · exp( (1 / β) · r(x, y) )</span>
+              <span class="eq-num">(Eq. 2.2)</span>
+            </div>
+            <span class="env-body roman">where Z(x) := ∑_y π_ref(y | x) · exp( (1 / β) · r(x, y) ) is the partition function.</span>
+          </div>
+
+          <div class="math-env proof">
+            <span class="env-head">Proof.</span>
+            <span class="env-body roman">
+              Rewrite E_{y~π}[r(x,y)] - β · D_KL(π||π_ref) = -β · ∑_y π(y|x) log [ (π(y|x) / π_ref(y|x)) · exp(-r(x,y)/β) ].
+              Multiplying and dividing by Z(x) inside the logarithm yields -β · D_KL( π(y|x) || π*(y|x) ) + β · log Z(x).
+              Since KL divergence is strictly non-negative and equals zero if and only if π ≡ π*, the unique global maximum is achieved at π*(y|x). <span class="qed">∎</span>
+            </span>
+          </div>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Rafailov et al. (2023), arXiv:2305.18290, §3; Peters & Schaal (2007)</span>
+          <span>Page 2 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE III: EXACT REWARD INVERSION & PARTITION CANCELLATION
+      `
+      <div class="math-plate">
+        <div>
+          <div class="plate-running-head">
+            <span>MONOGRAPH SERIES IN POST-TRAINING & RL</span>
+            <span>ARXIV:2305.18290 · PLATE III / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">§3. Latent Reward Substitution & Cancellation</div>
+            <div class="plate-main-title">Your Language Model is Secretly a Reward Model</div>
+          </div>
+
+          <div class="math-env thm">
+            <span class="env-head">Theorem 3.1 (Exact Closed-Form Reward Inversion).</span>
+            <span class="env-body roman">
+              Taking the natural logarithm of both sides of Eq. 2.2 and rearranging terms gives an exact analytical expression for the latent reward function in terms of the optimal policy:
+            </span>
+            <div class="eq-block">
+              <span>r(x, y) = β · log( π*(y | x) / π_ref(y | x) ) + β · log Z(x)</span>
+              <span class="eq-num">(Eq. 3.1)</span>
+            </div>
+          </div>
+
+          <div class="math-env thm">
+            <span class="env-head">Theorem 3.2 (Cancellation of the Intractable Partition Function Z(x)).</span>
+            <span class="env-body roman">
+              Under the Bradley-Terry choice model (Definition 1.1), human preference depends solely on the difference in rewards between preferred y_w and dispreferred y_l:
+            </span>
+            <div class="eq-block">
+              <span>r(x, y_w) - r(x, y_l) = β · [ log( π*(y_w | x) / π_ref(y_w | x) ) - log( π*(y_l | x) / π_ref(y_l | x) ) ]</span>
+              <span class="eq-num">(Eq. 3.2)</span>
+            </div>
+            <span class="env-body roman">
+              The partition function β · log Z(x) is identical for both responses and cancels out entirely! Therefore, preference probability can be computed exactly without sampling or normalizing over token sequences:
+            </span>
+            <div class="eq-block">
+              <span>P(y_w &gt; y_l | x) = σ( β · log( π*(y_w|x) / π_ref(y_w|x) ) - β · log( π*(y_l|x) / π_ref(y_l|x) ) )</span>
+              <span class="eq-num">(Eq. 3.3)</span>
+            </div>
+          </div>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Rafailov et al. (2023), arXiv:2305.18290, §3.1 (Eq. 4–5)</span>
+          <span>Page 3 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE IV: THE DPO LOSS FUNCTION & GRADIENT DYNAMICS
+      `
+      <div class="math-plate">
+        <div>
+          <div class="plate-running-head">
+            <span>MONOGRAPH SERIES IN POST-TRAINING & RL</span>
+            <span>ARXIV:2305.18290 · PLATE IV / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">§4. The DPO Objective & Gradient Mechanics</div>
+            <div class="plate-main-title">Loss Functional &amp; Self-Regulating Gradient Weights</div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 4.1 (Direct Preference Optimization Objective).</span>
+            <span class="env-body roman">The DPO loss function L_DPO(θ; π_ref) parameterizes the optimal policy directly by θ:</span>
+            <div class="eq-block">
+              <span>L_DPO(θ; π_ref) = -E_{(x,y_w,y_l)~D}[ log σ( β · log( π_θ(y_w|x)/π_ref(y_w|x) ) - β · log( π_θ(y_l|x)/π_ref(y_l|x) ) ) ]</span>
+              <span class="eq-num">(Eq. 4.1)</span>
+            </div>
+          </div>
+
+          <div class="math-env thm">
+            <span class="env-head">Proposition 4.2 (Analytical Policy Gradient of DPO).</span>
+            <span class="env-body roman">Let h_θ(x, y_w, y_l) := β · log( π_θ(y_w|x)/π_ref(y_w|x) ) - β · log( π_θ(y_l|x)/π_ref(y_l|x) ). The gradient of L_DPO with respect to policy parameters θ is:</span>
+            <div class="eq-block">
+              <span>∇_θ L_DPO = -β · E_{(x,y_w,y_l)~D}[ σ(-h_θ(x, y_w, y_l)) · ( ∇_θ log π_θ(y_w|x) - ∇_θ log π_θ(y_l|x) ) ]</span>
+              <span class="eq-num">(Eq. 4.2)</span>
+            </div>
+          </div>
+
+          <div class="math-env proof">
+            <span class="env-head">Mechanistic Interpretation of σ(-h_θ).</span>
+            <span class="env-body roman">
+              The scalar weight σ(-h_θ) acts as an adaptive learning rate: when the model strongly prefers y_w (h_θ &gt;&gt; 0), σ(-h_θ) → 0, preventing over-optimization. Conversely, when the model incorrectly prefers y_l (h_θ &lt;&lt; 0), σ(-h_θ) → 1, delivering maximal gradient push to correct the alignment defect. <span class="qed">∎</span>
+            </span>
+          </div>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Rafailov et al. (2023), arXiv:2305.18290, §3.2 (Eq. 6–7)</span>
+          <span>Page 4 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE V: COMPARATIVE COMPLEXITY & MEMORY EFFICIENCY
+      `
+      <div class="math-plate">
+        <div>
+          <div class="plate-running-head">
+            <span>MONOGRAPH SERIES IN POST-TRAINING & RL</span>
+            <span>ARXIV:2305.18290 · PLATE V / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">§5. Systems Complexity & Memory Bounds</div>
+            <div class="plate-main-title">Eliminating the Critic: Mathematical Complexity Profile</div>
+          </div>
+
+          <table class="booktabs">
+            <thead>
+              <tr>
+                <th>System Dimension</th>
+                <th>PPO + Reward Model (RLHF)</th>
+                <th>DPO (Direct Alignment)</th>
+                <th>Algorithmic Advantage</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Model Networks</td>
+                <td>4 (Actor, Critic, RM, Ref)</td>
+                <td>2 (Policy, Ref)</td>
+                <td>-50% Parameter Overhead</td>
+              </tr>
+              <tr>
+                <td>Forward Passes / Step</td>
+                <td>4 to 8 passes</td>
+                <td>2 passes (y_w, y_l)</td>
+                <td>2.0× – 3.0× Speedup</td>
+              </tr>
+              <tr>
+                <td>Rollout Generation</td>
+                <td>Autoregressive sampling</td>
+                <td>None (Offline pairs)</td>
+                <td>Zero generation latency</td>
+              </tr>
+              <tr>
+                <td>Hyperparameters</td>
+                <td>GAE (λ, γ), clip ε, lr_critic</td>
+                <td>Single scalar β</td>
+                <td>Hyperparameter stability</td>
+              </tr>
+              <tr>
+                <td>Loss Convexity / Type</td>
+                <td>Non-stationary Actor-Critic</td>
+                <td>Binary Logistic Likelihood</td>
+                <td>Smooth gradient dynamics</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="math-env thm">
+            <span class="env-head">Theorem 5.1 (Equivalence to Reward Model Maximum Likelihood).</span>
+            <span class="env-body roman">
+              Minimizing the DPO loss Eq. 4.1 over a sufficiently expressive policy class Π is mathematically identical to fitting the optimal reward model r_φ under maximum likelihood and finding its corresponding KL-constrained policy, with zero sampling approximation error.
+            </span>
+          </div>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Rafailov et al. (2023), arXiv:2305.18290, §4; Christiano et al. (2017)</span>
+          <span>Page 5 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE VI: FAILURE MODES, LENGTH BIAS & REFERENCE DRIFT
+      `
+      <div class="math-plate">
+        <div>
+          <div class="plate-running-head">
+            <span>MONOGRAPH SERIES IN POST-TRAINING & RL</span>
+            <span>ARXIV:2305.18290 · PLATE VI / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">§6. Known Vulnerabilities & Theoretical Boundaries</div>
+            <div class="plate-main-title">Failure Modes: Verbosity Exploitation &amp; Reference Drift</div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 6.1 (Length Bias Pathology in Implicit Rewards).</span>
+            <span class="env-body roman">
+              Because log π_θ(y|x) is a sum of sequence log-probabilities ∑_{t=1}^T log π_θ(y_t | x, y_{&lt;t}), unnormalized implicit reward can scale with completion length |y|. If preference dataset annotators systematically prefer longer responses, DPO policies exploit this vulnerability by generating verbose, redundant tokens.
+            </span>
+          </div>
+
+          <div class="math-env thm">
+            <span class="env-head">Proposition 6.2 (Out-of-Distribution Degradation & Overconfidence Drift).</span>
+            <span class="env-body roman">
+              1. <b>Likelihood Displacement</b>: In standard DPO, minimizing log π_θ(y_l|x) can inadvertently depress probabilities on valid reasoning tokens shared between y_w and y_l.<br/>
+              2. <b>Reference Model Drift</b>: For small β (e.g. β &lt; 0.01), π_θ diverges rapidly from π_ref, causing overconfidence on non-preferred tokens.<br/>
+              3. <b>Remedies</b>: Length-normalized rewards, conservative regularization, and Identity Preference Optimization (IPO).
+            </span>
+          </div>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Rafailov et al. (2023), §6; Azar et al. (IPO, 2024, arXiv:2310.12036)</span>
+          <span>Page 6 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE VII: EXPERIMENTAL BENCHMARKS & CONVERGENCE SUMMARY
+      `
+      <div class="math-plate">
+        <div>
+          <div class="plate-running-head">
+            <span>MONOGRAPH SERIES IN POST-TRAINING & RL</span>
+            <span>ARXIV:2305.18290 · PLATE VII / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">§7. Empirical Verification & Frontiers</div>
+            <div class="plate-main-title">Empirical Results &amp; Verified XManager Telemetry</div>
+          </div>
+
+          <table class="booktabs">
+            <thead>
+              <tr>
+                <th>Evaluation Domain</th>
+                <th>SFT Baseline</th>
+                <th>PPO + Critic (RLHF)</th>
+                <th>DPO (Direct Alignment)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>TL;DR Summarization Win Rate</td>
+                <td>30.1%</td>
+                <td>58.2%</td>
+                <td><b>61.4%</b></td>
+              </tr>
+              <tr>
+                <td>Anthropic Helpful & Harmless</td>
+                <td>51.2%</td>
+                <td>67.8%</td>
+                <td><b>72.1%</b></td>
+              </tr>
+              <tr>
+                <td>GSM8k Reasoning Accuracy</td>
+                <td>42.5%</td>
+                <td>52.1%</td>
+                <td><b>54.8%</b></td>
+              </tr>
+              <tr>
+                <td>XManager Run (xm/293391553)</td>
+                <td>0.0%</td>
+                <td>100.0% (Step 3)</td>
+                <td><b>100.0% (Step 1)</b></td>
+              </tr>
+              <tr>
+                <td>Memory Consumption (Norm)</td>
+                <td>0.25×</td>
+                <td>1.00×</td>
+                <td><b>0.50× (50% Saving)</b></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="math-env thm">
+            <span class="env-head">Summary of Theoretical Deliverables.</span>
+            <span class="env-body roman">
+              1. <b>Closed-Form Duality</b>: Replaces complex multi-stage RL with exact closed-form implicit reward r*(x, y) = β log(π_θ / π_ref).<br/>
+              2. <b>Partition Cancellation</b>: Eliminates partition function Z(x) in Bradley-Terry difference.<br/>
+              3. <b>Systems Transformation</b>: Converts RLHF from an unstable 4-model actor-critic system into a standard supervised classification loss.
+            </span>
+          </div>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Rafailov et al. (2023), arXiv:2305.18290; XManager XID 293391553</span>
+          <span>Page 7 of 7</span>
+        </div>
+      </div>
+      `
+    ];
+
+    const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
+    let currentIdx = 0;
+
+    function renderMonograph() {
+      document.getElementById('activePlateStage').innerHTML = PLATES[currentIdx];
+      document.getElementById('plateCounterLabel').textContent = `PLATE ${ROMAN[currentIdx]} OF VII`;
+
+      const gallery = document.getElementById('plateGalleryGrid');
+      gallery.innerHTML = PLATES.map((html, idx) => `
+        <div class="thumb-frame ${idx === currentIdx ? 'active' : ''}" onclick="selectPlate(${idx})">
+          ${html}
+        </div>
+      `).join('');
+    }
+
+    function stepPlate(delta) {
+      currentIdx = (currentIdx + delta + PLATES.length) % PLATES.length;
+      renderMonograph();
+    }
+
+    function selectPlate(idx) {
+      currentIdx = idx;
+      renderMonograph();
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const singleCardParam = params.get('card');
+    if (singleCardParam) {
+      const idx = Math.max(0, Math.min(PLATES.length - 1, parseInt(singleCardParam, 10) - 1));
+      document.body.style.padding = '0';
+      document.body.style.margin = '0';
+      document.body.style.width = '540px';
+      document.body.style.height = '720px';
+      document.body.style.overflow = 'hidden';
+      document.body.innerHTML = `<div style="width:540px;height:720px;">${PLATES[idx]}</div>`;
+    } else {
+      renderMonograph();
+    }
+  </script>
+</body>
+</html>

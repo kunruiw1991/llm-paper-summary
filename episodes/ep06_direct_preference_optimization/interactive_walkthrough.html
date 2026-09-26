@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Direct Preference Optimization (DPO) — Interactive Visual Lab</title>
+<style>
+  :root {
+    --bg: #090d16;
+    --panel: #111726;
+    --panel-alt: #172036;
+    --card: #1c2642;
+    --border: #28375e;
+    --text: #eaf0fc;
+    --muted: #94a7cb;
+    --accent: #38bdf8;
+    --accent-2: #818cf8;
+    --success: #34d399;
+    --warning: #fbbf24;
+    --danger: #f87171;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-mono: "SFMono-Regular", Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    line-height: 1.55;
+  }
+  header {
+    background: linear-gradient(135deg, #0d1527 0%, #152243 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 22px 28px;
+  }
+  .badge-pill {
+    display: inline-block;
+    background: rgba(56, 189, 248, 0.16);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    letter-spacing: 0.4px;
+    margin-bottom: 8px;
+  }
+  h1 { margin: 0 0 6px 0; font-size: 24px; font-weight: 800; color: #ffffff; }
+  .subtitle { margin: 0; color: var(--muted); font-size: 14px; max-width: 1080px; }
+  .nav-bar {
+    display: flex;
+    gap: 16px;
+    margin-top: 14px;
+    font-size: 13.5px;
+  }
+  .nav-bar a { text-decoration: none; color: var(--accent); font-weight: 600; }
+  .nav-bar a:hover { text-decoration: underline; }
+  main {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 24px 28px 60px;
+  }
+  .tabs {
+    display: flex;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+  }
+  .tab-btn {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--muted);
+    font-size: 15px;
+    font-weight: 700;
+    padding: 10px 16px;
+    cursor: pointer;
+  }
+  .tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 900px) {
+    .grid-2 { grid-template-columns: 1fr; }
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .card-title {
+    font-size: 17px;
+    font-weight: 700;
+    margin-top: 0;
+    margin-bottom: 12px;
+    color: #fff;
+  }
+  .formula-box {
+    background: #090f1f;
+    border: 1px solid #24355a;
+    border-left: 4px solid var(--accent);
+    padding: 14px 18px;
+    border-radius: 8px;
+    font-family: var(--font-mono);
+    font-size: 13.5px;
+    color: #dbeafe;
+    margin: 12px 0;
+  }
+  .interactive-control {
+    margin: 14px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .interactive-control label { font-size: 13.5px; width: 180px; }
+  input[type=range] { flex: 1; }
+  .val-badge {
+    background: #1e293b;
+    border: 1px solid #334155;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 13px;
+    color: var(--accent);
+    min-width: 48px;
+    text-align: right;
+  }
+  .result-banner {
+    background: #0d1d36;
+    border: 1px solid #1e3a66;
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-top: 14px;
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="badge-pill">TRACK B: POST-TRAINING &amp; RL (CYCLE 2) · EPISODE 06</div>
+  <h1>Direct Preference Optimization (DPO): Your Language Model is Secretly a Reward Model</h1>
+  <p class="subtitle">
+    Interactive visual laboratory replicating Rafailov et al. (NeurIPS 2023). Explore the Bradley-Terry preference derivation, the exact closed-form substitution of latent rewards, and the 50% GPU memory reduction from eliminating PPO's Value Critic.
+  </p>
+  <div class="nav-bar">
+    <a href="xm_results_dashboard.html">📊 XManager Results &amp; Inspector Dashboard</a>
+    <a href="monograph.html">📜 Academic Mathematical Monograph (Vol. VI)</a>
+    <a href="http://xids/293391553" target="_blank">🔬 XManager Run (xm/293391553)</a>
+    <a href="https://github.com/kunruiw1991/llm-paper-summary" target="_blank">🌐 GitHub Monograph Compendium</a>
+  </div>
+</header>
+
+<main>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(0)">1. The 4-Model RLHF Zoo vs. DPO</button>
+    <button class="tab-btn" onclick="switchTab(1)">2. Bradley-Terry Analytical Inversion</button>
+    <button class="tab-btn" onclick="switchTab(2)">3. Interactive Gradient &amp; Margin Simulator</button>
+    <button class="tab-btn" onclick="switchTab(3)">4. Real Preference Benchmark Inspector</button>
+  </div>
+
+  <!-- TAB 1: RLHF ZOO VS DPO -->
+  <div class="tab-content active">
+    <div class="grid-2">
+      <div class="card">
+        <h2 class="card-title">Traditional PPO RLHF (4 Large Models in VRAM)</h2>
+        <p style="color:var(--muted); font-size:14px;">
+          Standard Reinforcement Learning from Human Feedback (RLHF) optimizes a policy against an explicit neural reward model using PPO. To train a 70B model, you must keep 4 separate models in GPU memory:
+        </p>
+        <ul style="color:var(--text); font-size:13.5px; line-height:1.7;">
+          <li><b>Policy Actor (π_θ)</b>: Generates rollouts, receives policy gradient updates. (Active weights + Adam states).</li>
+          <li><b>Reference Model (π_ref)</b>: Frozen base SFT checkpoint computing KL divergence penalty.</li>
+          <li><b>Reward Model (r_φ)</b>: Frozen scalar neural network predicting preference scores.</li>
+          <li><b>Value Critic (V_ψ)</b>: Parameterized state-value estimator computing generalized advantage estimates (GAE).</li>
+        </ul>
+        <div class="formula-box" style="border-left-color:var(--danger);">
+          Memory Overhead: 100% (2.5× to 4× base weights)<br>
+          Instability: Dual actor-critic learning rate co-tuning, non-stationary critic drift.
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 class="card-title">Direct Preference Optimization (2 Models Only)</h2>
+        <p style="color:var(--muted); font-size:14px;">
+          DPO proves that the optimal policy under the KL-constrained RLHF objective satisfies an exact closed-form relation to the ground-truth reward function. We can analytically solve for reward in terms of policy probabilities:
+        </p>
+        <div class="formula-box" style="border-left-color:var(--success);">
+          r*(x, y) = β · log( π_θ(y | x) / π_ref(y | x) ) + β · log Z(x)
+        </div>
+        <p style="color:var(--muted); font-size:14px;">
+          By substituting this formula into the Bradley-Terry pairwise preference likelihood, the partition function Z(x) cancels out completely!
+        </p>
+        <ul style="color:var(--text); font-size:13.5px; line-height:1.7;">
+          <li><b>Zero Reward Model</b>: No separate r_φ needed.</li>
+          <li><b>Zero Value Critic</b>: No critic network V_ψ needed.</li>
+          <li><b>50% GPU Memory Saving</b>: Only π_θ (trainable) and π_ref (frozen inference or LoRA base).</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: BRADLEY-TERRY INVERSION -->
+  <div class="tab-content">
+    <div class="card">
+      <h2 class="card-title">The Mathematical Bridge: From Constrained RL to Binary Classification</h2>
+      <p style="color:var(--muted); font-size:14px;">
+        Standard RLHF seeks to maximize expected reward while penalizing divergence from the reference policy:
+      </p>
+      <div class="formula-box">
+        max_{π} E_{x~D, y~π}[ r(x, y) ] - β · D_KL( π(y|x) || π_ref(y|x) )
+      </div>
+      <p style="color:var(--text); font-size:14px;">
+        The closed-form analytical maximizer of this objective is the Gibbs distribution:
+      </p>
+      <div class="formula-box">
+        π*(y | x) = (1 / Z(x)) · π_ref(y | x) · exp( (1 / β) · r(x, y) )
+      </div>
+      <p style="color:var(--text); font-size:14px;">
+        Taking the natural logarithm of both sides and rearranging yields the latent reward expression:
+      </p>
+      <div class="formula-box" style="border-left-color:var(--success);">
+        r(x, y) = β · log( π*(y|x) / π_ref(y|x) ) + β · log Z(x)
+      </div>
+      <p style="color:var(--muted); font-size:14px;">
+        When plugged into the Bradley-Terry preference probability P(y_w > y_l | x) = σ( r(x, y_w) - r(x, y_l) ):
+      </p>
+      <div class="formula-box">
+        r(x, y_w) - r(x, y_l) = β · [ log(π_θ(y_w|x) / π_ref(y_w|x)) - log(π_θ(y_l|x) / π_ref(y_l|x)) ]
+      </div>
+      <p style="color:var(--success); font-weight:600; font-size:14px;">
+        Notice: The unknown partition function log Z(x) is identical for both completions and vanishes through subtraction!
+      </p>
+    </div>
+  </div>
+
+  <!-- TAB 3: INTERACTIVE GRADIENT SIMULATOR -->
+  <div class="tab-content">
+    <div class="card">
+      <h2 class="card-title">Interactive Implicit Margin &amp; Gradient Dynamics</h2>
+      <p style="color:var(--muted); font-size:14px;">
+        Adjust the policy log-ratio terms and temperature parameter β to inspect the resulting implicit reward margin h, DPO loss, and dynamic gradient weight σ(-h):
+      </p>
+
+      <div class="interactive-control">
+        <label>Temperature (β):</label>
+        <input type="range" id="param-beta" min="0.01" max="0.50" step="0.01" value="0.10" oninput="updateSim()">
+        <span class="val-badge" id="val-beta">0.10</span>
+      </div>
+
+      <div class="interactive-control">
+        <label>Winner Log-Ratio (log π_w/π_ref):</label>
+        <input type="range" id="param-log-w" min="-3.0" max="3.0" step="0.1" value="0.8" oninput="updateSim()">
+        <span class="val-badge" id="val-log-w">+0.8</span>
+      </div>
+
+      <div class="interactive-control">
+        <label>Loser Log-Ratio (log π_l/π_ref):</label>
+        <input type="range" id="param-log-l" min="-3.0" max="3.0" step="0.1" value="-0.5" oninput="updateSim()">
+        <span class="val-badge" id="val-log-l">-0.5</span>
+      </div>
+
+      <div class="result-banner">
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:16px;">
+          <div>
+            <div style="font-size:12px; color:var(--muted); text-transform:uppercase;">Implicit Margin (h)</div>
+            <div style="font-size:22px; font-weight:700; color:var(--accent);" id="res-margin">+0.130 nats</div>
+          </div>
+          <div>
+            <div style="font-size:12px; color:var(--muted); text-transform:uppercase;">DPO Loss (-log σ(h))</div>
+            <div style="font-size:22px; font-weight:700; color:var(--warning);" id="res-loss">0.631</div>
+          </div>
+          <div>
+            <div style="font-size:12px; color:var(--muted); text-transform:uppercase;">Gradient Weight σ(-h)</div>
+            <div style="font-size:22px; font-weight:700; color:var(--success);" id="res-grad">0.468</div>
+          </div>
+          <div>
+            <div style="font-size:12px; color:var(--muted); text-transform:uppercase;">Status</div>
+            <div style="font-size:18px; font-weight:700; color:var(--text);" id="res-status">Well-Aligned</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: BENCHMARK INSPECTOR -->
+  <div class="tab-content">
+    <div class="card">
+      <h2 class="card-title">Real Evaluation Benchmark Pair Examples</h2>
+      <p style="color:var(--muted); font-size:14px;">
+        Curated test pairs used in the XManager verification suite (ep06_direct_preference_optimization):
+      </p>
+
+      <div style="background:#090f1f; border:1px solid var(--border); border-radius:8px; padding:16px; margin-bottom:14px;">
+        <span style="font-size:12px; background:rgba(56,189,248,0.2); color:var(--accent); padding:2px 8px; border-radius:4px; font-weight:700;">CONCISENESS</span>
+        <div style="margin:8px 0; font-weight:600;">Prompt: "Write a Python function to check if a string is a palindrome."</div>
+        <div style="margin:6px 0; font-size:13px; color:var(--success);"><b>Winning Response (y_w):</b> <code>def is_palindrome(s): clean = ''.join(c.lower() for c in s if c.isalnum()); return clean == clean[::-1]</code></div>
+        <div style="margin:6px 0; font-size:13px; color:var(--danger);"><b>Losing Response (y_l):</b> 50-line wordy essay with redundant loops, non-idiomatic variables, and conversational filler.</div>
+      </div>
+
+      <div style="background:#090f1f; border:1px solid var(--border); border-radius:8px; padding:16px;">
+        <span style="font-size:12px; background:rgba(168,85,247,0.2); color:#d8b4fe; padding:2px 8px; border-radius:4px; font-weight:700;">REASONING</span>
+        <div style="margin:8px 0; font-weight:600;">Prompt: "Solve for x: 3^(2x - 1) = 27."</div>
+        <div style="margin:6px 0; font-size:13px; color:var(--success);"><b>Winning Response (y_w):</b> Notice 27 = 3^3. Setting exponents equal: 2x - 1 = 3 => 2x = 4 => x = 2.</div>
+        <div style="margin:6px 0; font-size:13px; color:var(--danger);"><b>Losing Response (y_l):</b> The answer is approximately 3 because 3 cubed is 27 and 2x is close to 3.</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  function switchTab(index) {
+    const tabs = document.querySelectorAll('.tab-btn');
+    const contents = document.querySelectorAll('.tab-content');
+    tabs.forEach((t, i) => t.classList.toggle('active', i === index));
+    contents.forEach((c, i) => c.classList.toggle('active', i === index));
+  }
+
+  function updateSim() {
+    const beta = parseFloat(document.getElementById('param-beta').value);
+    const logW = parseFloat(document.getElementById('param-log-w').value);
+    const logL = parseFloat(document.getElementById('param-log-l').value);
+
+    document.getElementById('val-beta').textContent = beta.toFixed(2);
+    document.getElementById('val-log-w').textContent = (logW >= 0 ? '+' : '') + logW.toFixed(1);
+    document.getElementById('val-log-l').textContent = (logL >= 0 ? '+' : '') + logL.toFixed(1);
+
+    const h = beta * (logW - logL);
+    const loss = Math.log(1.0 + Math.exp(-h));
+    const grad = 1.0 / (1.0 + Math.exp(h));
+
+    document.getElementById('res-margin').textContent = (h >= 0 ? '+' : '') + h.toFixed(3) + ' nats';
+    document.getElementById('res-loss').textContent = loss.toFixed(3);
+    document.getElementById('res-grad').textContent = grad.toFixed(3);
+
+    const statusEl = document.getElementById('res-status');
+    if (h > 0.1) {
+      statusEl.textContent = 'Preferred (Aligned)';
+      statusEl.style.color = 'var(--success)';
+    } else if (h < -0.1) {
+      statusEl.textContent = 'Inverted (Misaligned)';
+      statusEl.style.color = 'var(--danger)';
+    } else {
+      statusEl.textContent = 'Neutral / Ambiguous';
+      statusEl.style.color = 'var(--warning)';
+    }
+  }
+
+  updateSim();
+</script>
+</body>
+</html>
