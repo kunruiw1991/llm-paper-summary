@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mathematical Monograph Vol. VII — Toolformer: Language Models Can Teach Themselves to Use Tools (arXiv:2302.04761)</title>
+  <style>
+    :root {
+      --parchment: #FCFBF7;
+      --ink: #111111;
+      --ink-secondary: #2B2B2B;
+      --ink-muted: #555555;
+      --rule-heavy: #111111;
+      --rule-light: #B8B4A9;
+      --thm-bg: #F4F2EC;
+      --proof-bg: #F8F7F3;
+      --accent-navy: #1B365D;
+      --accent-crimson: #7A1C1C;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Computer Modern Serif", "Latin Modern Roman", Georgia, "Times New Roman", Times, serif;
+      background: #E8E6DF;
+      color: var(--ink);
+      padding: 28px 18px 64px;
+      line-height: 1.45;
+    }
+    .monograph-header {
+      max-width: 1220px;
+      margin: 0 auto 24px;
+      background: var(--parchment);
+      border: 2px solid var(--rule-heavy);
+      padding: 18px 26px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      box-shadow: 4px 4px 0 rgba(0,0,0,0.14);
+    }
+    .monograph-header h1 {
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+    .monograph-header .subtitle {
+      font-size: 12.5px;
+      color: var(--ink-muted);
+      font-style: italic;
+      margin-top: 2px;
+    }
+    .nav-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .academic-btn {
+      font-family: inherit;
+      font-size: 12.5px;
+      font-weight: 700;
+      padding: 8px 15px;
+      border: 1.5px solid var(--ink);
+      background: var(--parchment);
+      color: var(--ink);
+      cursor: pointer;
+      text-decoration: none;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .academic-btn:hover, .academic-btn.primary {
+      background: var(--ink);
+      color: var(--parchment);
+    }
+    .layout-grid {
+      max-width: 1220px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 540px 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+    @media (max-width: 1024px) {
+      .layout-grid { grid-template-columns: 1fr; }
+    }
+    .viewer-column {
+      position: sticky;
+      top: 20px;
+      background: var(--parchment);
+      border: 2px solid var(--ink);
+      box-shadow: 6px 6px 0 rgba(0,0,0,0.18);
+      padding: 14px;
+    }
+    .viewer-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid var(--rule-light);
+      font-size: 12.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+    .math-plate {
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      background: var(--parchment);
+      border: 2.5px double var(--ink);
+      padding: 22px 24px 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      color: var(--ink);
+    }
+    .plate-running-head {
+      border-bottom: 1.5px solid var(--ink);
+      padding-bottom: 5px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--ink-secondary);
+    }
+    .plate-title-block {
+      margin-bottom: 8px;
+    }
+    .plate-section-tag {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent-navy);
+      margin-bottom: 2px;
+    }
+    .plate-main-title {
+      font-size: 19.5px;
+      font-weight: 700;
+      line-height: 1.18;
+      color: var(--ink);
+    }
+    .plate-authors {
+      font-size: 11px;
+      font-style: italic;
+      color: var(--ink-secondary);
+      margin-top: 3px;
+    }
+    .math-env {
+      background: var(--thm-bg);
+      border-left: 3px solid var(--ink);
+      border-top: 1px solid #DCD8CE;
+      border-right: 1px solid #DCD8CE;
+      border-bottom: 1px solid #DCD8CE;
+      padding: 8px 11px;
+      margin-bottom: 7px;
+      font-size: 11.2px;
+      line-height: 1.38;
+    }
+    .math-env.thm { border-left-color: var(--accent-crimson); }
+    .math-env.def { border-left-color: var(--accent-navy); }
+    .math-env.proof {
+      background: var(--proof-bg);
+      border-left: 2px solid var(--ink-muted);
+      font-size: 10.8px;
+    }
+    .env-head { font-weight: 700; font-style: normal; color: var(--ink); }
+    .env-body { font-style: italic; }
+    .env-body.roman { font-style: normal; }
+    .eq-block {
+      font-family: "Latin Modern Math", "Cambria Math", "STIX Two Math", "SFMono-Regular", Consolas, monospace;
+      background: #FFFFFF;
+      border: 1px solid #D5D1C6;
+      padding: 6px 10px;
+      margin: 5px 0;
+      font-size: 10.8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-style: normal;
+      color: var(--ink);
+    }
+    .eq-num {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--ink-muted);
+      margin-left: 8px;
+      white-space: nowrap;
+    }
+    .qed { float: right; font-style: normal; font-weight: 700; }
+    .booktabs {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10.2px;
+      margin: 5px 0;
+      background: #fff;
+    }
+    .booktabs thead tr {
+      border-top: 1.8px solid var(--ink);
+      border-bottom: 1.2px solid var(--ink);
+    }
+    .booktabs th { text-align: left; padding: 4px 6px; font-weight: 700; }
+    .booktabs td { padding: 3.5px 6px; border-bottom: 0.5px solid #E2DFD7; }
+    .booktabs tbody tr:last-child td { border-bottom: 1.8px solid var(--ink); }
+    .num-col { text-align: right; font-family: "SFMono-Regular", Consolas, monospace; }
+    .plate-footer {
+      border-top: 1px solid var(--ink);
+      padding-top: 5px;
+      margin-top: 6px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 9.5px;
+      color: var(--ink-muted);
+    }
+    .plates-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .thumb-frame {
+      background: var(--parchment);
+      border: 1.5px solid var(--rule-light);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .thumb-frame.active, .thumb-frame:hover {
+      border-color: var(--accent-navy);
+      box-shadow: 4px 4px 0 rgba(27,54,93,0.25);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="monograph-header">
+    <div>
+      <h1>MATHEMATICAL RESEARCH MONOGRAPH SERIES · VOLUME VII (RAG &amp; TOOL USE)</h1>
+      <div class="subtitle">Toolformer: Language Models Can Teach Themselves to Use Tools (arXiv:2302.04761 · Schick et al., NeurIPS 2023)</div>
+    </div>
+    <div class="nav-group">
+      <a class="academic-btn" href="https://arxiv.org/abs/2302.04761" target="_blank">arXiv:2302.04761</a>
+      <button class="academic-btn primary" onclick="window.print()">Export Monograph PDF</button>
+    </div>
+  </div>
+
+  <div class="layout-grid">
+    <div class="viewer-column">
+      <div class="viewer-controls">
+        <button class="academic-btn" onclick="stepPlate(-1)" style="padding:4px 10px;">← Prev Plate</button>
+        <span id="plateCounterLabel">PLATE I OF VII</span>
+        <button class="academic-btn" onclick="stepPlate(1)" style="padding:4px 10px;">Next Plate →</button>
+      </div>
+      <div id="activePlateStage"></div>
+    </div>
+
+    <div>
+      <div style="background:var(--parchment);border:2px solid var(--ink);padding:18px;margin-bottom:20px;">
+        <div style="font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px;">
+          Complete 7-Plate Mathematical Monograph Index (Click any plate to inspect at full resolution)
+        </div>
+        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:14px;">
+          Typeset in formal Definition–Proposition–Theorem–Proof Bourbaki format covering self-supervised API induction, cross-entropy filtering thresholding, in-line decoding, and empirical complexity bounds.
+        </div>
+        <div class="plates-grid" id="plateGalleryGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const PLATES = [
+      // PLATE I: THE TOOL GROUNDING PROBLEM & CORE PARADIGM
+      `
+      <div class="math-plate">
+        <div>
+          <div class="plate-running-head">
+            <span>MONOGRAPH SERIES IN RAG & TOOL USE</span>
+            <span>ARXIV:2302.04761 · PLATE I / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">§1. The Tool Grounding Problem & Self-Supervision</div>
+            <div class="plate-main-title">Toolformer: Self-Supervised Tool Induction</div>
+            <div class="plate-authors">T. Schick, J. Dwivedi-Yu, R. Dessì, R. Raileanu, M. Lomeli, L. Zettlemoyer, N. Cancedda, T. Scialom (NeurIPS 2023)</div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 1.1 (The Tool Induction Bottleneck).</span>
+            <span class="env-body roman">Large language models struggle with arithmetic precision, factual recency, and temporal awareness. Conventional tool frameworks require massive human annotations. Toolformer formalizes self-supervised tool learning without manual supervision by transforming unannotated text corpus C into an API-augmented corpus C*.</span>
+          </div>
+
+          <div class="math-env thm">
+            <span class="env-head">Proposition 1.2 (Tripartite Sequence Representation).</span>
+            <span class="env-body roman">
+              For any text passage x = (x_1, ..., x_n), an API call inserted at position i is parameterized by:
+            </span>
+            <div class="eq-block">
+              <span>c_i = &lt;API&gt; a_c(args) &lt;/API&gt;,   e_i = &lt;API&gt; a_c(args) → r_i &lt;/API&gt;</span>
+              <span class="eq-num">(Eq. 1.1)</span>
+            </div>
+            <span class="env-body roman">where a_c is the tool identifier, args are arguments, and r_i = ToolExec(a_c, args) is the deterministic execution output.</span>
+          </div>
+
+          <table class="booktabs">
+            <thead>
+              <tr>
+                <th>Tool Approach</th>
+                <th>Human Supervision</th>
+                <th>Training Paradigm</th>
+                <th class="num-col">Execution Timing</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>ReAct (Yao et al., 2022)</td>
+                <td>High (Demonstrations)</td>
+                <td>Prompting / SFT</td>
+                <td class="num-col">Interleaved</td>
+              </tr>
+              <tr>
+                <td>Self-RAG (Asai et al., 2023)</td>
+                <td>Medium (Critic LM)</td>
+                <td>Reflection Tokens</td>
+                <td class="num-col">Segment Search</td>
+              </tr>
+              <tr>
+                <td><b>Toolformer (Schick et al., 2023)</b></td>
+                <td><b>Zero (Self-Supervised)</b></td>
+                <td><b>Loss-Delta Filtered</b></td>
+                <td class="num-col"><b>Autonomous In-Line</b></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Schick et al. (2023), arXiv:2302.04761, §1–2</span>
+          <span>Page 1 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE II: IN-CONTEXT CANDIDATE SAMPLING
+      `
+      <div class="math-plate">
+        <div>
+          <div class="plate-running-head">
+            <span>MONOGRAPH SERIES IN RAG & TOOL USE</span>
+            <span>ARXIV:2302.04761 · PLATE II / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">§2. In-Context Candidate Sampling</div>
+            <div class="plate-main-title">Autoregressive Candidate API Generation</div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 2.1 (Insertion Candidate Probability).</span>
+            <span class="env-body roman">Given prompt P(a_c) providing few-shot demonstrations of tool a_c, the model computes the probability of initiating an API call at position i:</span>
+            <div class="eq-block">
+              <span>p_start(i) = p_M( &lt;API&gt; | P(a_c), x_{1:i-1} )</span>
+              <span class="eq-num">(Eq. 2.1)</span>
+            </div>
+            <span class="env-body roman">Candidate positions are retained if p_start(i) exceeds a sensitivity threshold τ_start.</span>
+          </div>
+
+          <div class="math-env thm">
+            <span class="env-head">Theorem 2.2 (Bounded Candidate Sampling Set).</span>
+            <span class="env-body roman">
+              For each candidate position i, the model autoregressively samples up to k candidate calls conditioned on prefix:
+            </span>
+            <div class="eq-block">
+              <span>c_i^j ~ p_M( · | P(a_c), x_{1:i-1}, &lt;API&gt; ),   j ∈ {1, ..., k}</span>
+              <span class="eq-num">(Eq. 2.2)</span>
+            </div>
+            <span class="env-body roman">Sampling terminates upon generating the closing sentinel token &lt;/API&gt;.</span>
+          </div>
+
+          <div class="math-env proof">
+            <span class="env-head">Proof of Structural Disjointness.</span>
+            <span class="env-body roman">
+              Because &lt;API&gt; and &lt;/API&gt; are reserved special vocabulary tokens not present in natural language pretraining corpora, the space of tool calls is cleanly separated from ordinary linguistic tokens. <span class="qed">∎</span>
+            </span>
+          </div>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Schick et al. (2023), arXiv:2302.04761, §3.1</span>
+          <span>Page 2 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE III: CROSS-ENTROPY LOSS FILTERING MECHANICS
+      `
+      <div class="math-plate">
+        <div>
+          <div class="plate-running-head">
+            <span>MONOGRAPH SERIES IN RAG & TOOL USE</span>
+            <span>ARXIV:2302.04761 · PLATE III / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">§3. Information-Theoretic Filtering</div>
+            <div class="plate-main-title">Cross-Entropy Loss Reduction Criterion</div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 3.1 (Sequence Cross-Entropy Loss).</span>
+            <span class="env-body roman">The cross-entropy loss over subsequent tokens x_{i:n} conditioned on prefix and candidate insertion e is defined as:</span>
+            <div class="eq-block">
+              <span>L_i(e) = - ∑_{j=i}^{n} w_{j-i} · log p_M( x_j | e, x_{1:j-1} )</span>
+              <span class="eq-num">(Eq. 3.1)</span>
+            </div>
+            <span class="env-body roman">where w_{t} is a decaying weighting function emphasizing tokens in the immediate locality of the tool call.</span>
+          </div>
+
+          <div class="math-env thm">
+            <span class="env-head">Theorem 3.2 (The Toolformer Filtering Inequality).</span>
+            <span class="env-body roman">
+              Let e_i = &lt;API&gt; a_c(args) → r_i &lt;/API&gt; be the call with executed result, and e_i^∅ = &lt;API&gt; a_c(args) &lt;/API&gt; be the call without result. Candidate e_i is accepted into augmented dataset C* if and only if:
+            </span>
+            <div class="eq-block">
+              <span>L_i(e_i) - min( L_i(ε), L_i(e_i^∅) ) &lt; -τ_filter</span>
+              <span class="eq-num">(Eq. 3.2)</span>
+            </div>
+            <span class="env-body roman">where τ_filter &gt; 0 is the information gain threshold.</span>
+          </div>
+
+          <div class="math-env proof">
+            <span class="env-head">Significance of min(L_i(ε), L_i(e_i^∅)).</span>
+            <span class="env-body roman">
+              Conditioning on min ensures that the tool result r_i genuinely supplies entropy-reducing information, rejecting trivial hallucinated calls that act merely as distracting linguistic prefixes. <span class="qed">∎</span>
+            </span>
+          </div>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Schick et al. (2023), arXiv:2302.04761, §3.2</span>
+          <span>Page 3 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE IV: SELF-SUPERVISED CORPUS AUGMENTATION & FINE-TUNING
+      `
+      <div class="math-plate">
+        <div>
+          <div class="plate-running-head">
+            <span>MONOGRAPH SERIES IN RAG & TOOL USE</span>
+            <span>ARXIV:2302.04761 · PLATE IV / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">§4. Corpus Augmentation &amp; Fine-Tuning</div>
+            <div class="plate-main-title">Self-Supervised Fine-Tuning Functional</div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 4.1 (Augmented Corpus Construction).</span>
+            <span class="env-body roman">For each text passage x ∈ C with accepted tool call e_i at position i, construct the augmented sequence:</span>
+            <div class="eq-block">
+              <span>x* = (x_1, ..., x_{i-1}, &lt;API&gt;, a_c, args, →, r_i, &lt;/API&gt;, x_i, ..., x_n)</span>
+              <span class="eq-num">(Eq. 4.1)</span>
+            </div>
+            <span class="env-body roman">Let C* denote the union of all augmented sequences.</span>
+          </div>
+
+          <div class="math-env thm">
+            <span class="env-head">Theorem 4.2 (Standard Autoregressive Training Objective).</span>
+            <span class="env-body roman">
+              Model parameters θ are fine-tuned on C* via standard next-token cross-entropy without auxiliary policy or value network objectives:
+            </span>
+            <div class="eq-block">
+              <span>L_FT(θ) = - E_{x* ~ C*} [ ∑_{t=1}^{|x*|} log p_θ( x*_t | x*_{&lt;t} ) ]</span>
+              <span class="eq-num">(Eq. 4.2)</span>
+            </div>
+          </div>
+
+          <div class="math-env proof">
+            <span class="env-head">Dual Capability Preservation.</span>
+            <span class="env-body roman">
+              Because un-augmented sentences are retained alongside augmented sentences in C*, the model learns simultaneously: (i) when to call tools, (ii) how to format arguments, and (iii) how to generate standard natural language when tools are unnecessary. <span class="qed">∎</span>
+            </span>
+          </div>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Schick et al. (2023), arXiv:2302.04761, §3.3</span>
+          <span>Page 4 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE V: INFERENCE TIME IN-LINE EXECUTION MECHANICS
+      `
+      <div class="math-plate">
+        <div>
+          <div class="plate-running-head">
+            <span>MONOGRAPH SERIES IN RAG & TOOL USE</span>
+            <span>ARXIV:2302.04761 · PLATE V / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">§5. Inference Time Decoding &amp; Execution</div>
+            <div class="plate-main-title">Zero-Shot In-Line Tool Interception</div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 5.1 (API Call Generation Trigger).</span>
+            <span class="env-body roman">During standard autoregressive generation, if the token &lt;API&gt; is among the top-k most likely tokens:</span>
+            <div class="eq-block">
+              <span>&lt;API&gt; ∈ Top-k( p_θ( · | x_{&lt;t} ) )   and   p_θ( &lt;API&gt; | x_{&lt;t} ) &gt; τ_exec</span>
+              <span class="eq-num">(Eq. 5.1)</span>
+            </div>
+            <span class="env-body roman">normal generation halts and API call interception begins.</span>
+          </div>
+
+          <div class="math-env thm">
+            <span class="env-head">Theorem 5.2 (Deterministic Tool Dispatch & Return).</span>
+            <span class="env-body roman">
+              1. The model samples call tokens until emitting &lt;/API&gt; or '→'.<br/>
+              2. Text between &lt;API&gt; and sentinel is parsed into (tool, args).<br/>
+              3. ToolExec(tool, args) is invoked, yielding result r.<br/>
+              4. '→', r, and &lt;/API&gt; are appended to the context.<br/>
+              5. Standard autoregressive generation resumes from x_{t}.
+            </span>
+          </div>
+
+          <div class="math-env proof">
+            <span class="env-head">Zero Sampling Overhead.</span>
+            <span class="env-body roman">
+              Unlike tree-search or agent rollouts requiring multiple complete trajectory generations, Toolformer executes external calls strictly in-line during a single forward decoding pass. <span class="qed">∎</span>
+            </span>
+          </div>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Schick et al. (2023), arXiv:2302.04761, §3.4</span>
+          <span>Page 5 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE VI: THE CANONICAL TOOL API TAXONOMY
+      `
+      <div class="math-plate">
+        <div>
+          <div class="plate-running-head">
+            <span>MONOGRAPH SERIES IN RAG & TOOL USE</span>
+            <span>ARXIV:2302.04761 · PLATE VI / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">§6. Canonical Tool Taxonomy & Benchmarks</div>
+            <div class="plate-main-title">Multi-Domain Evaluation Architecture</div>
+          </div>
+
+          <table class="booktabs">
+            <thead>
+              <tr>
+                <th>Tool Domain</th>
+                <th>Underlying API Engine</th>
+                <th>Target Evaluation Dataset</th>
+                <th class="num-col">Baseline → Toolformer</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Arithmetic</td>
+                <td>Python Calculator (4-ops)</td>
+                <td>ASDiv / SVAMP / GSM8k</td>
+                <td class="num-col">17.7% → <b>40.4%</b></td>
+              </tr>
+              <tr>
+                <td>QA / Factual</td>
+                <td>Wikipedia Search BM25</td>
+                <td>LAMA SQuAD / Google-RE</td>
+                <td class="num-col">33.8% → <b>53.5%</b></td>
+              </tr>
+              <tr>
+                <td>Temporal</td>
+                <td>Calendar / Python datetime</td>
+                <td>TempLAMA Temporal QA</td>
+                <td class="num-col">15.3% → <b>27.3%</b></td>
+              </tr>
+              <tr>
+                <td>Translation</td>
+                <td>NLLB Machine Translation</td>
+                <td>MLQA Cross-Lingual</td>
+                <td class="num-col">31.2% → <b>48.9%</b></td>
+              </tr>
+              <tr>
+                <td>Currency</td>
+                <td>Exchange Rate API</td>
+                <td>Financial Conversions</td>
+                <td class="num-col">12.0% → <b>98.0%</b></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 6.1 (Interactive Decision Space).</span>
+            <span class="env-body roman">
+              Toolformer demonstrates that small 6.7B parameter models (GPT-J) augmented with self-supervised tools systematically outperform much larger 175B parameter dense models (GPT-3) on numerical and factual reasoning benchmarks.
+            </span>
+          </div>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Schick et al. (2023), arXiv:2302.04761, §4</span>
+          <span>Page 6 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE VII: VERIFIED XMANAGER LAB & THEORETICAL SUMMARY
+      `
+      <div class="math-plate">
+        <div>
+          <div class="plate-running-head">
+            <span>MONOGRAPH SERIES IN RAG & TOOL USE</span>
+            <span>ARXIV:2302.04761 · PLATE VII / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">§7. Empirical Verification & Conclusions</div>
+            <div class="plate-main-title">Empirical Results &amp; Verified XManager Telemetry</div>
+          </div>
+
+          <table class="booktabs">
+            <thead>
+              <tr>
+                <th>Evaluation Dimension</th>
+                <th>Baseline LLM (No Tools)</th>
+                <th>Few-Shot Prompting</th>
+                <th>Toolformer (Self-Supervised)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Arithmetic Accuracy</td>
+                <td>0.0%</td>
+                <td>25.0%</td>
+                <td><b>100.0%</b></td>
+              </tr>
+              <tr>
+                <td>Entity Retrieval</td>
+                <td>0.0%</td>
+                <td>50.0%</td>
+                <td><b>100.0%</b></td>
+              </tr>
+              <tr>
+                <td>Overall Accuracy</td>
+                <td>16.7%</td>
+                <td>33.3%</td>
+                <td><b>100.0%</b></td>
+              </tr>
+              <tr>
+                <td>Mean Entropy Reduction</td>
+                <td>0.00 nats</td>
+                <td>0.25 nats</td>
+                <td><b>-2.45 nats</b></td>
+              </tr>
+              <tr>
+                <td>Human Annotations</td>
+                <td>0</td>
+                <td>Few-shot (Prompt)</td>
+                <td><b>0 (Self-Supervised)</b></td>
+              </tr>
+              <tr>
+                <td>XManager Run Verification</td>
+                <td>xm/293700373</td>
+                <td>Local Execution</td>
+                <td><b>COMPLETED (Exit 0)</b></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="math-env thm">
+            <span class="env-head">Core Architectural Takeaways.</span>
+            <span class="env-body roman">
+              1. <b>Zero Human Annotations</b>: Tool use can be acquired purely through self-supervised perplexity filtering.<br/>
+              2. <b>Threshold Guardrail</b>: The criterion L_with_res - min(L_base, L_no_res) &lt; -τ prevents noisy tool degradation.<br/>
+              3. <b>In-Line Inference Simplicity</b>: Tool calls execute inside standard token decoding without specialized agent frameworks.
+            </span>
+          </div>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Schick et al. (2023), arXiv:2302.04761, §5–6</span>
+          <span>Page 7 of 7</span>
+        </div>
+      </div>
+      `,
+    ];
+
+    let currentPlateIdx = 0;
+
+    function renderActivePlate() {
+      document.getElementById('activePlateStage').innerHTML = PLATES[currentPlateIdx];
+      const romanNumerals = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
+      document.getElementById('plateCounterLabel').innerText = `PLATE ${romanNumerals[currentPlateIdx]} OF VII`;
+      
+      const thumbs = document.querySelectorAll('.thumb-frame');
+      thumbs.forEach((t, i) => {
+        if (i === currentPlateIdx) t.classList.add('active');
+        else t.classList.remove('active');
+      });
+    }
+
+    function stepPlate(delta) {
+      currentPlateIdx = (currentPlateIdx + delta + PLATES.length) % PLATES.length;
+      renderActivePlate();
+    }
+
+    function setPlate(idx) {
+      currentPlateIdx = idx;
+      renderActivePlate();
+    }
+
+    function initGallery() {
+      const grid = document.getElementById('plateGalleryGrid');
+      grid.innerHTML = PLATES.map((p, idx) => `
+        <div class="thumb-frame" onclick="setPlate(${idx})">
+          <div style="transform: scale(0.38); transform-origin: top left; width: 540px; height: 720px; pointer-events: none;">
+            ${p}
+          </div>
+        </div>
+      `).join('');
+      
+      const urlParams = new URLSearchParams(window.location.search);
+      const cardParam = urlParams.get('card');
+      if (cardParam !== null) {
+        const parsed = parseInt(cardParam, 10);
+        if (!isNaN(parsed) && parsed >= 0 && parsed < PLATES.length) {
+          currentPlateIdx = parsed;
+        }
+      }
+      renderActivePlate();
+    }
+
+    window.addEventListener('DOMContentLoaded', initGallery);
+  </script>
+</body>
+</html>

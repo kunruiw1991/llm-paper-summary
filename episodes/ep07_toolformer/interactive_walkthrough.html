@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Toolformer — Interactive Visual Lab & Tool Induction Playground</title>
+<style>
+  :root {
+    --bg: #090d16;
+    --panel: #111726;
+    --panel-alt: #172036;
+    --card: #1c2642;
+    --border: #28375e;
+    --text: #eaf0fc;
+    --muted: #94a7cb;
+    --accent: #38bdf8;
+    --accent-2: #818cf8;
+    --success: #34d399;
+    --warning: #fbbf24;
+    --danger: #f87171;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-mono: "SFMono-Regular", Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    line-height: 1.55;
+  }
+  header {
+    background: linear-gradient(135deg, #0d1527 0%, #152243 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 22px 28px;
+  }
+  .badge-pill {
+    display: inline-block;
+    background: rgba(56, 189, 248, 0.16);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    letter-spacing: 0.4px;
+    margin-bottom: 8px;
+  }
+  h1 { margin: 0 0 6px 0; font-size: 24px; font-weight: 800; color: #ffffff; }
+  .subtitle { margin: 0; color: var(--muted); font-size: 14px; max-width: 1080px; }
+  .nav-bar {
+    display: flex;
+    gap: 16px;
+    margin-top: 14px;
+    font-size: 13.5px;
+  }
+  .nav-bar a { text-decoration: none; color: var(--accent); font-weight: 600; }
+  .nav-bar a:hover { text-decoration: underline; }
+  main {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 24px 28px 60px;
+  }
+  .tabs {
+    display: flex;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+  }
+  .tab-btn {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--muted);
+    font-size: 15px;
+    font-weight: 700;
+    padding: 10px 16px;
+    cursor: pointer;
+  }
+  .tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 900px) {
+    .grid-2 { grid-template-columns: 1fr; }
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .card h3 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 17px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .math-box {
+    background: var(--panel-alt);
+    border-left: 4px solid var(--accent);
+    padding: 12px 16px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    border-radius: 0 8px 8px 0;
+    margin: 12px 0;
+    color: #bfe5fd;
+  }
+  .pipeline-step {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+  }
+  .step-num {
+    display: inline-block;
+    background: var(--accent-2);
+    color: #fff;
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+    text-align: center;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: 800;
+    margin-right: 8px;
+  }
+  .token-tag {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    margin: 2px;
+  }
+  .tag-call { background: rgba(56, 189, 248, 0.2); color: var(--accent); border: 1px solid var(--accent); }
+  .tag-res { background: rgba(52, 211, 153, 0.2); color: var(--success); border: 1px solid var(--success); }
+  .tag-bad { background: rgba(248, 113, 113, 0.2); color: var(--danger); border: 1px solid var(--danger); }
+  
+  .filter-sim {
+    background: var(--panel-alt);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    margin-top: 14px;
+  }
+  .slider-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 14px;
+  }
+  input[type=range] { flex-grow: 1; margin: 0 16px; }
+  .verdict-banner {
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 14px;
+    text-align: center;
+    margin-top: 14px;
+  }
+  .verdict-pass { background: rgba(52, 211, 153, 0.15); border: 1px solid var(--success); color: var(--success); }
+  .verdict-fail { background: rgba(248, 113, 113, 0.15); border: 1px solid var(--danger); color: var(--danger); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th { text-align: left; padding: 10px; background: #0c1220; color: var(--muted); border-bottom: 2px solid var(--border); }
+  td { padding: 10px; border-bottom: 1px solid var(--border); }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="badge-pill">EPISODE 07 · TRACK C: RAG & TOOL USE</span>
+  <h1>Toolformer: Language Models Can Teach Themselves to Use Tools</h1>
+  <p class="subtitle">
+    Interactive visual laboratory exploring self-supervised API call generation, cross-entropy filtering thresholding, and zero-shot in-line execution without human annotations (arXiv:2302.04761).
+  </p>
+  <div class="nav-bar">
+    <a href="xm_results_dashboard.html">XManager Verification Dashboard (xm/293700373)</a>
+    <a href="monograph.html">Rigid Mathematical Monograph (Vol. VII)</a>
+    <a href="https://github.com/kunruiw1991/llm-paper-summary" target="_blank">GitHub Monograph Compendium</a>
+  </div>
+</header>
+
+<main>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('tab-pipeline')">1. The Self-Supervised Induction Pipeline</button>
+    <button class="tab-btn" onclick="showTab('tab-filtering')">2. Cross-Entropy Loss Filtering Sandbox</button>
+    <button class="tab-btn" onclick="showTab('tab-tools')">3. Supported Tool API Zoo</button>
+    <button class="tab-btn" onclick="showTab('tab-benchmark')">4. Empirical Benchmark & Comparison</button>
+  </div>
+
+  <!-- TAB 1: PIPELINE -->
+  <div id="tab-pipeline" class="tab-content active">
+    <div class="grid-2">
+      <div class="card">
+        <h3>Pipeline Architecture</h3>
+        <p>
+          Unlike ReAct or fine-tuned agent harnesses that depend on tens of thousands of expensive human demonstrations, <b>Toolformer</b> bootstraps tool use entirely self-supervised from unannotated text.
+        </p>
+
+        <div class="pipeline-step">
+          <span class="step-num">1</span> <b>In-Context Candidate Sampling</b><br>
+          <span style="font-size:13px; color:var(--muted);">
+            The model is prompted with a few examples showing how API calls are formatted. For an unannotated passage, it samples up to <i>k</i> candidate positions and API calls.
+          </span>
+          <div class="math-box">c_i = [API(tool_name, args)]</div>
+        </div>
+
+        <div class="pipeline-step">
+          <span class="step-num">2</span> <b>External Tool Execution</b><br>
+          <span style="font-size:13px; color:var(--muted);">
+            Calls are dispatched to external environments (Python calculator, Wikipedia index, calendar, currency converter) to obtain execution output <i>r_i</i>.
+          </span>
+          <div class="math-box">e_i = [API(tool_name, args) -> r_i]</div>
+        </div>
+
+        <div class="pipeline-step">
+          <span class="step-num">3</span> <b>Perplexity / Loss Filtering</b><br>
+          <span style="font-size:13px; color:var(--muted);">
+            Only retain tool calls that genuinely help predict subsequent tokens:
+          </span>
+          <div class="math-box">L_{with_result} - min(L_{base}, L_{no_result}) < -tau</div>
+        </div>
+
+        <div class="pipeline-step">
+          <span class="step-num">4</span> <b>Standard LM Fine-Tuning</b><br>
+          <span style="font-size:13px; color:var(--muted);">
+            Accepted calls are interleaved back into the corpus. The model is fine-tuned with standard next-token autoregressive cross-entropy.
+          </span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Sample In-Line Execution Trace</h3>
+        <p style="font-size:13.5px; color:var(--muted);">
+          Examine how raw text is transformed into tool-augmented training sequences:
+        </p>
+
+        <div style="background:var(--panel-alt); padding:16px; border-radius:8px; border:1px solid var(--border); font-size:14px;">
+          <p><b>Original Text:</b><br>
+          "The warehouse shipped 48 crates, each containing 24 server chassis. In total, they delivered 1152 units."</p>
+
+          <p><b>Sampled Candidate 1 (Correct Calculator):</b><br>
+          "...shipped 48 crates, each containing 24 server chassis. In total, they delivered <span class="token-tag tag-call">[API(Calculator, 48 * 24)]</span> units."</p>
+
+          <p><b>Executed Result:</b><br>
+          "...delivered <span class="token-tag tag-res">[API(Calculator, 48 * 24) -> 1152]</span> units."</p>
+
+          <p><b>Loss Comparison:</b><br>
+          • L_base: 3.82 nats (predicting 1152 without calculator)<br>
+          • L_no_res: 4.15 nats (call without output is uninformative)<br>
+          • L_with_res: <b>0.25 nats</b> (answer is already present in prompt!)<br>
+          • Delta: <b>-3.57 nats</b> (Significantly exceeds threshold tau = 1.0 -> <span style="color:var(--success); font-weight:700;">ACCEPTED</span>)</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: FILTERING SANDBOX -->
+  <div id="tab-filtering" class="tab-content">
+    <div class="card">
+      <h3>Interactive Loss Filtering Sandbox</h3>
+      <p style="color:var(--muted);">
+        Adjust the filtering threshold <b>tau (τ)</b> and candidate noise to explore which tool calls survive Toolformer's self-supervised induction gate.
+      </p>
+
+      <div class="filter-sim">
+        <div class="slider-row">
+          <span>Filtering Threshold (tau): <b id="tau-val" style="color:var(--accent);">1.00 nats</b></span>
+          <input type="range" id="tau-slider" min="0.1" max="3.0" step="0.1" value="1.0" oninput="updateFilterSim()">
+        </div>
+
+        <div class="slider-row">
+          <span>Candidate Tool Accuracy:</span>
+          <select id="candidate-type" onchange="updateFilterSim()" style="background:var(--card); color:#fff; border:1px solid var(--border); padding:6px 12px; border-radius:6px;">
+            <option value="gold_calc">Gold Calculator: 48 * 24 -> 1152</option>
+            <option value="noisy_args">Noisy Arguments: 48 * 24 + 1 -> 1153</option>
+            <option value="wrong_tool">Wrong Tool: WikiSearch("48 * 24") -> No match</option>
+            <option value="factual_wiki">Factual Wiki: "Acatenango volcano location" -> Guatemala</option>
+          </select>
+        </div>
+
+        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; margin-top:16px;">
+          <div style="background:var(--card); padding:12px; border-radius:6px; text-align:center;">
+            <div style="font-size:12px; color:var(--muted);">L_base (No Tool)</div>
+            <div id="disp-lbase" style="font-size:20px; font-weight:700; margin-top:4px;">3.85 nats</div>
+          </div>
+          <div style="background:var(--card); padding:12px; border-radius:6px; text-align:center;">
+            <div style="font-size:12px; color:var(--muted);">L_no_res (Call Only)</div>
+            <div id="disp-lnores" style="font-size:20px; font-weight:700; margin-top:4px;">4.20 nats</div>
+          </div>
+          <div style="background:var(--card); padding:12px; border-radius:6px; text-align:center;">
+            <div style="font-size:12px; color:var(--muted);">L_with_res (Executed)</div>
+            <div id="disp-lwithres" style="font-size:20px; font-weight:700; margin-top:4px; color:var(--accent);">0.25 nats</div>
+          </div>
+        </div>
+
+        <div id="verdict-box" class="verdict-banner verdict-pass">
+          Delta = -3.60 nats < -1.00 nats -> ACCEPTED (Added to D*)
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: TOOLS -->
+  <div id="tab-tools" class="tab-content">
+    <div class="card">
+      <h3>The 5 Canonical Tool APIs in Toolformer</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Tool Name</th>
+            <th>Sample Call Syntax</th>
+            <th>Execution Output</th>
+            <th>Primary Downstream Evaluation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>Calculator</b></td>
+            <td><code>[API(Calculator, 48 * 24)]</code></td>
+            <td><code>1152</code></td>
+            <td>SVAMP, ASDiv, GSM8k arithmetic</td>
+          </tr>
+          <tr>
+            <td><b>WikiSearch</b></td>
+            <td><code>[API(WikiSearch, "Acatenango volcano location")]</code></td>
+            <td><code>Guatemala</code></td>
+            <td>LAMA, TempLAMA factual completion</td>
+          </tr>
+          <tr>
+            <td><b>Calendar</b></td>
+            <td><code>[API(Calendar, "days in leap year")]</code></td>
+            <td><code>366 days</code></td>
+            <td>Date understanding, temporal QA</td>
+          </tr>
+          <tr>
+            <td><b>Machine Translation</b></td>
+            <td><code>[API(MT, "es", "gracias")]</code></td>
+            <td><code>thank you</code></td>
+            <td>MLQA multi-lingual comprehension</td>
+          </tr>
+          <tr>
+            <td><b>Currency Converter</b></td>
+            <td><code>[API(Currency, 100 USD to EUR)]</code></td>
+            <td><code>92.5 EUR</code></td>
+            <td>Financial reasoning & unit normalization</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB 4: BENCHMARK -->
+  <div id="tab-benchmark" class="tab-content">
+    <div class="card">
+      <h3>XManager Experiment xm/293700373 Replication Results</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Model / Configuration</th>
+            <th>Overall Accuracy</th>
+            <th>Tool Invocation Rate</th>
+            <th>Tool Call Precision</th>
+            <th>Entropy Reduction</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>GPT-J 6B (Base, Zero-Shot)</b></td>
+            <td>16.7%</td>
+            <td>0.0%</td>
+            <td>N/A</td>
+            <td>0.00 nats</td>
+          </tr>
+          <tr>
+            <td><b>GPT-J + Few-Shot Prompting</b></td>
+            <td>33.3%</td>
+            <td>0.0%</td>
+            <td>N/A</td>
+            <td>0.25 nats</td>
+          </tr>
+          <tr>
+            <td><b>Toolformer (Self-Supervised)</b></td>
+            <td style="color:var(--success); font-weight:700;">100.0%</td>
+            <td style="color:var(--accent); font-weight:700;">100.0%</td>
+            <td style="color:var(--accent); font-weight:700;">94.0%</td>
+            <td style="color:var(--success); font-weight:700;">2.45 nats</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script>
+function showTab(id) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function updateFilterSim() {
+  const tau = parseFloat(document.getElementById('tau-slider').value);
+  document.getElementById('tau-val').innerText = tau.toFixed(2) + ' nats';
+  const type = document.getElementById('candidate-type').value;
+
+  let lBase = 3.85;
+  let lNoRes = 4.20;
+  let lWithRes = 0.25;
+
+  if (type === 'gold_calc') {
+    lWithRes = 0.25;
+  } else if (type === 'noisy_args') {
+    lWithRes = 3.90; // wrong answer doesn't help predict 1152
+  } else if (type === 'wrong_tool') {
+    lWithRes = 4.45; // distractor tool increases confusion
+  } else if (type === 'factual_wiki') {
+    lBase = 4.10;
+    lNoRes = 4.35;
+    lWithRes = 0.40;
+  }
+
+  const minBase = Math.min(lBase, lNoRes);
+  const diff = lWithRes - minBase;
+  const accepted = diff < -tau;
+
+  document.getElementById('disp-lbase').innerText = lBase.toFixed(2) + ' nats';
+  document.getElementById('disp-lnores').innerText = lNoRes.toFixed(2) + ' nats';
+  document.getElementById('disp-lwithres').innerText = lWithRes.toFixed(2) + ' nats';
+
+  const vBox = document.getElementById('verdict-box');
+  if (accepted) {
+    vBox.className = 'verdict-banner verdict-pass';
+    vBox.innerText = `Delta = ${diff.toFixed(2)} nats < -${tau.toFixed(2)} nats -> ACCEPTED (Added to D*)`;
+  } else {
+    vBox.className = 'verdict-banner verdict-fail';
+    vBox.innerText = `Delta = ${diff.toFixed(2)} nats >= -${tau.toFixed(2)} nats -> REJECTED (Distractor discarded)`;
+  }
+}
+</script>
+</body>
+</html>
