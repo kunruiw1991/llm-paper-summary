@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mathematical Monograph Vol. VIII — Voyager &amp; Generative Agents: Child Game Curricula and Memory Streams</title>
+  <style>
+    :root {
+      --parchment: #FCFBF7;
+      --ink: #111111;
+      --ink-secondary: #2B2B2B;
+      --ink-muted: #555555;
+      --rule-heavy: #111111;
+      --rule-light: #B8B4A9;
+      --thm-bg: #F4F2EC;
+      --proof-bg: #F8F7F3;
+      --accent-navy: #1B365D;
+      --accent-crimson: #7A1C1C;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Computer Modern Serif", "Latin Modern Roman", Georgia, "Times New Roman", Times, serif;
+      background: #E8E6DF;
+      color: var(--ink);
+      padding: 28px 18px 64px;
+      line-height: 1.45;
+    }
+    .monograph-header {
+      max-width: 1220px;
+      margin: 0 auto 24px;
+      background: var(--parchment);
+      border: 2px solid var(--rule-heavy);
+      padding: 18px 26px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      box-shadow: 4px 4px 0 rgba(0,0,0,0.14);
+    }
+    .monograph-header h1 {
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+    .monograph-header .subtitle {
+      font-size: 12.5px;
+      color: var(--ink-muted);
+      font-style: italic;
+      margin-top: 2px;
+    }
+    .nav-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .academic-btn {
+      font-family: inherit;
+      font-size: 12.5px;
+      font-weight: 700;
+      padding: 8px 15px;
+      border: 1.5px solid var(--ink);
+      background: var(--parchment);
+      color: var(--ink);
+      cursor: pointer;
+      text-decoration: none;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .academic-btn:hover, .academic-btn.primary {
+      background: var(--ink);
+      color: var(--parchment);
+    }
+    .layout-grid {
+      max-width: 1220px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 540px 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+    @media (max-width: 1024px) {
+      .layout-grid { grid-template-columns: 1fr; }
+    }
+    .viewer-column {
+      position: sticky;
+      top: 20px;
+      background: var(--parchment);
+      border: 2px solid var(--ink);
+      box-shadow: 6px 6px 0 rgba(0,0,0,0.18);
+      padding: 14px;
+    }
+    .viewer-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid var(--rule-light);
+      font-size: 12.5px;
+    }
+    .plate-card {
+      width: 540px;
+      height: 720px;
+      background: var(--parchment);
+      border: 2px solid var(--ink);
+      padding: 24px 22px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+    }
+    .plate-inner-border {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      right: 6px;
+      bottom: 6px;
+      border: 1px solid #C4BFB2;
+      pointer-events: none;
+    }
+    .plate-header {
+      border-bottom: 1.5px solid var(--ink);
+      padding-bottom: 5px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--ink-secondary);
+    }
+    .plate-title-block {
+      margin-bottom: 8px;
+    }
+    .plate-section-tag {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent-navy);
+      margin-bottom: 2px;
+    }
+    .plate-main-title {
+      font-size: 18.5px;
+      font-weight: 700;
+      line-height: 1.18;
+      color: var(--ink);
+    }
+    .plate-authors {
+      font-size: 11px;
+      font-style: italic;
+      color: var(--ink-secondary);
+      margin-top: 3px;
+    }
+    .math-env {
+      background: var(--thm-bg);
+      border-left: 3px solid var(--ink);
+      border-top: 1px solid #DCD8CE;
+      border-right: 1px solid #DCD8CE;
+      border-bottom: 1px solid #DCD8CE;
+      padding: 8px 11px;
+      margin-bottom: 7px;
+      font-size: 11.2px;
+      line-height: 1.38;
+    }
+    .math-env.thm { border-left-color: var(--accent-crimson); }
+    .math-env.def { border-left-color: var(--accent-navy); }
+    .math-env.proof {
+      background: var(--proof-bg);
+      border-left: 2px solid var(--ink-muted);
+      font-size: 10.8px;
+    }
+    .env-head { font-weight: 700; font-style: normal; color: var(--ink); }
+    .env-body { font-style: italic; }
+    .env-body.roman { font-style: normal; }
+    .eq-block {
+      font-family: "Latin Modern Math", "Cambria Math", "STIX Two Math", "SFMono-Regular", Consolas, monospace;
+      background: #FFFFFF;
+      border: 1px solid #D5D1C6;
+      padding: 6px 10px;
+      margin: 5px 0;
+      font-size: 10.8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-style: normal;
+      color: var(--ink);
+    }
+    .eq-num {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--ink-muted);
+      margin-left: 8px;
+      white-space: nowrap;
+    }
+    .qed { float: right; font-style: normal; font-weight: 700; }
+    .booktabs {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10.2px;
+      margin: 5px 0;
+      background: #fff;
+    }
+    .booktabs thead tr {
+      border-top: 1.8px solid var(--ink);
+      border-bottom: 1.2px solid var(--ink);
+    }
+    .booktabs th { text-align: left; padding: 4px 6px; font-weight: 700; }
+    .booktabs td { padding: 3.5px 6px; border-bottom: 0.5px solid #E2DFD7; }
+    .booktabs tbody tr:last-child td { border-bottom: 1.8px solid var(--ink); }
+    .num-col { text-align: right; font-family: "SFMono-Regular", Consolas, monospace; }
+    .plate-footer {
+      border-top: 1px solid var(--ink);
+      padding-top: 5px;
+      margin-top: 6px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 9.5px;
+      color: var(--ink-muted);
+    }
+    .plates-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .thumb-frame {
+      background: var(--parchment);
+      border: 1.5px solid var(--rule-light);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .thumb-frame.active, .thumb-frame:hover {
+      border-color: var(--accent-navy);
+      box-shadow: 4px 4px 0 rgba(27,54,93,0.25);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="monograph-header">
+    <div>
+      <h1>MATHEMATICAL RESEARCH MONOGRAPH SERIES · VOLUME VIII (CHILD GAME DESIGN &amp; PLAYABLE WORLDS)</h1>
+      <div class="subtitle">Voyager &amp; Generative Agents: Zone-of-Proximal-Development Curricula and Episodic Memory Streams (arXiv:2305.16291 · arXiv:2304.03442)</div>
+    </div>
+    <div class="nav-group">
+      <a class="academic-btn" href="https://arxiv.org/abs/2305.16291" target="_blank">arXiv:2305.16291</a>
+      <a class="academic-btn" href="https://arxiv.org/abs/2304.03442" target="_blank">arXiv:2304.03442</a>
+      <button class="academic-btn primary" onclick="window.print()">Export Monograph PDF</button>
+    </div>
+  </div>
+
+  <div class="layout-grid">
+    <div class="viewer-column">
+      <div class="viewer-controls">
+        <span id="plateCounterLabel" style="font-weight:700;">PLATE I OF VII</span>
+        <div>
+          <button class="academic-btn" onclick="stepPlate(-1)">&larr; Prev</button>
+          <button class="academic-btn" onclick="stepPlate(1)">Next &rarr;</button>
+        </div>
+      </div>
+      <div id="activePlateStage">
+        <!-- Rendered plate card -->
+      </div>
+    </div>
+
+    <div>
+      <h2 style="font-size: 15px; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px; color: var(--ink-secondary);">
+        Complete Archival Plates Compendium (Plates I–VII)
+      </h2>
+      <div class="plates-grid" id="plateGalleryGrid">
+        <!-- Thumbnails -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const PLATES = [
+      // PLATE 1
+      `
+      <div class="plate-card">
+        <div class="plate-inner-border"></div>
+        <div>
+          <div class="plate-header">
+            <span>Acta Informatica et Ludologia · Vol. VIII</span>
+            <span>Archival Plate I</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">Mathematical Foundations &amp; Problem Formulation</div>
+            <h1 class="plate-main-title">Psychometric Formulation of Child Cognitive Play</h1>
+            <div class="plate-authors">G. Wang et al. (Voyager, 2023) · J. S. Park et al. (Generative Agents, 2023)</div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 1.1 (Child Learner &amp; Quest State Space).</span>
+            <span class="env-body">
+              Let the child learner state at discrete session step t &in; &#8469; be characterized by latent mastery parameter &theta;_t &in; [0, 1] and fatigue resilience &rho; &in; [0, 1]. A game quest q is parameterized by required intrinsic cognitive skill d(q) &in; [0, 1], step complexity s*(q), and thematic descriptor vector v_q &in; &#8477;^d.
+            </span>
+          </div>
+
+          <div class="math-env thm">
+            <span class="env-head">Proposition 1.1 (Logistic Psychometric Solve Probability).</span>
+            <span class="env-body">
+              The probability that a child with mastery &theta;_t solves quest q under stochastic exploration follows the 1-Parameter Logistic (Rasch) psychometric model:
+            </span>
+            <div class="eq-block">
+              <span>P(Y_{t, q} = 1 | &theta;_t, d(q)) = &sigma;(&kappa;(&theta;_t - d(q))) = 1 / (1 + exp(-&kappa;(&theta;_t - d(q))))</span>
+              <span class="eq-num">(1.1)</span>
+            </div>
+            <span class="env-body">
+              where &kappa; &gt; 0 denotes the discrimination slope parameter (&kappa; = 6.0 in experimental calibration).
+            </span>
+          </div>
+
+          <div class="math-env proof">
+            <span class="env-head">Proof.</span>
+            <span class="env-body roman">
+              By Thurstone's law of comparative judgment, the latent execution margin &Delta; = &theta;_t - d(q) + &epsilon; where &epsilon; ~ Logistic(0, &kappa;^-1). The cumulative distribution yields equation (1.1).
+            </span>
+            <span class="qed">&#9632;</span>
+          </div>
+        </div>
+
+        <div class="plate-footer">
+          <span>Citation: Rasch (1960); Wang et al. (2023), arXiv:2305.16291</span>
+          <span>Page 1 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE 2
+      `
+      <div class="plate-card">
+        <div class="plate-inner-border"></div>
+        <div>
+          <div class="plate-header">
+            <span>Acta Informatica et Ludologia · Vol. VIII</span>
+            <span>Archival Plate II</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">Zone of Proximal Development (ZPD)</div>
+            <h1 class="plate-main-title">Optimal Challenge Windows &amp; Bounded Affect Dynamics</h1>
+            <div class="plate-authors">Vygotsky (1978) · Csikszentmihalyi (1990) · Ep08 Calibration</div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 2.1 (The Vygotskian ZPD Sweet Spot).</span>
+            <span class="env-body">
+              A quest q is defined to reside within the Zone of Proximal Development &Omega;_ZPD(&theta;_t) iff its solve probability satisfies:
+            </span>
+            <div class="eq-block">
+              <span>&Omega;_ZPD(&theta;_t) := { q &in; Q : 0.65 &le; P(Y_{t, q} = 1 | &theta;_t, d(q)) &le; 0.85 }</span>
+              <span class="eq-num">(2.1)</span>
+            </div>
+            <span class="env-body">
+              Quests with P &gt; 0.92 induce cognitive boredom; quests with P &lt; 0.45 induce developmental frustration and game abandonment.
+            </span>
+          </div>
+
+          <div class="math-env thm">
+            <span class="env-head">Theorem 2.1 (Optimal Curriculum Entropy Maximization).</span>
+            <span class="env-body">
+              Under Bayesian skill estimation, expected developmental skill velocity d&theta;/dt is strictly concave and maximized within the ZPD interval (2.1), while minimizing learner attrition hazard &Lambda;_t.
+            </span>
+          </div>
+
+          <table class="booktabs">
+            <thead>
+              <tr>
+                <th>Affective Regime</th>
+                <th>Solve Prob Range</th>
+                <th>Cognitive State</th>
+                <th>Curriculum Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Boredom</td>
+                <td class="num-col">P &gt; 0.92</td>
+                <td>Under-stimulated</td>
+                <td>Difficulty Stretch (+0.15)</td>
+              </tr>
+              <tr style="background:#F2ECE1;">
+                <td><b>ZPD Sweet Spot</b></td>
+                <td class="num-col"><b>0.65 &le; P &le; 0.85</b></td>
+                <td><b>Optimal Flow</b></td>
+                <td><b>Maintain Scaffolding</b></td>
+              </tr>
+              <tr>
+                <td>Frustration</td>
+                <td class="num-col">P &lt; 0.45</td>
+                <td>Overwhelmed</td>
+                <td>Scaffold Down (-0.15)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="plate-footer">
+          <span>Citation: Vygotsky (1978); Csikszentmihalyi (1990)</span>
+          <span>Page 2 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE 3
+      `
+      <div class="plate-card">
+        <div class="plate-inner-border"></div>
+        <div>
+          <div class="plate-header">
+            <span>Acta Informatica et Ludologia · Vol. VIII</span>
+            <span>Archival Plate III</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">Voyager Adaptive Curriculum Feedback Loop</div>
+            <h1 class="plate-main-title">Closed-Loop Difficulty Scheduling Policy</h1>
+            <div class="plate-authors">Wang et al. (Voyager, arXiv:2305.16291)</div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 3.1 (Sliding-Window Solve Rate Metric).</span>
+            <span class="env-body">
+              Given historical outcomes Y_{t-W:t} over sliding window of size W = 6, the empirical solve rate is &mu;_{t, W} = (1/W) &sum;_{i=0}^{W-1} Y_{t-i}.
+            </span>
+          </div>
+
+          <div class="math-env thm">
+            <span class="env-head">Proposition 3.1 (Voyager Adaptive Target Difficulty Shift).</span>
+            <span class="env-body">
+              The target skill level for the subsequent quest proposal d*(q_{t+1}) is scheduled by the piecewise controller:
+            </span>
+            <div class="eq-block">
+              <span>d*(q_{t+1}) = &theta;_t + &Delta;_d(&mu;_{t, W})</span>
+              <span class="eq-num">(3.1)</span>
+            </div>
+            <div class="eq-block">
+              <span>&Delta;_d(&mu;) = +0.15 if &mu; &gt; 0.85; -0.15 if &mu; &lt; 0.60; 0 otherwise.</span>
+              <span class="eq-num">(3.2)</span>
+            </div>
+          </div>
+
+          <div class="math-env proof">
+            <span class="env-head">Proof of Convergence.</span>
+            <span class="env-body roman">
+              Because &Delta;_d(&mu;) acts as a negative feedback error proportional to sign(&mu; - 0.75), the discrete-time Lyapunov function V_t = (&mu;_{t, W} - 0.75)^2 decreases in expectation, driving the system to &Omega;_ZPD.
+            </span>
+            <span class="qed">&#9632;</span>
+          </div>
+        </div>
+
+        <div class="plate-footer">
+          <span>Citation: Wang et al. (2023), arXiv:2305.16291, §3.2</span>
+          <span>Page 3 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE 4
+      `
+      <div class="plate-card">
+        <div class="plate-inner-border"></div>
+        <div>
+          <div class="plate-header">
+            <span>Acta Informatica et Ludologia · Vol. VIII</span>
+            <span>Archival Plate IV</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">Companion Episodic Memory Stream</div>
+            <h1 class="plate-main-title">Tri-Partite Retrieval Scoring &amp; Exponential Decay</h1>
+            <div class="plate-authors">Park et al. (Generative Agents, arXiv:2304.03442)</div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 4.1 (Companion Memory Stream).</span>
+            <span class="env-body">
+              The companion memory stream M = {m_1, ..., m_N} consists of episodic nodes m_j = (c_j, t_j, I_j, tags_j) where c_j is descriptive prose, t_j &in; &#8469; is creation timestamp, and I_j &in; [0, 10] is intrinsic importance.
+            </span>
+          </div>
+
+          <div class="math-env thm">
+            <span class="env-head">Theorem 4.1 (Generative Agents S-Score Formulation).</span>
+            <span class="env-body">
+              Given active context query q at current timestamp t, each memory node m_j is ranked by score S(m_j, q):
+            </span>
+            <div class="eq-block">
+              <span>S(m_j, q) = &alpha; &middot; R(m_j, t) + &beta; &middot; (I_j / 10) + &gamma; &middot; Rel(m_j, q)</span>
+              <span class="eq-num">(4.1)</span>
+            </div>
+            <span class="env-body">
+              where exponential recency decay is defined by R(m_j, t) = &lambda;^{t - t_j} with decay factor &lambda; = 0.99.
+            </span>
+          </div>
+
+          <div class="math-env proof">
+            <span class="env-head">Contextual Grounding Corollary.</span>
+            <span class="env-body roman">
+              By enforcing &beta;, &gamma; &gt; 0, enduring emotional memories (e.g. child's favorite themes, past achievements) maintain high retrieval rank across extended gameplay sessions, preventing LLM amnesia.
+            </span>
+            <span class="qed">&#9632;</span>
+          </div>
+        </div>
+
+        <div class="plate-footer">
+          <span>Citation: Park et al. (2023), arXiv:2304.03442, §3.1</span>
+          <span>Page 4 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE 5
+      `
+      <div class="plate-card">
+        <div class="plate-inner-border"></div>
+        <div>
+          <div class="plate-header">
+            <span>Acta Informatica et Ludologia · Vol. VIII</span>
+            <span>Archival Plate V</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">Deterministic Playability &amp; Safety</div>
+            <h1 class="plate-main-title">Graph Reachability &amp; Content Firewall</h1>
+            <div class="plate-authors">Ep08 Verification Protocol · Bourbaki Architecture</div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 5.1 (Grid Playability Graph).</span>
+            <span class="env-body">
+              Let G = (V, E) be the 4-connected grid graph where V = {(r, c) : grid[r][c] &ne; '#'}. A level is valid iff start S &in; V, goal G &in; V, and there exists a simple path &pi; &sube; E connecting S to G.
+            </span>
+          </div>
+
+          <div class="math-env thm">
+            <span class="env-head">Proposition 5.1 (Deterministic BFS Completeness).</span>
+            <span class="env-body">
+              Breadth-First Search (BFS) computes the exact geodesic step count s*(q) in O(|V| + |E|) operations and guarantees zero unreachable traps or deadlock states before level serving:
+            </span>
+            <div class="eq-block">
+              <span>s*(q) = dist_G(S, G) &lt; &infin; &hArr; Solvable(grid) = True</span>
+              <span class="eq-num">(5.1)</span>
+            </div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 5.2 (Child Safety Content Firewall).</span>
+            <span class="env-body">
+              Let B_safety denote the lexically banned child-harm vocabulary. Quest prose T is admitted to presentation iff T &cap; B_safety = &empty;.
+            </span>
+          </div>
+        </div>
+
+        <div class="plate-footer">
+          <span>Citation: Dijkstra (1959); Ep08 Deterministic Firewall</span>
+          <span>Page 5 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE 6
+      `
+      <div class="plate-card">
+        <div class="plate-inner-border"></div>
+        <div>
+          <div class="plate-header">
+            <span>Acta Informatica et Ludologia · Vol. VIII</span>
+            <span>Archival Plate VI</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">Empirical Results · XManager xm/294006448</div>
+            <h1 class="plate-main-title">Multi-Arm Comparative Benchmark Evaluation</h1>
+            <div class="plate-authors">XManager Verification Run · 30 Simulated Quest Trials</div>
+          </div>
+
+          <table class="booktabs">
+            <thead>
+              <tr>
+                <th>Curriculum Mechanism</th>
+                <th class="num-col">Solve Rate</th>
+                <th class="num-col">ZPD Sweet Spot</th>
+                <th class="num-col">Frustration</th>
+                <th class="num-col">Skill Gain</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Static Fixed Progression</td>
+                <td class="num-col">36.7%</td>
+                <td class="num-col">16.7%</td>
+                <td class="num-col">70.0%</td>
+                <td class="num-col">+0.043</td>
+              </tr>
+              <tr>
+                <td>Random Procedural Selection</td>
+                <td class="num-col">23.3%</td>
+                <td class="num-col">20.0%</td>
+                <td class="num-col">73.3%</td>
+                <td class="num-col">+0.026</td>
+              </tr>
+              <tr style="background:#F2ECE1; font-weight:700;">
+                <td>Voyager ZPD + Companion</td>
+                <td class="num-col">60.0%</td>
+                <td class="num-col">40.0%</td>
+                <td class="num-col">13.3%</td>
+                <td class="num-col">+0.092</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="math-env thm">
+            <span class="env-head">Empirical Finding 6.1 (Frustration Elimination).</span>
+            <span class="env-body">
+              Voyager ZPD reduces child frustration rate from <b>73.3% &rarr; 13.3%</b> (-60.0% absolute reduction), expands the optimal challenge fraction by <b>+23.3%</b>, and accelerates developmental skill acquisition by <b>2.14&times;</b> (+0.092 vs +0.043).
+            </span>
+          </div>
+        </div>
+
+        <div class="plate-footer">
+          <span>Experiment: xm/294006448 (Borg/Local Verified)</span>
+          <span>Page 6 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE 7
+      `
+      <div class="plate-card">
+        <div class="plate-inner-border"></div>
+        <div>
+          <div class="plate-header">
+            <span>Acta Informatica et Ludologia · Vol. VIII</span>
+            <span>Archival Plate VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">Synthesis &amp; Engineering Blueprint</div>
+            <h1 class="plate-main-title">End-to-End LLM Child Game Architecture</h1>
+            <div class="plate-authors">Kunrui's Daily LLM Paper Study Series · Cycle 1</div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Architectural Layer 1: Prompt &amp; Level Generator.</span>
+            <span class="env-body">
+              LLM generates thematic narrative, quest title, and candidate 2D ASCII grid constrained by target difficulty d*(q_{t+1}) from the Voyager ZPD controller.
+            </span>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Architectural Layer 2: Deterministic Verification Guardrail.</span>
+            <span class="env-body">
+              BFS pathfinder verifies 100% reachability (S &rarr; G) in &le; 1ms. Toxic/scary words rejected by child-safety firewall.
+            </span>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Architectural Layer 3: Cognitive Companion Memory Stream.</span>
+            <span class="env-body">
+              Episodic memory store indexes child achievements and preferences, generating warm, personalized encouragement dialogue via formula (4.1).
+            </span>
+          </div>
+
+          <div class="math-env thm">
+            <span class="env-head">Conclusion.</span>
+            <span class="env-body">
+              By pairing neural LLM creativity with formal psychometric feedback loops and deterministic BFS verifiers, we establish a sound foundation for generative, child-safe playable worlds.
+            </span>
+          </div>
+        </div>
+
+        <div class="plate-footer">
+          <span>Citation: Wang et al. (2023); Park et al. (2023)</span>
+          <span>Page 7 of 7</span>
+        </div>
+      </div>
+      `,
+    ];
+
+    let currentPlateIdx = 0;
+
+    function renderActivePlate() {
+      document.getElementById('activePlateStage').innerHTML = PLATES[currentPlateIdx];
+      const romanNumerals = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
+      document.getElementById('plateCounterLabel').innerText = `PLATE ${romanNumerals[currentPlateIdx]} OF VII`;
+      
+      const thumbs = document.querySelectorAll('.thumb-frame');
+      thumbs.forEach((t, i) => {
+        if (i === currentPlateIdx) t.classList.add('active');
+        else t.classList.remove('active');
+      });
+    }
+
+    function stepPlate(delta) {
+      currentPlateIdx = (currentPlateIdx + delta + PLATES.length) % PLATES.length;
+      renderActivePlate();
+    }
+
+    function setPlate(idx) {
+      currentPlateIdx = idx;
+      renderActivePlate();
+    }
+
+    function initGallery() {
+      const grid = document.getElementById('plateGalleryGrid');
+      grid.innerHTML = PLATES.map((p, idx) => `
+        <div class="thumb-frame" onclick="setPlate(${idx})">
+          <div style="transform: scale(0.38); transform-origin: top left; width: 540px; height: 720px; pointer-events: none;">
+            ${p}
+          </div>
+        </div>
+      `).join('');
+      
+      const urlParams = new URLSearchParams(window.location.search);
+      const cardParam = urlParams.get('card');
+      if (cardParam !== null) {
+        const parsed = parseInt(cardParam, 10);
+        if (!isNaN(parsed) && parsed >= 0 && parsed < PLATES.length) {
+          currentPlateIdx = parsed;
+        }
+      }
+      renderActivePlate();
+    }
+
+    window.addEventListener('DOMContentLoaded', initGallery);
+  </script>
+</body>
+</html>

@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Barnaby's Adventure — LLM ZPD & Companion Memory Game</title>
+  <style>
+    :root {
+      --bg: #F7F5EE;
+      --card-bg: #FFFDF7;
+      --border: #E5DFC8;
+      --text: #2D271D;
+      --text-muted: #7A7264;
+      --accent: #E07A5F;
+      --accent-soft: #F4EAE1;
+      --green: #81B29A;
+      --green-soft: #E8F2EC;
+      --yellow: #F2CC8F;
+      --blue: #3D84A8;
+      --blue-soft: #E6F0F5;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-family);
+      line-height: 1.5;
+      padding: 24px 16px 48px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .game-container {
+      width: 100%;
+      max-width: 840px;
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      border-radius: 20px;
+      box-shadow: 0 8px 24px rgba(45, 39, 29, 0.05);
+      padding: 28px;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 18px;
+      margin-bottom: 20px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-icon {
+      width: 44px;
+      height: 44px;
+      background: var(--accent-soft);
+      border: 1.5px solid var(--accent);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    h1 {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .kpi-chip {
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 14px;
+      text-align: center;
+    }
+    .kpi-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+    }
+    .kpi-val {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text);
+      margin-top: 2px;
+    }
+    .board-section {
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: 24px;
+      align-items: start;
+    }
+    @media (max-width: 768px) {
+      .board-section { grid-template-columns: 1fr; }
+    }
+    .grid-board {
+      background: var(--bg);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: center;
+      user-select: none;
+    }
+    .grid-row {
+      display: flex;
+      gap: 8px;
+    }
+    .grid-cell {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+    }
+    .grid-cell.cell-player {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+    }
+    .grid-cell.cell-goal {
+      background: var(--green-soft);
+      border-color: var(--green);
+    }
+    .grid-cell.cell-wall {
+      background: #D8D2C2;
+      border-color: #B5AD99;
+    }
+    .grid-cell.cell-path {
+      background: #FFF9E6;
+      border-color: var(--yellow);
+    }
+    .companion-card {
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .companion-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .companion-avatar {
+      width: 38px;
+      height: 38px;
+      background: var(--yellow);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: #724A00;
+    }
+    .companion-bubble {
+      background: var(--card-bg);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 13.5px;
+      color: var(--text);
+      line-height: 1.45;
+    }
+    .memory-stream-box {
+      border-top: 1.5px dashed var(--border);
+      padding-top: 10px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .memory-tag {
+      display: inline-block;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2px 6px;
+      margin: 2px;
+      font-size: 11px;
+    }
+    .controls-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      justify-content: center;
+    }
+    .btn {
+      background: var(--card-bg);
+      color: var(--text);
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 18px;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .btn:hover {
+      background: var(--bg);
+      border-color: var(--accent);
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .btn-primary:hover {
+      opacity: 0.92;
+      background: var(--accent);
+    }
+    .dpad {
+      display: grid;
+      grid-template-columns: repeat(3, 44px);
+      grid-template-rows: repeat(2, 44px);
+      gap: 6px;
+      margin: 16px auto 0;
+      justify-content: center;
+    }
+    .dpad-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border);
+      background: var(--card-bg);
+      font-size: 18px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text);
+    }
+    .dpad-btn:active {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+<div class="game-container">
+  <header>
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E07A5F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+          <line x1="9" y1="9" x2="9.01" y2="9"></line>
+          <line x1="15" y1="9" x2="15.01" y2="9"></line>
+        </svg>
+      </div>
+      <div>
+        <h1>Barnaby's Adventure: ZPD & Memory Stream</h1>
+        <div class="subtitle">Episode 8 Prototype · LLM Curriculum & Cognitive Companion</div>
+      </div>
+    </div>
+    <div style="font-size: 13px; font-weight:700; color:var(--green);">
+      &bull; 100% BFS Solvable
+    </div>
+  </header>
+
+  <div class="kpi-row">
+    <div class="kpi-chip">
+      <div class="kpi-label">Active Quest</div>
+      <div class="kpi-val" id="quest-title" style="font-size:15px; margin-top:5px;">Sweet Berry Garden</div>
+    </div>
+    <div class="kpi-chip">
+      <div class="kpi-label">ZPD Difficulty Tier</div>
+      <div class="kpi-val" id="quest-diff" style="color:var(--accent);">Beginner (0.30)</div>
+    </div>
+    <div class="kpi-chip">
+      <div class="kpi-label">Child Mastery Level</div>
+      <div class="kpi-val" id="child-skill" style="color:var(--blue);">0.32 &uarr;</div>
+    </div>
+  </div>
+
+  <div class="board-section">
+    <div>
+      <div class="grid-board" id="grid-container">
+        <!-- Rendered dynamically -->
+      </div>
+      <div class="dpad">
+        <div></div>
+        <button class="dpad-btn" onclick="move(0, -1)">▲</button>
+        <div></div>
+        <button class="dpad-btn" onclick="move(-1, 0)">◀</button>
+        <button class="dpad-btn" onclick="move(0, 1)">▼</button>
+        <button class="dpad-btn" onclick="move(1, 0)">▶</button>
+      </div>
+    </div>
+
+    <div class="companion-card">
+      <div class="companion-header">
+        <div class="companion-avatar">🐻</div>
+        <div>
+          <div style="font-weight:800; font-size:14px;">Barnaby the Bear</div>
+          <div style="font-size:11px; color:var(--text-muted);">Cozy Companion AI</div>
+        </div>
+      </div>
+      <div class="companion-bubble" id="companion-dialogue">
+        "Hi Alice! I remember you love berries and sunshine! Let's help each other cross the garden!"
+      </div>
+      <div class="memory-stream-box">
+        <div style="font-weight:700; margin-bottom:4px;">Companion Memory Stream:</div>
+        <div><span class="memory-tag">favorite: berry</span> <span class="memory-tag">name: Alice</span> <span class="memory-tag">skill: 0.32</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls-row">
+    <button class="btn btn-primary" onclick="solveAutomatically()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+      Voyager BFS Auto-Walk
+    </button>
+    <button class="btn" onclick="nextZPDQuest()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      Next ZPD Quest
+    </button>
+    <button class="btn" onclick="resetLevel()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+      Reset
+    </button>
+  </div>
+</div>
+
+<script>
+const QUESTS = [
+  {
+    title: "Sunny Meadow Stroll",
+    diff: "Tutorial (0.15)",
+    required: 0.15,
+    grid: [
+      ["S", ".", ".", ".", "G"],
+      [".", ".", "#", ".", "."],
+      [".", ".", ".", ".", "."]
+    ],
+    greeting: "The clover meadow smells like fresh morning rain! Ready to stroll to the treehouse?"
+  },
+  {
+    title: "Sweet Berry Gathering",
+    diff: "Beginner (0.30)",
+    required: 0.30,
+    grid: [
+      ["S", ".", "#", ".", "."],
+      [".", ".", "#", ".", "G"],
+      [".", ".", ".", ".", "."],
+      [".", "#", "#", "#", "."],
+      [".", ".", ".", ".", "."]
+    ],
+    greeting: "I remember you love sweet berries! Let's weave through the garden hedge!"
+  },
+  {
+    title: "Rainbow Stepping Stones",
+    diff: "Intermediate (0.50)",
+    required: 0.50,
+    grid: [
+      ["S", ".", ".", "#", ".", "."],
+      ["#", "#", ".", "#", ".", "#"],
+      [".", ".", ".", ".", ".", "."],
+      [".", "#", "#", "#", "#", "."],
+      [".", ".", ".", ".", ".", "G"]
+    ],
+    greeting: "Look at the sparkling rainbow stones! Watch out for slippery moss on the rocks!"
+  }
+];
+
+let currentQuestIdx = 1;
+let playerPos = { r: 0, c: 0 };
+let currentGrid = [];
+let childSkill = 0.32;
+
+function loadQuest(idx) {
+  currentQuestIdx = idx % QUESTS.length;
+  const q = QUESTS[currentQuestIdx];
+  document.getElementById("quest-title").innerText = q.title;
+  document.getElementById("quest-diff").innerText = q.diff;
+  document.getElementById("companion-dialogue").innerText = `"${q.greeting}"`;
+  
+  // Clone grid
+  currentGrid = q.grid.map(row => [...row]);
+  for(let r=0; r<currentGrid.length; r++) {
+    for(let c=0; c<currentGrid[r].length; c++) {
+      if(currentGrid[r][c] === 'S') playerPos = { r, c };
+    }
+  }
+  renderBoard();
+}
+
+function renderBoard() {
+  const container = document.getElementById("grid-container");
+  container.innerHTML = "";
+  for(let r=0; r<currentGrid.length; r++) {
+    const rowDiv = document.createElement("div");
+    rowDiv.className = "grid-row";
+    for(let c=0; c<currentGrid[r].length; c++) {
+      const cellDiv = document.createElement("div");
+      cellDiv.className = "grid-cell";
+      const char = currentGrid[r][c];
+      
+      if(r === playerPos.r && c === playerPos.c) {
+        cellDiv.classList.add("cell-player");
+        cellDiv.innerHTML = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#E07A5F" stroke-width="2.5"><circle cx="12" cy="7" r="4"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>`;
+      } else if(char === "G") {
+        cellDiv.classList.add("cell-goal");
+        cellDiv.innerHTML = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#81B29A" stroke-width="2.5"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>`;
+      } else if(char === "#") {
+        cellDiv.classList.add("cell-wall");
+        cellDiv.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7A7264" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>`;
+      } else {
+        cellDiv.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="#C9C2B0"><circle cx="12" cy="12" r="6"/></svg>`;
+      }
+      rowDiv.appendChild(cellDiv);
+    }
+    container.appendChild(rowDiv);
+  }
+}
+
+function move(dc, dr) {
+  const nr = playerPos.r + dr;
+  const nc = playerPos.c + dc;
+  if(nr >= 0 && nr < currentGrid.length && nc >= 0 && nc < currentGrid[0].length) {
+    if(currentGrid[nr][nc] !== "#") {
+      playerPos = { r: nr, c: nc };
+      renderBoard();
+      checkWin();
+    }
+  }
+}
+
+function checkWin() {
+  const q = QUESTS[currentQuestIdx];
+  for(let r=0; r<currentGrid.length; r++) {
+    for(let c=0; c<currentGrid[r].length; c++) {
+      if(currentGrid[r][c] === 'G' && playerPos.r === r && playerPos.c === c) {
+        childSkill = Math.min(0.95, childSkill + 0.05);
+        document.getElementById("child-skill").innerText = childSkill.toFixed(2) + " ↑";
+        document.getElementById("companion-dialogue").innerText = `"Hooray, Alice! You reached the goal! You're getting so clever!"`;
+      }
+    }
+  }
+}
+
+function nextZPDQuest() {
+  loadQuest(currentQuestIdx + 1);
+}
+
+function resetLevel() {
+  loadQuest(currentQuestIdx);
+}
+
+function solveAutomatically() {
+  // Simple BFS pathfinder on current grid
+  const start = { ...playerPos };
+  let goal = null;
+  for(let r=0; r<currentGrid.length; r++) {
+    for(let c=0; c<currentGrid[r].length; c++) {
+      if(currentGrid[r][c] === 'G') goal = { r, c };
+    }
+  }
+  if(!goal) return;
+
+  const queue = [[start]];
+  const visited = new Set([`${start.r},${start.c}`]);
+  let foundPath = null;
+
+  while(queue.length > 0) {
+    const path = queue.shift();
+    const curr = path[path.length - 1];
+    if(curr.r === goal.r && curr.c === goal.c) {
+      foundPath = path;
+      break;
+    }
+    const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+    for(const [dr, dc] of dirs) {
+      const nr = curr.r + dr;
+      const nc = curr.c + dc;
+      const key = `${nr},${nc}`;
+      if(nr >= 0 && nr < currentGrid.length && nc >= 0 && nc < currentGrid[0].length) {
+        if(currentGrid[nr][nc] !== '#' && !visited.has(key)) {
+          visited.add(key);
+          queue.push([...path, { r: nr, c: nc }]);
+        }
+      }
+    }
+  }
+
+  if(foundPath) {
+    let step = 1;
+    const interval = setInterval(() => {
+      if(step < foundPath.length) {
+        playerPos = foundPath[step];
+        renderBoard();
+        checkWin();
+        step++;
+      } else {
+        clearInterval(interval);
+      }
+    }, 250);
+  }
+}
+
+document.addEventListener("keydown", (e) => {
+  if(e.key === "ArrowUp") move(0, -1);
+  if(e.key === "ArrowDown") move(0, 1);
+  if(e.key === "ArrowLeft") move(-1, 0);
+  if(e.key === "ArrowRight") move(1, 0);
+});
+
+// Initial load
+loadQuest(1);
+</script>
+</body>
+</html>
