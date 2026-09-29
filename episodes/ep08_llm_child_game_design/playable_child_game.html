@@ -1900,20 +1900,28 @@
       const activeStep = stage.steps.find(s => !s.done);
       if (!activeStep) return;
 
-      const dist = lunaBat.position.distanceTo(activeStep.targetPos);
-      if (activeStep.skill === skillUsed || dist < 2.8) {
+      if (activeStep.skill === skillUsed) {
         activeStep.done = true;
         addStars(2);
         playChime([587.33, 783.99, 1046.50], 0.2, 'triangle', 0.12);
         updateQuestUI();
 
         if (stage.steps.every(s => s.done)) {
-          // Stage Complete! Spawn gentle celebration balloons & show modal
           spawnGentleBalloons();
+          spawnBurst3D(lunaBat.position, 0xffd43b, 20, 'star');
           playGoldenMelody();
-          setTimeout(() => {
-            document.getElementById('victoryModal').classList.remove('hidden');
-          }, 900);
+          showToast('⭐ ⭐ ⭐ 🎉');
+          if (state.stageIdx < ZPD_STAGES.length - 1) {
+            setTimeout(() => {
+              state.stageIdx += 1;
+              ZPD_STAGES[state.stageIdx].steps.forEach(s => { s.done = false; });
+              updateQuestUI();
+            }, 2200);
+          } else {
+            setTimeout(() => {
+              document.getElementById('victoryModal').classList.remove('hidden');
+            }, 1400);
+          }
         }
       }
     }
