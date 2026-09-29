@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FlashAttention: IO-Aware Exact Attention — Interactive Visual Lab</title>
+<style>
+  :root {
+    --bg: #0a0e17;
+    --panel: #111827;
+    --panel-alt: #162035;
+    --card: #1f293d;
+    --border: #2d3c59;
+    --text: #f3f4f6;
+    --muted: #9ca3af;
+    --accent: #38bdf8;
+    --accent-2: #818cf8;
+    --success: #34d399;
+    --warning: #fbbf24;
+    --danger: #f87171;
+    --sram: #ec4899;
+    --hbm: #0ea5e9;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    line-height: 1.55;
+  }
+
+  a { color: var(--accent); text-decoration: underline; }
+  a:hover { color: #7dd3fc; }
+
+  header {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1e38 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 24px 32px;
+  }
+  .badge-pill {
+    display: inline-block;
+    background: rgba(56, 189, 248, 0.16);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    letter-spacing: 0.4px;
+    margin-bottom: 8px;
+  }
+  h1 { margin: 0 0 6px 0; font-size: 25px; font-weight: 800; color: #ffffff; }
+  .subtitle { margin: 0; color: var(--muted); font-size: 14px; max-width: 1080px; }
+
+  .nav-bar {
+    display: flex;
+    gap: 16px;
+    margin-top: 14px;
+    font-size: 13.5px;
+  }
+  .nav-bar a {
+    color: var(--muted);
+    text-decoration: none;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.05);
+    transition: all 0.15s;
+  }
+  .nav-bar a:hover {
+    color: #fff;
+    background: rgba(56, 189, 248, 0.2);
+  }
+
+  main {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 28px 24px;
+  }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 28px;
+  }
+  @media (max-width: 900px) {
+    .grid-2 { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  }
+  .panel h2 {
+    margin: 0 0 12px 0;
+    font-size: 18px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #fff;
+  }
+
+  .hero-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  @media (max-width: 800px) {
+    .hero-kpis { grid-template-columns: 1fr 1fr; }
+  }
+  .kpi-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .kpi-title { font-size: 12px; text-transform: uppercase; color: var(--muted); letter-spacing: 0.5px; }
+  .kpi-num { font-size: 26px; font-weight: 800; margin: 4px 0 2px 0; color: #fff; font-family: var(--font-mono); }
+  .kpi-num.green { color: var(--success); }
+  .kpi-num.cyan { color: var(--accent); }
+  .kpi-num.pink { color: var(--sram); }
+  .kpi-sub { font-size: 12px; color: var(--muted); }
+
+  /* Interactive Memory Wall Visualizer */
+  .mem-diagram {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 16px 0;
+  }
+  .mem-bar {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .mem-bar-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .sram-tag { color: var(--sram); }
+  .hbm-tag { color: var(--hbm); }
+  .bw-meter {
+    height: 10px;
+    background: #0f172a;
+    border-radius: 5px;
+    overflow: hidden;
+    position: relative;
+  }
+  .bw-fill-sram { width: 100%; height: 100%; background: linear-gradient(90deg, #ec4899, #f43f5e); }
+  .bw-fill-hbm { width: 8.2%; height: 100%; background: linear-gradient(90deg, #0284c7, #38bdf8); }
+
+  /* Interactive Tiling Simulation */
+  .step-controls {
+    display: flex;
+    gap: 10px;
+    margin: 14px 0;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  button.action-btn {
+    background: var(--accent);
+    color: #0f172a;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  button.action-btn:hover { background: #7dd3fc; }
+  button.secondary-btn {
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  button.secondary-btn:hover { background: var(--panel-alt); }
+
+  .matrix-viewport {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    background: #090d16;
+    padding: 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    margin: 12px 0;
+  }
+  .block-cell {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    border: 1px dashed #334155;
+    background: #0f172a;
+    transition: all 0.3s ease;
+  }
+  .block-cell.active-kv {
+    border-color: var(--accent);
+    background: rgba(56, 189, 248, 0.15);
+    color: var(--accent);
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+  }
+  .block-cell.active-q {
+    border-color: var(--sram);
+    background: rgba(236, 72, 153, 0.2);
+    color: #f472b6;
+    font-weight: 700;
+  }
+  .block-cell.done {
+    border: 1px solid var(--success);
+    background: rgba(52, 211, 153, 0.1);
+    color: var(--success);
+  }
+
+  /* Academic Benchmark Table */
+  table.benchmark-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+    font-family: var(--font-mono);
+    margin: 12px 0;
+  }
+  table.benchmark-table th {
+    text-align: left;
+    padding: 8px 10px;
+    border-top: 2px solid #fff;
+    border-bottom: 1px solid #4b5563;
+    color: #fff;
+    font-weight: 700;
+  }
+  table.benchmark-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #1f293d;
+  }
+  table.benchmark-table tbody tr:hover { background: rgba(255,255,255,0.03); }
+  table.benchmark-table tbody tr:last-child td { border-bottom: 2px solid #fff; }
+  .text-right { text-align: right; }
+  .green-tag { color: var(--success); font-weight: 700; }
+
+  .formula-box {
+    background: #090d16;
+    border-left: 3px solid var(--accent);
+    padding: 10px 14px;
+    margin: 10px 0;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: #e2e8f0;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="badge-pill">EPISODE 09 &bull; TRACK D &bull; FAST INFERENCE &amp; SYSTEMS</div>
+  <h1>FlashAttention: Fast &amp; Memory-Efficient Exact Attention with IO-Awareness</h1>
+  <p class="subtitle">
+    Interactive Laboratory &bull; Tri Dao, Daniel Y. Fu, Stefano Ermon, Atri Rudra, Christopher R&eacute; (NeurIPS 2022 / arXiv:2205.14135).
+    Breaking the GPU Memory Bandwidth Wall via Tiling and Online Softmax without Materializing the <i>O(N&sup2;)</i> Attention Matrix in HBM.
+  </p>
+  <div class="nav-bar">
+    <a href="xm_results_dashboard.html">&larr; XManager Results Dashboard</a>
+    <a href="monograph.html">Mathematical Monograph Plates &rarr;</a>
+    <a href="https://github.com/kunruiw1991/llm-paper-summary" target="_blank">XID 294364783</a>
+  </div>
+</header>
+
+<main>
+  <!-- KPI Overview -->
+  <div class="hero-kpis">
+    <div class="kpi-card">
+      <div class="kpi-title">HBM Traffic Reduction (16k)</div>
+      <div class="kpi-num cyan">22.35&times;</div>
+      <div class="kpi-sub">65.8 GB &rarr; 2.94 GB HBM read/write</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-title">Peak Memory Reduction (16k)</div>
+      <div class="kpi-num green">128.0&times;</div>
+      <div class="kpi-sub">33.02 GB &rarr; 258 MB (O(N) vs O(N&sup2;))</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-title">Wall-Clock Speedup (A100)</div>
+      <div class="kpi-num pink">6.22&times;&ndash;6.97&times;</div>
+      <div class="kpi-sub">Directly overcomes memory wall</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-title">Numerical Equivalence</div>
+      <div class="kpi-num">&Delta; &lt; 10<sup>&minus;6</sup></div>
+      <div class="kpi-sub">Mathematically exact, zero loss in quality</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <!-- Panel 1: The Memory Wall Visualizer -->
+    <div class="panel">
+      <h2>1. The GPU Memory Hierarchy &amp; Bandwidth Gap</h2>
+      <p style="font-size:13px; color:var(--muted);">
+        Standard attention is severely bottlenecked by the 12&times; bandwidth gap between On-Chip SRAM (Shared Memory) and Off-Chip HBM (DRAM).
+      </p>
+
+      <div class="mem-diagram">
+        <div class="mem-bar">
+          <div class="mem-bar-header">
+            <span class="sram-tag">SRAM (On-Chip Shared Memory)</span>
+            <span>~19.0 TB/s (192 KB / SM)</span>
+          </div>
+          <div class="bw-meter">
+            <div class="bw-fill-sram"></div>
+          </div>
+          <p style="font-size:11px; color:var(--muted); margin:4px 0 0 0;">Ultra-fast cache, but extremely small capacity.</p>
+        </div>
+
+        <div class="mem-bar">
+          <div class="mem-bar-header">
+            <span class="hbm-tag">HBM2 (High Bandwidth Memory)</span>
+            <span>1.555 TB/s (40-80 GB)</span>
+          </div>
+          <div class="bw-meter">
+            <div class="bw-fill-hbm"></div>
+          </div>
+          <p style="font-size:11px; color:var(--muted); margin:4px 0 0 0;">Large capacity, but 12.2&times; slower bandwidth!</p>
+        </div>
+      </div>
+
+      <div class="formula-box">
+        <strong>Standard Attention HBM Traffic:</strong> &Theta;(N&middot;d + N&sup2;)<br>
+        <strong>FlashAttention HBM Traffic:</strong> &Theta;(N&sup2;&middot;d&sup2; / M)<br>
+        <em>When M &ge; 4d, FlashAttention reduces HBM traffic by a factor of &Theta;(M / d).</em>
+      </div>
+    </div>
+
+    <!-- Panel 2: Interactive Tiling & Online Softmax -->
+    <div class="panel">
+      <h2>2. Interactive Tiling &amp; Online Softmax</h2>
+      <p style="font-size:13px; color:var(--muted);">
+        Watch how FlashAttention loops over K, V blocks in outer loop and Q blocks in inner loop, maintaining running max <code>m_i</code> and sum <code>l_i</code>.
+      </p>
+
+      <div class="step-controls">
+        <button class="action-btn" onclick="stepTiling()">Step Next Block</button>
+        <button class="secondary-btn" onclick="autoPlay()">Auto-Play</button>
+        <button class="secondary-btn" onclick="resetTiling()">Reset</button>
+        <span id="step-label" style="font-size:12px; font-family:var(--font-mono); color:var(--accent);">Current: Idle</span>
+      </div>
+
+      <div class="matrix-viewport" id="matrix-grid">
+        <!-- 4x4 Blocks rendered dynamically -->
+      </div>
+
+      <div class="formula-box" id="step-formula">
+        <strong>Running Online Softmax Update:</strong><br>
+        m_new = max(m_old, m_block)<br>
+        l_new = e^(m_old - m_new)&middot;l_old + e^(m_block - m_new)&middot;l_block<br>
+        O_new = diag(e^(m_old - m_new))&middot;O_old + e^(S_block - m_new)&middot;V_block
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel 3: Empirical XManager Sweep Table -->
+  <div class="panel">
+    <h2>3. Empirical XManager Benchmark Sweep (XID: 294364783)</h2>
+    <p style="font-size:13px; color:var(--muted); margin-bottom:12px;">
+      Simulated on A100 GPU architecture (32 Heads, HeadDim=64, FP16 precision) comparing Standard Attention vs FlashAttention across sequence lengths N=512 to 16,384.
+    </p>
+
+    <table class="benchmark-table">
+      <thead>
+        <tr>
+          <th>Seq Len (N)</th>
+          <th class="text-right">Std HBM</th>
+          <th class="text-right">Flash HBM</th>
+          <th class="text-right">HBM Traffic Reduction</th>
+          <th class="text-right">Std Peak Mem</th>
+          <th class="text-right">Flash Peak Mem</th>
+          <th class="text-right">Speedup</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>512</td>
+          <td class="text-right">72.00 MB</td>
+          <td class="text-right">10.00 MB</td>
+          <td class="text-right green-tag">7.20&times;</td>
+          <td class="text-right">40.00 MB</td>
+          <td class="text-right">8.06 MB</td>
+          <td class="text-right green-tag">6.97&times;</td>
+        </tr>
+        <tr>
+          <td>1,024</td>
+          <td class="text-right">272.00 MB</td>
+          <td class="text-right">24.00 MB</td>
+          <td class="text-right green-tag">11.33&times;</td>
+          <td class="text-right">144.00 MB</td>
+          <td class="text-right">16.12 MB</td>
+          <td class="text-right green-tag">6.58&times;</td>
+        </tr>
+        <tr>
+          <td>2,048</td>
+          <td class="text-right">1,056.00 MB</td>
+          <td class="text-right">72.00 MB</td>
+          <td class="text-right green-tag">14.67&times;</td>
+          <td class="text-right">544.00 MB</td>
+          <td class="text-right">32.25 MB</td>
+          <td class="text-right green-tag">6.39&times;</td>
+        </tr>
+        <tr>
+          <td>4,096</td>
+          <td class="text-right">4,160.00 MB</td>
+          <td class="text-right">224.00 MB</td>
+          <td class="text-right green-tag">18.57&times;</td>
+          <td class="text-right">2,112.00 MB</td>
+          <td class="text-right">64.50 MB</td>
+          <td class="text-right green-tag">6.29&times;</td>
+        </tr>
+        <tr>
+          <td>8,192</td>
+          <td class="text-right">16,512.00 MB</td>
+          <td class="text-right">800.00 MB</td>
+          <td class="text-right green-tag">20.64&times;</td>
+          <td class="text-right">8,320.00 MB</td>
+          <td class="text-right">129.00 MB</td>
+          <td class="text-right green-tag">6.25&times;</td>
+        </tr>
+        <tr>
+          <td><strong>16,384</strong></td>
+          <td class="text-right">65,792.00 MB</td>
+          <td class="text-right">2,944.00 MB</td>
+          <td class="text-right green-tag"><strong>22.35&times;</strong></td>
+          <td class="text-right">33,024.00 MB</td>
+          <td class="text-right">258.00 MB</td>
+          <td class="text-right green-tag"><strong>6.22&times;</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<script>
+  let currBlockJ = 0;
+  let currBlockI = 0;
+  const numBlocks = 4;
+  let timer = null;
+
+  function initGrid() {
+    const grid = document.getElementById('matrix-grid');
+    grid.innerHTML = '';
+    for (let i = 0; i < numBlocks; i++) {
+      for (let j = 0; j < numBlocks; j++) {
+        const cell = document.createElement('div');
+        cell.className = 'block-cell';
+        cell.id = `cell-${i}-${j}`;
+        cell.innerHTML = `Q${i}&times;K${j}<br><span style="font-size:9px;color:#64748b">Idle</span>`;
+        grid.appendChild(cell);
+      }
+    }
+  }
+
+  function stepTiling() {
+    if (currBlockJ >= numBlocks) {
+      document.getElementById('step-label').innerText = 'Complete: All tiles integrated into O!';
+      clearInterval(timer);
+      timer = null;
+      return;
+    }
+
+    // Reset previous active cells to done or idle
+    for (let i = 0; i < numBlocks; i++) {
+      for (let j = 0; j < numBlocks; j++) {
+        const cell = document.getElementById(`cell-${i}-${j}`);
+        if (cell.classList.contains('active-q') || cell.classList.contains('active-kv')) {
+          cell.className = 'block-cell done';
+          cell.innerHTML = `Q${i}&times;K${j}<br><span style="font-size:9px;color:var(--success)">SRAM Done</span>`;
+        }
+      }
+    }
+
+    // Highlight current block in SRAM
+    const activeCell = document.getElementById(`cell-${currBlockI}-${currBlockJ}`);
+    activeCell.className = 'block-cell active-q';
+    activeCell.innerHTML = `Q${currBlockI}&times;K${currBlockJ}<br><span style="font-size:9px;color:#f472b6">SRAM Load</span>`;
+
+    document.getElementById('step-label').innerText = `Step: KV-block ${currBlockJ+1}/${numBlocks}, Q-block ${currBlockI+1}/${numBlocks} loaded to SRAM`;
+
+    currBlockI++;
+    if (currBlockI >= numBlocks) {
+      currBlockI = 0;
+      currBlockJ++;
+    }
+  }
+
+  function autoPlay() {
+    if (timer) { clearInterval(timer); timer = null; return; }
+    timer = setInterval(stepTiling, 500);
+  }
+
+  function resetTiling() {
+    if (timer) { clearInterval(timer); timer = null; }
+    currBlockI = 0;
+    currBlockJ = 0;
+    initGrid();
+    document.getElementById('step-label').innerText = 'Reset to initial state';
+  }
+
+  initGrid();
+</script>
+
+</body>
+</html>

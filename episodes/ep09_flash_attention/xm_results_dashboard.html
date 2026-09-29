@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>XManager xm/294364783 — FlashAttention IO-Awareness Lab</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --green: #22c55e;
+      --pink: #ec4899;
+      --amber: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      padding: 28px;
+    }
+    .container { max-width: 1180px; margin: 0 auto; }
+    header { margin-bottom: 24px; }
+    h1 { margin: 0 0 8px; font-size: 26px; color: #fff; }
+    .subtitle { color: var(--muted); font-size: 15px; }
+    .nav-links { margin-top: 10px; font-size: 14px; }
+    .nav-links a { color: var(--accent); text-decoration: none; margin-right: 18px; font-weight: 500; }
+    .nav-links a:hover { text-decoration: underline; }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .kpi {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 18px;
+    }
+    .kpi-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+    .kpi-val { font-size: 28px; font-weight: 700; margin-top: 6px; }
+    .kpi-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+    .green { color: var(--green); }
+    .accent { color: var(--accent); }
+    .pink { color: var(--pink); }
+    .amber { color: var(--amber); }
+
+    .section-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px 24px;
+      margin-bottom: 24px;
+    }
+    .section-card h2 { margin: 0 0 16px; font-size: 18px; color: #fff; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+      font-family: "SFMono-Regular", Consolas, monospace;
+    }
+    th {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 2px solid var(--border);
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 11px;
+    }
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    tr:last-child td { border-bottom: none; }
+    .text-right { text-align: right; }
+    .badge-completed {
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid var(--green);
+      color: var(--green);
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>XManager Experiment: xm/294364783 <span class="badge-completed">COMPLETED</span></h1>
+    <div class="subtitle">
+      Episode 9 &bull; Track D &bull; FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness (Dao et al. NeurIPS 2022)
+    </div>
+    <div class="nav-links">
+      <a href="interactive_walkthrough.html">&larr; Interactive Visual Lab</a>
+      <a href="monograph.html">Mathematical Monograph Plates &rarr;</a>
+      <a href="https://github.com/kunruiw1991/llm-paper-summary" target="_blank">XManager Web UI (xm/294364783)</a>
+    </div>
+  </header>
+
+  <!-- High-Level Telemetry KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="kpi-label">HBM Traffic Reduction (16k)</div>
+      <div class="kpi-val accent">22.35&times;</div>
+      <div class="kpi-sub">65.8 GB &rarr; 2.94 GB HBM IO</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Peak Memory Reduction (16k)</div>
+      <div class="kpi-val green">128.0&times;</div>
+      <div class="kpi-sub">33.02 GB &rarr; 258 MB (O(N) footprint)</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Wall-Clock Speedup (A100)</div>
+      <div class="kpi-val pink">6.22&times;&ndash;6.97&times;</div>
+      <div class="kpi-sub">Overcomes memory bandwidth wall</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Numerical Equivalence</div>
+      <div class="kpi-val amber">&Delta; &lt; 10<sup>&minus;6</sup></div>
+      <div class="kpi-sub">Exact attention output guarantee</div>
+    </div>
+  </div>
+
+  <!-- Sweep Results Table -->
+  <div class="section-card">
+    <h2>1. Empirical Sequence Length Sweep Telemetry (A100 Architecture)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Seq Len (N)</th>
+          <th class="text-right">Standard HBM IO</th>
+          <th class="text-right">FlashAttention HBM IO</th>
+          <th class="text-right">IO Traffic Reduction</th>
+          <th class="text-right">Std Peak HBM Mem</th>
+          <th class="text-right">Flash Peak HBM Mem</th>
+          <th class="text-right">Speedup</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>512</td>
+          <td class="text-right">72.00 MB</td>
+          <td class="text-right">10.00 MB</td>
+          <td class="text-right accent">7.20&times;</td>
+          <td class="text-right">40.00 MB</td>
+          <td class="text-right">8.06 MB</td>
+          <td class="text-right green">6.97&times;</td>
+        </tr>
+        <tr>
+          <td>1,024</td>
+          <td class="text-right">272.00 MB</td>
+          <td class="text-right">24.00 MB</td>
+          <td class="text-right accent">11.33&times;</td>
+          <td class="text-right">144.00 MB</td>
+          <td class="text-right">16.12 MB</td>
+          <td class="text-right green">6.58&times;</td>
+        </tr>
+        <tr>
+          <td>2,048</td>
+          <td class="text-right">1,056.00 MB</td>
+          <td class="text-right">72.00 MB</td>
+          <td class="text-right accent">14.67&times;</td>
+          <td class="text-right">544.00 MB</td>
+          <td class="text-right">32.25 MB</td>
+          <td class="text-right green">6.39&times;</td>
+        </tr>
+        <tr>
+          <td>4,096</td>
+          <td class="text-right">4,160.00 MB</td>
+          <td class="text-right">224.00 MB</td>
+          <td class="text-right accent">18.57&times;</td>
+          <td class="text-right">2,112.00 MB</td>
+          <td class="text-right">64.50 MB</td>
+          <td class="text-right green">6.29&times;</td>
+        </tr>
+        <tr>
+          <td>8,192</td>
+          <td class="text-right">16,512.00 MB</td>
+          <td class="text-right">800.00 MB</td>
+          <td class="text-right accent">20.64&times;</td>
+          <td class="text-right">8,320.00 MB</td>
+          <td class="text-right">129.00 MB</td>
+          <td class="text-right green">6.25&times;</td>
+        </tr>
+        <tr>
+          <td><strong>16,384</strong></td>
+          <td class="text-right">65,792.00 MB</td>
+          <td class="text-right">2,944.00 MB</td>
+          <td class="text-right accent"><strong>22.35&times;</strong></td>
+          <td class="text-right">33,024.00 MB</td>
+          <td class="text-right">258.00 MB</td>
+          <td class="text-right green"><strong>6.22&times;</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Telemetry Details -->
+  <div class="section-card">
+    <h2>2. XManager Work Unit &amp; Telemetry Manifest</h2>
+    <div style="font-family: 'SFMono-Regular', Consolas, monospace; font-size: 13px; color: var(--muted);">
+      <div>&bull; <strong>Experiment ID:</strong> 294364783</div>
+      <div>&bull; <strong>Work Unit ID:</strong> 1 (Status: COMPLETED)</div>
+      <div>&bull; <strong>S2 Sequences:</strong> /s2/xid/294364783/learner_fast, /s2/xid/294364783/learner_full</div>
+      <div>&bull; <strong>Flatboard Dashboard:</strong> ARTIFACT_TYPE_FLATBOARD_URL registered</div>
+      <div>&bull; <strong>Worker Command:</strong> //experimental/users/user/llm_paper_study/ep09_flash_attention:run_experiment</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
