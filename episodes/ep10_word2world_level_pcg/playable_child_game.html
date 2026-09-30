@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Bella Bunny's Storybook Worlds — Word2World Solvable Level Generator</title>
+  <style>
+    :root {
+      --bg: #F4EFE6;
+      --board-bg: #FFFDF7;
+      --card-bg: #FFFFFF;
+      --wood-border: #7A5230;
+      --wood-shadow: #54371D;
+      --accent-green: #48BB78;
+      --accent-blue: #4299E1;
+      --accent-carrot: #ED8936;
+      --accent-gold: #ECC94B;
+      --text-dark: #2D3748;
+      --text-muted: #718096;
+      --cell-size: 52px;
+    }
+    * { box-sizing: border-box; user-select: none; }
+    body {
+      margin: 0;
+      padding: 16px;
+      font-family: "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text-dark);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 14px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 26px;
+      color: var(--wood-border);
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .tagline {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .main-layout {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 1140px;
+      width: 100%;
+    }
+
+    /* Left Panel: Game Board */
+    .board-container {
+      background: var(--board-bg);
+      border: 4px solid var(--wood-border);
+      border-radius: 18px;
+      box-shadow: 0 8px 0 var(--wood-shadow), 0 16px 28px rgba(0,0,0,0.12);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .board-header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 2px dashed #E2E8F0;
+    }
+    .level-title {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--wood-border);
+    }
+    .score-badge {
+      background: #FEFCBF;
+      border: 2px solid #D69E2E;
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-weight: 800;
+      font-size: 14px;
+      color: #744210;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, var(--cell-size));
+      grid-template-rows: repeat(8, var(--cell-size));
+      gap: 4px;
+      background: #E2D9CC;
+      padding: 6px;
+      border-radius: 12px;
+      box-shadow: inset 0 3px 6px rgba(0,0,0,0.1);
+    }
+
+    .cell {
+      width: var(--cell-size);
+      height: var(--cell-size);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    /* Tile visuals */
+    .cell.grass {
+      background: #C6F6D5;
+      box-shadow: inset 0 -2px 0 #9AE6B4;
+    }
+    .cell.water {
+      background: #BEE3F8;
+      box-shadow: inset 0 -2px 0 #90CDF4;
+      animation: waterWave 3s infinite ease-in-out;
+    }
+    @keyframes waterWave {
+      0%, 100% { background: #BEE3F8; }
+      50% { background: #90CDF4; }
+    }
+    .cell.wall {
+      background: #CBD5E0;
+      box-shadow: inset 0 -3px 0 #A0AEC0, 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .cell.bridge {
+      background: #ED8936;
+      box-shadow: inset 0 -2px 0 #DD6B20;
+    }
+
+    /* SVG icon wrapper */
+    .tile-icon {
+      width: 38px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.15s ease;
+    }
+    .bunny-hero {
+      animation: hopAnim 1.2s infinite ease-in-out;
+      filter: drop-shadow(0 3px 4px rgba(0,0,0,0.15));
+    }
+    @keyframes hopAnim {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+    .star-item {
+      animation: spinStar 3s infinite linear;
+    }
+    @keyframes spinStar {
+      0% { transform: rotate(0deg) scale(0.95); }
+      50% { transform: rotate(180deg) scale(1.08); }
+      100% { transform: rotate(360deg) scale(0.95); }
+    }
+
+    .path-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #3182CE;
+      opacity: 0.6;
+      box-shadow: 0 0 6px #63B3ED;
+    }
+
+    /* Controls Bar */
+    .controls-bar {
+      margin-top: 14px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn-wood {
+      background: #F6AD55;
+      color: #7B341E;
+      font-family: inherit;
+      font-weight: 800;
+      font-size: 14px;
+      border: 2px solid #C05621;
+      border-radius: 12px;
+      padding: 8px 16px;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #C05621;
+      transition: all 0.1s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-wood:hover {
+      background: #ED8936;
+      transform: translateY(-1px);
+    }
+    .btn-wood:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #C05621;
+    }
+
+    .btn-green {
+      background: #68D391;
+      color: #22543D;
+      border-color: #2F855A;
+      box-shadow: 0 4px 0 #2F855A;
+    }
+    .btn-green:hover { background: #48BB78; }
+
+    .btn-blue {
+      background: #63B3ED;
+      color: #2A4365;
+      border-color: #3182CE;
+      box-shadow: 0 4px 0 #3182CE;
+    }
+    .btn-blue:hover { background: #4299E1; }
+
+    /* D-pad */
+    .dpad-container {
+      display: grid;
+      grid-template-columns: repeat(3, 40px);
+      grid-template-rows: repeat(3, 40px);
+      gap: 4px;
+      margin-left: 10px;
+    }
+    .dpad-btn {
+      background: #ED8936;
+      color: #FFF;
+      font-weight: 900;
+      font-size: 16px;
+      border: 2px solid #C05621;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 3px 0 #C05621;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .dpad-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 #C05621;
+    }
+
+    /* Right Panel: Story & PCG Controller */
+    .side-panel {
+      flex: 1;
+      min-width: 320px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .story-card {
+      background: var(--card-bg);
+      border: 3px solid #E2E8F0;
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+    }
+    .story-card h3 {
+      margin: 0 0 10px;
+      font-size: 16px;
+      color: var(--wood-border);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    select, textarea {
+      width: 100%;
+      font-family: inherit;
+      font-size: 13.5px;
+      padding: 8px 10px;
+      border: 2px solid #CBD5E0;
+      border-radius: 10px;
+      outline: none;
+      background: #FFFDF7;
+      margin-bottom: 10px;
+    }
+    select:focus, textarea:focus {
+      border-color: #ED8936;
+    }
+
+    .mode-switch {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .mode-btn {
+      flex: 1;
+      padding: 8px 10px;
+      font-size: 12.5px;
+      font-weight: 700;
+      border-radius: 8px;
+      border: 2px solid #CBD5E0;
+      background: #EDF2F7;
+      cursor: pointer;
+      text-align: center;
+      color: #4A5568;
+    }
+    .mode-btn.active {
+      background: #FEEBC8;
+      border-color: #DD6B20;
+      color: #7B341E;
+    }
+
+    .diagnostics-box {
+      background: #F7FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 12.5px;
+      line-height: 1.5;
+    }
+
+    /* Win Celebration Modal */
+    #celebrationModal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+    .modal-box {
+      background: #FFFDF7;
+      border: 4px solid var(--wood-border);
+      border-radius: 20px;
+      padding: 24px 32px;
+      text-align: center;
+      box-shadow: 0 12px 0 var(--wood-shadow), 0 20px 30px rgba(0,0,0,0.25);
+      max-width: 380px;
+      animation: popIn 0.3s ease-out;
+    }
+    @keyframes popIn {
+      from { transform: scale(0.7); opacity: 0; }
+      to { transform: scale(1.0); opacity: 1; }
+    }
+    .modal-title {
+      font-size: 24px;
+      font-weight: 900;
+      color: #C05621;
+      margin-bottom: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🐰 Bella Bunny's Storybook Worlds 🥕</h1>
+    <div class="tagline">Word2World & MarioGPT: Child Story-to-Solvable-Level PCG with A* Verification (arXiv:2405.06686)</div>
+  </header>
+
+  <div class="main-layout">
+    <!-- Left: Tactile Game Board -->
+    <div class="board-container">
+      <div class="board-header">
+        <div class="level-title" id="displayTitle">Story 1: Bella Bunny's Meadow</div>
+        <div class="score-badge">
+          <span>⭐ Stars:</span>
+          <span id="starCount">0 / 3</span>
+        </div>
+      </div>
+
+      <div class="grid" id="gameGrid"></div>
+
+      <div class="controls-bar">
+        <button class="btn-wood btn-green" onclick="autoSolveWalk()">▶ Auto-Walk A*</button>
+        <button class="btn-wood btn-blue" onclick="togglePathVisuals()">👁 Toggle Path</button>
+        <button class="btn-wood" onclick="resetPlayerPosition()">↺ Reset Hop</button>
+
+        <div class="dpad-container">
+          <div></div>
+          <button class="dpad-btn" onclick="movePlayer(-1, 0)">▲</button>
+          <div></div>
+          <button class="dpad-btn" onclick="movePlayer(0, -1)">◀</button>
+          <div style="background:#CBD5E0; border-radius:6px;"></div>
+          <button class="dpad-btn" onclick="movePlayer(0, 1)">▶</button>
+          <div></div>
+          <button class="dpad-btn" onclick="movePlayer(1, 0)">▼</button>
+          <div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Story & PCG Control Center -->
+    <div class="side-panel">
+      <div class="story-card">
+        <h3>📖 Choose a Child's Story</h3>
+        <select id="storySelect" onchange="onSelectStoryPreset()">
+          <option value="story1">Bella Bunny's Carrot Quest (Sunny Meadow)</option>
+          <option value="story2">Ollie Otter's River Crossing (Impassable Brook!)</option>
+          <option value="story3">Pip Penguin's Glow Cave (Crystal Cavern)</option>
+          <option value="story4">Mimi Mouse on Gumdrop Hill (Candy Mountain)</option>
+          <option value="story5">Barnaby Bear's Honey Hunt (Enchanted Grove)</option>
+        </select>
+
+        <div style="font-size:12.5px; font-weight:700; color:#4A5568; margin-bottom:4px;">Story Narrative:</div>
+        <textarea id="storyText" rows="3" readonly></textarea>
+
+        <div style="font-size:12.5px; font-weight:700; color:#4A5568; margin-bottom:6px;">Generation Strategy:</div>
+        <div class="mode-switch">
+          <div class="mode-btn active" id="btnModeW2W" onclick="setStrategy('w2w')">
+            Word2World (A* Verified)
+          </div>
+          <div class="mode-btn" id="btnModeRaw" onclick="setStrategy('raw')">
+            Raw LLM (Unconstrained)
+          </div>
+        </div>
+
+        <button class="btn-wood btn-green" style="width:100%; justify-content:center;" onclick="generateCurrentLevel()">
+          ✨ Generate Story World
+        </button>
+      </div>
+
+      <div class="story-card">
+        <h3>🔍 A* Solvability &amp; Repair Inspector</h3>
+        <div class="diagnostics-box" id="diagnosticsBox">
+          Loading story-to-world generator...
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Win Celebration Modal -->
+  <div id="celebrationModal">
+    <div class="modal-box">
+      <div style="font-size:48px;">🎉🐰🥕⭐</div>
+      <div class="modal-title">Hooray! Goal Reached!</div>
+      <p style="font-size:14px; color:#4A5568; margin-bottom:16px;" id="modalMessage">
+        Bella found the giant golden carrot!
+      </p>
+      <button class="btn-wood btn-green" onclick="closeCelebrationModal()">Play Next Story World &rarr;</button>
+    </div>
+  </div>
+
+<script>
+  // Chibi Flat-Vector SVG Tile Icons
+  const SVGS = {
+    BUNNY: `<svg class="tile-icon bunny-hero" viewBox="0 0 40 40">
+      <circle cx="20" cy="24" r="12" fill="#FFFFFF" stroke="#4A5568" stroke-width="2"/>
+      <ellipse cx="15" cy="11" rx="4" ry="9" fill="#FFFFFF" stroke="#4A5568" stroke-width="2"/>
+      <ellipse cx="15" cy="11" rx="2" ry="6" fill="#FBB6CE"/>
+      <ellipse cx="25" cy="11" rx="4" ry="9" fill="#FFFFFF" stroke="#4A5568" stroke-width="2"/>
+      <ellipse cx="25" cy="11" rx="2" ry="6" fill="#FBB6CE"/>
+      <circle cx="16" cy="22" r="1.8" fill="#2D3748"/>
+      <circle cx="24" cy="22" r="1.8" fill="#2D3748"/>
+      <ellipse cx="20" cy="26" rx="2.5" ry="1.8" fill="#F687B3"/>
+      <circle cx="12" cy="25" r="2.5" fill="#FED7E2"/>
+      <circle cx="28" cy="25" r="2.5" fill="#FED7E2"/>
+    </svg>`,
+    CARROT: `<svg class="tile-icon" viewBox="0 0 40 40">
+      <polygon points="20,36 12,18 28,18" fill="#ED8936" stroke="#C05621" stroke-width="2"/>
+      <ellipse cx="20" cy="18" rx="8" ry="3" fill="#F6AD55"/>
+      <path d="M 20,16 Q 16,8 10,10 Q 16,14 20,16" fill="#48BB78"/>
+      <path d="M 20,16 Q 20,6 21,8 Q 21,13 20,16" fill="#38A169"/>
+      <path d="M 20,16 Q 24,8 30,10 Q 24,14 20,16" fill="#48BB78"/>
+      <line x1="16" y1="23" x2="22" y2="23" stroke="#DD6B20" stroke-width="1.5"/>
+      <line x1="17" y1="28" x2="23" y2="28" stroke="#DD6B20" stroke-width="1.5"/>
+    </svg>`,
+    TREE: `<svg class="tile-icon" viewBox="0 0 40 40">
+      <rect x="17" y="26" width="6" height="10" fill="#8D5B4C" rx="2"/>
+      <circle cx="20" cy="18" r="11" fill="#38A169" stroke="#22543D" stroke-width="2"/>
+      <circle cx="16" cy="16" r="6" fill="#48BB78"/>
+      <circle cx="23" cy="16" r="3" fill="#9AE6B4"/>
+    </svg>`,
+    ROCK: `<svg class="tile-icon" viewBox="0 0 40 40">
+      <ellipse cx="20" cy="24" rx="13" ry="9" fill="#A0AEC0" stroke="#718096" stroke-width="2"/>
+      <ellipse cx="17" cy="21" rx="5" ry="3" fill="#E2E8F0"/>
+    </svg>`,
+    BRIDGE: `<svg class="tile-icon" viewBox="0 0 40 40">
+      <rect x="6" y="10" width="28" height="20" fill="#DD6B20" rx="3" stroke="#9C4221" stroke-width="2"/>
+      <line x1="6" y1="16" x2="34" y2="16" stroke="#7B341E" stroke-width="1.5"/>
+      <line x1="6" y1="23" x2="34" y2="23" stroke="#7B341E" stroke-width="1.5"/>
+      <circle cx="10" cy="13" r="1.2" fill="#4A5568"/>
+      <circle cx="30" cy="13" r="1.2" fill="#4A5568"/>
+    </svg>`,
+    STAR: `<svg class="tile-icon star-item" viewBox="0 0 40 40">
+      <polygon points="20,6 24,15 34,16 26,23 29,33 20,27 11,33 14,23 6,16 16,15" fill="#ECC94B" stroke="#B7791F" stroke-width="2"/>
+      <polygon points="20,10 22,16 28,17 23,21 25,28 20,24 15,28 17,21 12,17 18,16" fill="#FEFCBF"/>
+    </svg>`,
+    WATER_FLOW: `<svg class="tile-icon" viewBox="0 0 40 40">
+      <path d="M 8,16 Q 14,12 20,16 T 32,16" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" opacity="0.6"/>
+      <path d="M 8,24 Q 14,20 20,24 T 32,24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" opacity="0.6"/>
+    </svg>`,
+    FLOWER: `<svg class="tile-icon" viewBox="0 0 40 40">
+      <circle cx="20" cy="20" r="3" fill="#D69E2E"/>
+      <circle cx="20" cy="14" r="3" fill="#FED7D7"/>
+      <circle cx="20" cy="26" r="3" fill="#FED7D7"/>
+      <circle cx="14" cy="20" r="3" fill="#FED7D7"/>
+      <circle cx="26" cy="20" r="3" fill="#FED7D7"/>
+    </svg>`
+  };
+
+  const STORIES = {
+    story1: {
+      title: "Bella Bunny's Carrot Quest (Sunny Meadow)",
+      text: "Bella the fluffy white bunny wants to hop across the sunny dandelion meadow and find the giant golden carrot near Rainbow Tree.",
+      biome: "meadow",
+      river: false,
+      rawSevered: false
+    },
+    story2: {
+      title: "Ollie Otter's River Crossing (Riverlands)",
+      text: "Ollie the cheerful otter needs to swim down the rushing crystal brook, hop over wet boulders, and reach the warm sandy beach. (Raw LLM forgets the bridge!)",
+      biome: "river",
+      river: true,
+      rawSevered: true
+    },
+    story3: {
+      title: "Pip Penguin's Glow Cave (Crystal Cavern)",
+      text: "Little Pip the penguin waddles into the glowing blue ice cavern looking for the magical singing ice crystals at the snowy exit.",
+      biome: "cavern",
+      river: false,
+      rawSevered: false
+    },
+    story4: {
+      title: "Mimi Mouse on Gumdrop Hill (Candy Mountain)",
+      text: "Mimi the curious mouse scampers across Peppermint Meadow to find the sweetest Strawberry Cupcake on top of Candy Mountain.",
+      biome: "candy",
+      river: false,
+      rawSevered: true
+    },
+    story5: {
+      title: "Barnaby Bear's Honey Hunt (Enchanted Grove)",
+      text: "Barnaby Bear follows the buzzing bumblebees through the enchanted pine grove to find a pot of clover honey by the hollow oak.",
+      biome: "grove",
+      river: false,
+      rawSevered: false
+    }
+  };
+
+  const W = 12, H = 8;
+  let currentGrid = [];
+  let playerPos = [1, 1];
+  let goalPos = [6, 10];
+  let currentStrategy = 'w2w'; // 'w2w' or 'raw'
+  let currentStoryKey = 'story1';
+  let starsCollected = 0;
+  let totalStars = 3;
+  let solvedPath = [];
+  let showPath = true;
+  let audioCtx = null;
+
+  // Audio effects synthesizer
+  function playTone(freq, duration, type="sine") {
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    } catch(e) {}
+  }
+
+  function playHopSound() { playTone(380, 0.1, "triangle"); }
+  function playStarSound() {
+    playTone(523, 0.1);
+    setTimeout(() => playTone(659, 0.15), 80);
+    setTimeout(() => playTone(784, 0.25), 160);
+  }
+  function playWinSound() {
+    playTone(523, 0.15);
+    setTimeout(() => playTone(659, 0.15), 120);
+    setTimeout(() => playTone(784, 0.15), 240);
+    setTimeout(() => playTone(1046, 0.4), 360);
+  }
+
+  function setStrategy(strat) {
+    currentStrategy = strat;
+    document.getElementById('btnModeW2W').className = strat === 'w2w' ? 'mode-btn active' : 'mode-btn';
+    document.getElementById('btnModeRaw').className = strat === 'raw' ? 'mode-btn active' : 'mode-btn';
+    generateCurrentLevel();
+  }
+
+  function onSelectStoryPreset() {
+    currentStoryKey = document.getElementById('storySelect').value;
+    document.getElementById('storyText').value = STORIES[currentStoryKey].text;
+    generateCurrentLevel();
+  }
+
+  function generateCurrentLevel() {
+    const story = STORIES[currentStoryKey];
+    document.getElementById('displayTitle').innerText = story.title;
+    starsCollected = 0;
+    playerPos = [1, 1];
+    goalPos = [H - 2, W - 2];
+
+    // Build base grid
+    currentGrid = [];
+    for (let r = 0; r < H; r++) {
+      currentGrid[r] = [];
+      for (let c = 0; c < W; c++) {
+        currentGrid[r][c] = '.';
+      }
+    }
+
+    if (story.river) {
+      const riverCol = 6;
+      for (let r = 0; r < H; r++) currentGrid[r][riverCol] = '~';
+      if (currentStrategy === 'w2w') {
+        // Word2World verifies reachability and surgically places bridge '='
+        currentGrid[3][riverCol] = '=';
+      }
+    } else if (story.rawSevered) {
+      // Wall barrier severing goal
+      for (let r = 0; r < H; r++) currentGrid[r][5] = '#';
+      if (currentStrategy === 'w2w') {
+        // Word2World repairs by carving opening
+        currentGrid[3][5] = '.';
+      }
+    } else {
+      // Scattered natural obstacles
+      currentGrid[2][3] = '#'; currentGrid[3][3] = '#'; currentGrid[4][3] = '#';
+      currentGrid[3][7] = '#'; currentGrid[4][7] = '#';
+    }
+
+    // Place stars
+    currentGrid[2][2] = '*';
+    currentGrid[5][3] = '*';
+    currentGrid[2][9] = '*';
+
+    // Solve with A*
+    runAStarAnalysis();
+    renderBoard();
+  }
+
+  function runAStarAnalysis() {
+    const sr = playerPos[0], sc = playerPos[1];
+    const gr = goalPos[0], gc = goalPos[1];
+
+    const queue = [[sr, sc, [[sr, sc]]]];
+    const visited = new Set([`${sr},${sc}`]);
+    let path = null;
+
+    while (queue.length > 0) {
+      const [r, c, p] = queue.shift();
+      if (r === gr && c === gc) {
+        path = p;
+        break;
+      }
+      for (const [dr, dc] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+        const nr = r + dr, nc = c + dc;
+        if (nr >= 0 && nr < H && nc >= 0 && nc < W) {
+          const tile = currentGrid[nr][nc];
+          if (tile !== '#' && tile !== '~') {
+            const key = `${nr},${nc}`;
+            if (!visited.has(key)) {
+              visited.add(key);
+              queue.push([nr, nc, [...p, [nr, nc]]]);
+            }
+          }
+        }
+      }
+    }
+
+    solvedPath = path || [];
+    const diag = document.getElementById('diagnosticsBox');
+    if (path) {
+      const l1 = Math.abs(sr - gr) + Math.abs(sc - gc);
+      const winding = (path.length - 1) / l1;
+      diag.innerHTML = `
+        <b style="color:#22543D;">✓ Level Solvability: 100% Solvable</b><br/>
+        • Generation Mode: <b>${currentStrategy === 'w2w' ? 'Word2World A* Verified' : 'Raw LLM'}</b><br/>
+        • Shortest Path Length: <b>${path.length - 1} hops</b><br/>
+        • Manhattan L1 Distance: <b>${l1}</b> | Winding Factor &lambda;: <b>${winding.toFixed(2)}</b><br/>
+        • Repairs Needed: <b>${currentStrategy === 'w2w' && (STORIES[currentStoryKey].river || STORIES[currentStoryKey].rawSevered) ? '1 Surgical Repair' : '0 (Clean)'}</b>
+      `;
+    } else {
+      diag.innerHTML = `
+        <b style="color:#C53030;">✗ Solvability Failure: Goal Unreachable!</b><br/>
+        • Generation Mode: <b>Raw LLM (Unconstrained)</b><br/>
+        • Root Cause: Topological barrier (river cut or wall barrier) completely partitions the world without a bridge.<br/>
+        • Child Experience: Frustration! Player cannot reach the golden carrot.<br/>
+        <span style="color:#DD6B20; font-weight:700;">&rarr; Switch to Word2World mode to see automatic surgical repair!</span>
+      `;
+    }
+  }
+
+  function renderBoard() {
+    const board = document.getElementById('gameGrid');
+    board.innerHTML = '';
+    document.getElementById('starCount').innerText = `${starsCollected} / ${totalStars}`;
+
+    for (let r = 0; r < H; r++) {
+      for (let c = 0; c < W; c++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        const tile = currentGrid[r][c];
+
+        if (tile === '~') {
+          cell.classList.add('water');
+          cell.innerHTML = SVGS.WATER_FLOW;
+        } else if (tile === '=') {
+          cell.classList.add('bridge');
+          cell.innerHTML = SVGS.BRIDGE;
+        } else if (tile === '#') {
+          cell.classList.add('wall');
+          cell.innerHTML = SVGS.TREE;
+        } else {
+          cell.classList.add('grass');
+        }
+
+        // Star item
+        if (tile === '*') {
+          cell.innerHTML = SVGS.STAR;
+        }
+
+        // Path dots
+        if (showPath && solvedPath.some(p => p[0] === r && p[1] === c) && !(r === playerPos[0] && c === playerPos[1]) && !(r === goalPos[0] && c === goalPos[1])) {
+          const dot = document.createElement('div');
+          dot.className = 'path-dot';
+          cell.appendChild(dot);
+        }
+
+        // Goal carrot
+        if (r === goalPos[0] && c === goalPos[1]) {
+          cell.innerHTML = SVGS.CARROT;
+        }
+
+        // Bunny player
+        if (r === playerPos[0] && c === playerPos[1]) {
+          cell.innerHTML = SVGS.BUNNY;
+        }
+
+        cell.onclick = () => {
+          // If adjacent, move player
+          const dr = Math.abs(r - playerPos[0]);
+          const dc = Math.abs(c - playerPos[1]);
+          if ((dr === 1 && dc === 0) || (dr === 0 && dc === 1)) {
+            movePlayer(r - playerPos[0], c - playerPos[1]);
+          }
+        };
+
+        board.appendChild(cell);
+      }
+    }
+  }
+
+  function movePlayer(dr, dc) {
+    const nr = playerPos[0] + dr;
+    const nc = playerPos[1] + dc;
+    if (nr < 0 || nr >= H || nc < 0 || nc >= W) return;
+
+    const tile = currentGrid[nr][nc];
+    if (tile === '#' || tile === '~') return; // Impassable
+
+    playerPos = [nr, nc];
+    playHopSound();
+
+    if (currentGrid[nr][nc] === '*') {
+      currentGrid[nr][nc] = '.';
+      starsCollected++;
+      playStarSound();
+    }
+
+    renderBoard();
+
+    // Check goal
+    if (nr === goalPos[0] && nc === goalPos[1]) {
+      playWinSound();
+      showCelebration();
+    }
+  }
+
+  function resetPlayerPosition() {
+    playerPos = [1, 1];
+    starsCollected = 0;
+    generateCurrentLevel();
+  }
+
+  function togglePathVisuals() {
+    showPath = !showPath;
+    renderBoard();
+  }
+
+  function autoSolveWalk() {
+    if (solvedPath.length === 0) return;
+    let idx = 0;
+    const timer = setInterval(() => {
+      idx++;
+      if (idx >= solvedPath.length) {
+        clearInterval(timer);
+        return;
+      }
+      const [nr, nc] = solvedPath[idx];
+      movePlayer(nr - playerPos[0], nc - playerPos[1]);
+    }, 220);
+  }
+
+  function showCelebration() {
+    document.getElementById('modalMessage').innerHTML = `
+      Bella hopped safely across the world and found the Golden Carrot! ⭐ Collected ${starsCollected} / ${totalStars} stars!
+    `;
+    document.getElementById('celebrationModal').style.display = 'flex';
+  }
+
+  function closeCelebrationModal() {
+    document.getElementById('celebrationModal').style.display = 'none';
+    const keys = Object.keys(STORIES);
+    const nextIdx = (keys.indexOf(currentStoryKey) + 1) % keys.length;
+    document.getElementById('storySelect').value = keys[nextIdx];
+    onSelectStoryPreset();
+  }
+
+  // Keyboard navigation
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') movePlayer(-1, 0);
+    else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') movePlayer(1, 0);
+    else if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') movePlayer(0, -1);
+    else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') movePlayer(0, 1);
+  });
+
+  window.onload = () => {
+    document.getElementById('storyText').value = STORIES.story1.text;
+    generateCurrentLevel();
+  };
+</script>
+</body>
+</html>
