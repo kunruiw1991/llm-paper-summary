@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MuZero & Coconut Latent Reasoning (arXiv:1911.08265 & arXiv:2412.06769) — Interactive Visual Walkthrough</title>
+<style>
+  :root {
+    --bg: #0b1020;
+    --panel: #131b31;
+    --panel-alt: #192340;
+    --card: #1d294b;
+    --border: #2c3e6b;
+    --text: #e8eefc;
+    --muted: #9db0d8;
+    --accent: #63b3ed;
+    --accent-2: #a78bfa;
+    --success: #34d399;
+    --warning: #fbbf24;
+    --danger: #f87171;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    line-height: 1.55;
+  }
+  header {
+    background: linear-gradient(135deg, #101935 0%, #1a264f 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 28px;
+  }
+  .badge-pill {
+    display: inline-block;
+    background: rgba(99, 179, 237, 0.16);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 999px;
+    letter-spacing: 0.4px;
+    margin-bottom: 8px;
+  }
+  h1 { margin: 0 0 6px 0; font-size: 24px; color: #fff; }
+  .subtitle { margin: 0; color: var(--muted); font-size: 14px; max-width: 920px; }
+  .main-layout {
+    max-width: 1240px;
+    margin: 24px auto;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 900px) { .main-layout { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  h2 { font-size: 18px; margin-top: 0; border-bottom: 1px solid var(--border); padding-bottom: 8px; color: #fff; }
+  .diagram-box {
+    background: #070c1a;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 14px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    white-space: pre;
+    color: #93c5fd;
+    line-height: 1.4;
+  }
+  .interactive-box {
+    background: var(--panel-alt);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 14px;
+  }
+  button {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  button:hover { background: #1d4ed8; }
+  .state-display {
+    margin-top: 12px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--success);
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="badge-pill">Episode 11 · Heavyweight Track A: Latent-Space Planning & World Models</div>
+  <h1>MuZero & Coconut: Planning in Learned Latent Dynamics</h1>
+  <div class="subtitle">
+    Step-by-step interactive explorer comparing discrete token search, external heuristic verifiers, 3-network MuZero latent MCTS (Representation h, Dynamics g, Prediction f), and Coconut Continuous Chain of Thought (vector superposition).
+  </div>
+</header>
+
+<div class="main-layout">
+  <div class="card">
+    <h2>1. MuZero 3-Network Latent Flow</h2>
+    <p style="font-size: 14px; color: var(--muted);">
+      Notice how MuZero completely eliminates the environment simulator at test time. The search never reconstructs pixels or board states:
+    </p>
+    <div class="diagram-box">
+Observation (o_t)
+       │
+       ▼  h_θ (Representation)
+  Root Latent (s^0) ───► f_θ(s^0) ──► Policy Prior p^0, Value v^0
+       │
+       ├─ Action a^1 ──► g_θ (Dynamics) ──► (r^1, s^1) ──► f_θ(s^1) ──► (p^1, v^1)
+       │
+       └─ Action a^2 ──► g_θ (Dynamics) ──► (r^2, s^2) ──► f_θ(s^2) ──► (p^2, v^2)
+    </div>
+    <div class="interactive-box">
+      <strong>Latent MCTS Simulator:</strong>
+      <p style="font-size: 13px; color: var(--muted); margin: 6px 0 10px;">Simulate PUCT search selection in continuous vector space:</p>
+      <button onclick="runSim()">Simulate PUCT Expansion</button>
+      <div id="simOutput" class="state-display">Root latent s^0 ready. Click to simulate PUCT branch expansion.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>2. Coconut: Chain of Continuous Thought</h2>
+    <p style="font-size: 14px; color: var(--muted);">
+      Discrete autoregressive LLMs force intermediate reasoning steps into discrete tokens (argmax or sampling), prematurely collapsing probability distributions onto a single greedy branch. Coconut feeds hidden state h_t directly back as continuous input:
+    </p>
+    <div class="diagram-box">
+Prompt Tokens ──► [Hidden Vector h_1] ──► [Hidden Vector h_2] ──► Final Answer
+                        │                       │
+                        ▼ (No Token Argmax!)    ▼ (Superposition)
+                  Re-fed into Self-Attn   Re-fed into Self-Attn
+    </div>
+    <div class="interactive-box">
+      <strong>Continuous Superposition Demo:</strong>
+      <p style="font-size: 13px; color: var(--muted); margin: 6px 0 10px;">Track continuous latent vector entropy across reasoning steps:</p>
+      <button onclick="runCoconut()">Roll Out Continuous Thought</button>
+      <div id="coconutOutput" class="state-display">Superposition breadth: 4 branches active in R^8 vector space.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+let step = 0;
+function runSim() {
+  step++;
+  const depths = [1, 2, 3, 4, 5];
+  const q_vals = [0.12, 0.45, 0.78, 0.91, 0.96];
+  const idx = (step - 1) % 5;
+  document.getElementById('simOutput').innerHTML = 
+    `PUCT Step ${step}: Visited latent depth ${depths[idx]} via g_θ.<br>` +
+    `Predicted reward r^${idx+1} = +1.00, Backpropagated Q-value = ${q_vals[idx]} (PUCT confidence high).`;
+}
+
+let c_step = 0;
+function runCoconut() {
+  c_step++;
+  const entropy = (0.85 - c_step * 0.08).toFixed(2);
+  document.getElementById('coconutOutput').innerHTML = 
+    `Continuous Rollout Step ${c_step}:<br>` +
+    `Vector norm: 1.0000 | Latent entropy: ${Math.max(0.2, entropy)} nats (Superposition preserved across continuous branches).`;
+}
+</script>
+</body>
+</html>

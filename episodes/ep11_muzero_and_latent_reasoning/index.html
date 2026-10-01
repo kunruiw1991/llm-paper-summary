@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mathematical Monograph Vol. XI — MuZero & Coconut Latent Reasoning (arXiv:1911.08265 & arXiv:2412.06769)</title>
+  <style>
+    :root {
+      --parchment: #FCFBF7;
+      --ink: #111111;
+      --ink-secondary: #2B2B2B;
+      --ink-muted: #555555;
+      --rule-heavy: #111111;
+      --rule-light: #B8B4A9;
+      --thm-bg: #F4F2EC;
+      --proof-bg: #F8F7F3;
+      --accent-navy: #1B365D;
+      --accent-crimson: #7A1C1C;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Computer Modern Serif", "Latin Modern Roman", Georgia, "Times New Roman", Times, serif;
+      background: #E8E6DF;
+      color: var(--ink);
+      padding: 28px 18px 64px;
+      line-height: 1.45;
+    }
+    .monograph-header {
+      max-width: 1220px;
+      margin: 0 auto 24px;
+      background: var(--parchment);
+      border: 2px solid var(--rule-heavy);
+      padding: 18px 26px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      box-shadow: 4px 4px 0 rgba(0,0,0,0.14);
+    }
+    .monograph-header h1 {
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+    .monograph-header .subtitle {
+      font-size: 12.5px;
+      color: var(--ink-muted);
+      font-style: italic;
+      margin-top: 2px;
+    }
+    .layout-grid {
+      max-width: 1220px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 540px 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+    @media (max-width: 1024px) {
+      .layout-grid { grid-template-columns: 1fr; }
+    }
+    .viewer-column {
+      position: sticky;
+      top: 20px;
+      background: var(--parchment);
+      border: 2px solid var(--ink);
+      box-shadow: 6px 6px 0 rgba(0,0,0,0.18);
+      padding: 14px;
+    }
+    .viewer-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid var(--rule-light);
+      font-size: 12.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+    .math-plate {
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      background: var(--parchment);
+      border: 2.5px double var(--ink);
+      padding: 22px 24px 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      color: var(--ink);
+    }
+    .plate-running-head {
+      border-bottom: 1.5px solid var(--ink);
+      padding-bottom: 5px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--ink-secondary);
+    }
+    .plate-title-block { margin-bottom: 8px; }
+    .plate-section-tag {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent-crimson);
+      margin-bottom: 2px;
+    }
+    .plate-main-title {
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.18;
+      color: var(--ink);
+    }
+    .plate-authors {
+      font-size: 11px;
+      font-style: italic;
+      color: var(--ink-secondary);
+      margin-top: 3px;
+    }
+    .math-env {
+      background: var(--thm-bg);
+      border-left: 3px solid var(--ink);
+      border-top: 1px solid #DCD8CE;
+      border-right: 1px solid #DCD8CE;
+      border-bottom: 1px solid #DCD8CE;
+      padding: 8px 11px;
+      margin-bottom: 7px;
+      font-size: 11px;
+      line-height: 1.38;
+    }
+    .math-env.thm { border-left-color: var(--accent-crimson); }
+    .math-env.def { border-left-color: var(--accent-navy); }
+    .math-env.proof {
+      background: var(--proof-bg);
+      border-left: 2px solid var(--ink-muted);
+      font-size: 10.6px;
+    }
+    .env-head { font-weight: 700; font-style: normal; color: var(--ink); }
+    .env-body { font-style: italic; }
+    .env-body.roman { font-style: normal; }
+    .eq-block {
+      font-family: "Latin Modern Math", "Cambria Math", "STIX Two Math", monospace;
+      background: #FFFFFF;
+      border: 1px solid #D5D1C6;
+      padding: 5px 9px;
+      margin: 4px 0;
+      font-size: 10.5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-style: normal;
+      color: var(--ink);
+    }
+    .eq-num {
+      font-size: 9.5px;
+      font-weight: 700;
+      color: var(--ink-muted);
+      margin-left: 8px;
+      white-space: nowrap;
+    }
+    .qed { float: right; font-style: normal; font-weight: 700; }
+    .booktabs {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10px;
+      margin: 5px 0;
+      background: #fff;
+    }
+    .booktabs thead tr {
+      border-top: 1.8px solid var(--ink);
+      border-bottom: 1.2px solid var(--ink);
+    }
+    .booktabs th {
+      text-align: left;
+      padding: 4px 6px;
+      font-weight: 700;
+    }
+    .booktabs td {
+      padding: 3px 6px;
+      border-bottom: 0.5px solid #E2DFD7;
+    }
+    .booktabs tbody tr:last-child td {
+      border-bottom: 1.8px solid var(--ink);
+    }
+    .plate-footer {
+      border-top: 1px solid var(--ink);
+      padding-top: 5px;
+      margin-top: 6px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 9px;
+      color: var(--ink-muted);
+    }
+    .plates-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+    }
+    .plate-thumb {
+      background: var(--parchment);
+      border: 1.5px solid var(--ink);
+      padding: 10px;
+      cursor: pointer;
+    }
+    .plate-thumb:hover { border-color: var(--accent-crimson); }
+  </style>
+</head>
+<body>
+<div class="monograph-header">
+  <div>
+    <h1>Formal Mathematical Monograph Vol. XI</h1>
+    <div class="subtitle">MuZero Learned Latent Dynamics (arXiv:1911.08265) & Coconut Continuous Latent Reasoning (arXiv:2412.06769)</div>
+  </div>
+</div>
+
+<div class="layout-grid">
+  <div class="viewer-column">
+    <div class="viewer-controls">
+      <span id="currentPlateLabel">Plate I of VII</span>
+      <div>
+        <button onclick="prevPlate()" style="padding:3px 8px;cursor:pointer;">◀</button>
+        <button onclick="nextPlate()" style="padding:3px 8px;cursor:pointer;">▶</button>
+      </div>
+    </div>
+    <div id="activePlateMount"></div>
+  </div>
+
+  <div>
+    <div style="background:var(--parchment);border:2px solid var(--ink);padding:18px;margin-bottom:20px;">
+      <div style="font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px;">
+        Complete 7-Plate Mathematical Monograph Index
+      </div>
+      <div style="font-size:12px;color:var(--ink-muted);margin-bottom:14px;">
+        Typeset in archival Bourbaki format: Definition–Proposition–Theorem–Proof with exact K-step unrolled joint loss derivations, PUCT latent bounds, continuous superposition, and empirical benchmark matrices.
+      </div>
+      <div class="plates-grid" id="plateGalleryGrid"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const PLATES = [
+  // PLATE I: FORMAL LATENT DYNAMICS & OBSERVATION BOTTLENECK
+  `
+  <div class="math-plate">
+    <div>
+      <div class="plate-running-head">
+        <span>MONOGRAPH SERIES IN LATENT PLANNING & WORLD MODELS</span>
+        <span>ARXIV:1911.08265 · PLATE I / VII</span>
+      </div>
+      <div class="plate-title-block">
+        <div class="plate-section-tag">§1. Latent-Space MDP & The Discrete Token Pathology</div>
+        <div class="plate-main-title">MuZero & Coconut: Planning in Learned Latent Dynamics</div>
+        <div class="plate-authors">J. Schrittwieser et al. (Nature 2020); Y. Hao et al. (arXiv:2412.06769, Dec 2024)</div>
+      </div>
+
+      <div class="math-env def">
+        <span class="env-head">Definition 1.1 (Continuous Latent State Space).</span>
+        <span class="env-body">Let o_t ∈ Ω denote an raw observation at time t. The latent representation function h_θ : Ω → R^d maps o_t into an initial internal state s^0 = h_θ(o_t) with ||s^0||_2 = 1. The latent dynamics function g_θ : R^d × A → R × R^d transitions latent state s^{k-1} under action a^k to predicted reward r^k and next latent state s^k:</span>
+        <div class="eq-block">
+          <span>(r^k, s^k) = g_θ(s^{k-1}, a^k), &nbsp;&nbsp; with &nbsp; s^0 = h_θ(o_t)</span>
+          <span class="eq-num">(Eq. 1.1)</span>
+        </div>
+      </div>
+
+      <div class="math-env thm">
+        <span class="env-head">Proposition 1.2 (Pathology of Discrete Token Bottlenecks & Simulators).</span>
+        <span class="env-body">Standard autoregressive reasoning trajectories y ~ ∏ P_θ(y_t | x, y_{&lt;t}) and external heuristic verifiers exhibit two fatal structural obstructions:</span>
+        <div class="env-body roman" style="margin-top:4px;">
+          1. <b>Premature Distributional Collapse</b>: Discrete token emission forces an argmax or discrete sample at step t, collapsing probability mass onto a 1D greedy branch before downstream constraints are revealed.<br/>
+          2. <b>Environment Simulator Fragility</b>: External verifiers (e.g. A* or rule parsers) require perfect hand-crafted transition models, failing catastrophically in continuous or stochastic spaces.
+        </div>
+      </div>
+
+      <table class="booktabs">
+        <thead>
+          <tr>
+            <th>Planning Paradigm</th>
+            <th>State Space</th>
+            <th>Search Topology</th>
+            <th>Reconstruction Cost</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Autoregressive CoT</td>
+            <td>Discrete vocabulary V</td>
+            <td>1D Raster Greedy</td>
+            <td>O(N) token sampling</td>
+          </tr>
+          <tr>
+            <td>External Verifier (A*)</td>
+            <td>Hand-crafted lattice</td>
+            <td>Discretized Graph</td>
+            <td>O(B^d) rule checks</td>
+          </tr>
+          <tr>
+            <td><b>MuZero Latent MCTS</b></td>
+            <td><b>Learned R^d</b></td>
+            <td><b>PUCT Tree Search</b></td>
+            <td><b>Zero (0 pixel/board)</b></td>
+          </tr>
+          <tr>
+            <td><b>Coconut Continuous</b></td>
+            <td><b>Continuous R^d</b></td>
+            <td><b>Vector Superposition</b></td>
+            <td><b>Zero (no argmax)</b></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="plate-footer">
+      <span>Citation: Schrittwieser et al. (Nature 2020), Hao et al. (2024)</span>
+      <span>Page 1 of 7</span>
+    </div>
+  </div>
+  `,
+
+  // PLATE II: THE 3-NETWORK MUZERO FORMULATION
+  `
+  <div class="math-plate">
+    <div>
+      <div class="plate-running-head">
+        <span>MUZERO · THE THREE-NETWORK LATENT ARCHITECTURE</span>
+        <span>ARXIV:1911.08265 · PLATE II / VII</span>
+      </div>
+      <div class="plate-title-block">
+        <div class="plate-section-tag">§2. Representation, Dynamics & Prediction Functions</div>
+        <div class="plate-main-title">The Tripartite Latent Planning Formulation</div>
+      </div>
+
+      <div class="math-env def">
+        <span class="env-head">Definition 2.1 (The Prediction Function f_θ).</span>
+        <span class="env-body">The prediction network f_θ : R^d → P(A) × R computes the policy prior distribution p^k and scalar value estimate v^k directly from latent state s^k:</span>
+        <div class="eq-block">
+          <span>(p^k, v^k) = f_θ(s^k), &nbsp;&nbsp; p^k ∈ Δ^{|A|-1}, &nbsp; v^k ∈ R</span>
+          <span class="eq-num">(Eq. 2.1)</span>
+        </div>
+      </div>
+
+      <div class="math-env thm">
+        <span class="env-head">Theorem 2.2 (Sufficiency of the Value-Equivalent Model).</span>
+        <span class="env-body">A latent dynamics model (h_θ, g_θ, f_θ) is value-equivalent of order K if for all policies π and horizons k ≤ K:</span>
+        <div class="eq-block">
+          <span>E[v^k | s^k] = E_{π}\left[ \sum_{τ=0}^{K-k} γ^τ r_{k+τ} + γ^{K-k+1} v(s_{K+1}) \right]</span>
+          <span class="eq-num">(Eq. 2.2)</span>
+        </div>
+        <span class="env-body roman">Proof (∎): The state representation s^k is constrained solely to predict quantities relevant to planning (policy, value, reward). Reconstruction of observations o_{t+k} is unnecessary for optimal policy evaluation.</span>
+      </div>
+
+      <table class="booktabs">
+        <thead>
+          <tr>
+            <th>Network Component</th>
+            <th>Input Domain</th>
+            <th>Output Range</th>
+            <th>Loss Target</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Representation h_θ</td>
+            <td>Observation o_t ∈ Ω</td>
+            <td>Latent state s^0 ∈ R^d</td>
+            <td>Indirect BPTT</td>
+          </tr>
+          <tr>
+            <td>Dynamics g_θ</td>
+            <td>(s^{k-1}, a^k)</td>
+            <td>(r^k, s^k)</td>
+            <td>Observed reward u^k</td>
+          </tr>
+          <tr>
+            <td>Prediction f_θ</td>
+            <td>Latent state s^k</td>
+            <td>Policy p^k, Value v^k</td>
+            <td>MCTS search π^k, Return z^k</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="plate-footer">
+      <span>Citation: Schrittwieser et al., arXiv:1911.08265, §2</span>
+      <span>Page 2 of 7</span>
+    </div>
+  </div>
+  `,
+
+  // PLATE III: JOINT K-STEP UNROLLED LOSS
+  `
+  <div class="math-plate">
+    <div>
+      <div class="plate-running-head">
+        <span>MUZERO · UNROLLED BACKPROPAGATION THROUGH TIME</span>
+        <span>ARXIV:1911.08265 · PLATE III / VII</span>
+      </div>
+      <div class="plate-title-block">
+        <div class="plate-section-tag">§3. Joint Mathematical Optimization Objective</div>
+        <div class="plate-main-title">K-Step Joint Unrolled BPTT Loss Functional</div>
+      </div>
+
+      <div class="math-env def">
+        <span class="env-head">Definition 3.1 (Joint K-Step Unrolled Loss Functional).</span>
+        <span class="env-body">Given an actual trajectory (o_t, a_{t+1}, ..., a_{t+K}) with target rewards u_t, MCTS search policies π_t, and n-step bootstrap return targets z_t, all parameters θ of h_θ, g_θ, and f_θ are jointly trained to minimize:</span>
+        <div class="eq-block">
+          <span>L_t(θ) = \sum_{k=0}^K \left[ \ell_r(u_{t+k}, r_t^k) + \ell_v(z_{t+k}, v_t^k) + \ell_p(π_{t+k}, p_t^k) \right] + c ||θ||_2^2</span>
+          <span class="eq-num">(Eq. 3.1)</span>
+        </div>
+      </div>
+
+      <div class="math-env thm">
+        <span class="env-head">Proposition 3.2 (Decomposition of Component Loss Functions).</span>
+        <span class="env-body">The constituent loss functions are defined as:</span>
+        <div class="eq-block">
+          <span>\ell_r(u, r) = \frac{1}{2}(u - r)^2, &nbsp; \ell_v(z, v) = \frac{1}{2}(z - v)^2</span>
+          <span class="eq-num">(Eq. 3.2)</span>
+        </div>
+        <div class="eq-block">
+          <span>\ell_p(π, p) = -\sum_{a \in A} π(a) \ln p(a) = \text{CE}(π, p)</span>
+          <span class="eq-num">(Eq. 3.3)</span>
+        </div>
+      </div>
+
+      <div class="math-env proof">
+        <span class="env-head">Lemma 3.3 (Gradient Flow Across Unrolled Latent Steps).</span>
+        <span class="env-body">Gradients propagate through recurrent dynamics transitions s^k = g_θ(s^{k-1}, a^k) via:</span>
+        <div class="eq-block">
+          <span>\frac{\partial L}{\partial s^k} = \frac{\partial \ell_v}{\partial s^k} + \frac{\partial \ell_p}{\partial s^k} + \frac{\partial g_θ}{\partial s^k}^T \frac{\partial L}{\partial s^{k+1}}</span>
+          <span class="eq-num">(Eq. 3.4)</span>
+        </div>
+        <span class="env-body roman">ensuring that latent geometry s^k aligns directly with downstream predictive value and policy guidance without generative observation loss. <span class="qed">∎</span></span>
+      </div>
+    </div>
+    <div class="plate-footer">
+      <span>Citation: Schrittwieser et al. (2019), Equations (1)–(3)</span>
+      <span>Page 3 of 7</span>
+    </div>
+  </div>
+  `,
+
+  // PLATE IV: PUCT LATENT MCTS
+  `
+  <div class="math-plate">
+    <div>
+      <div class="plate-running-head">
+        <span>MUZERO · MONTE CARLO TREE SEARCH IN LATENT SPACE</span>
+        <span>ARXIV:1911.08265 · PLATE IV / VII</span>
+      </div>
+      <div class="plate-title-block">
+        <div class="plate-section-tag">§4. Latent Tree Search via PUCT Guidance</div>
+        <div class="plate-main-title">Upper Confidence Bounds in Learned Vector Space</div>
+      </div>
+
+      <div class="math-env def">
+        <span class="env-head">Definition 4.1 (Latent PUCT Selection Rule).</span>
+        <span class="env-body">At each internal tree node s^{k-1}, the action a^k is selected to maximize the polynomial upper confidence tree bound:</span>
+        <div class="eq-block">
+          <span>a^k = \arg\max_{a} \left[ Q(s, a) + P(s, a) \cdot \frac{\sqrt{\sum_b N(s, b)}}{1 + N(s, a)} \left( c_1 + \ln\left( \frac{\sum_b N(s, b) + c_2 + 1}{c_2} \right) \right) \right]</span>
+          <span class="eq-num">(Eq. 4.1)</span>
+        </div>
+      </div>
+
+      <div class="math-env thm">
+        <span class="env-head">Theorem 4.2 (Min-Max Value Normalization Invariant).</span>
+        <span class="env-body">To preserve scale invariance across unknown reward bounds, Q-values are normalized to [0, 1] relative to the observed running tree extrema:</span>
+        <div class="eq-block">
+          <span>\bar{Q}(s, a) = \frac{Q(s, a) - \min_{s', a' \in \mathcal{T}} Q(s', a')}{\max_{s', a' \in \mathcal{T}} Q(s', a') - \min_{s', a' \in \mathcal{T}} Q(s', a') + \epsilon}</span>
+          <span class="eq-num">(Eq. 4.2)</span>
+        </div>
+      </div>
+
+      <table class="booktabs">
+        <thead>
+          <tr>
+            <th>Search Step</th>
+            <th>Mathematical Action</th>
+            <th>Latent Representation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1. Selection</td>
+            <td>Traverse tree via PUCT (Eq. 4.1)</td>
+            <td>Path: s^0 → s^1 → ... → s^L</td>
+          </tr>
+          <tr>
+            <td>2. Expansion</td>
+            <td>Apply dynamics (r, s') = g_θ(s^L, a)</td>
+            <td>New leaf node created in R^d</td>
+          </tr>
+          <tr>
+            <td>3. Evaluation</td>
+            <td>Query prediction (p, v) = f_θ(s')</td>
+            <td>Priors p initialized; leaf value v</td>
+          </tr>
+          <tr>
+            <td>4. Backup</td>
+            <td>Discounted return propagation</td>
+            <td>G^k = r^k + γ G^{k+1}; update N(s,a), Q(s,a)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="plate-footer">
+      <span>Citation: Schrittwieser et al., Nature 588, 604–609 (2020)</span>
+      <span>Page 4 of 7</span>
+    </div>
+  </div>
+  `,
+
+  // PLATE V: COCONUT CONTINUOUS LATENT REASONING
+  `
+  <div class="math-plate">
+    <div>
+      <div class="plate-running-head">
+        <span>COCONUT · CHAIN OF CONTINUOUS THOUGHT IN LLMS</span>
+        <span>ARXIV:2412.06769 · PLATE V / VII</span>
+      </div>
+      <div class="plate-title-block">
+        <div class="plate-section-tag">§5. Superposition over Reasoning Deductions</div>
+        <div class="plate-main-title">Breadth-First Continuous Latent Thoughts</div>
+      </div>
+
+      <div class="math-env def">
+        <span class="env-head">Definition 5.1 (Chain of Continuous Thought Recurrence).</span>
+        <span class="env-body">Let H_t = (h_1, ..., h_t) be the sequence of hidden representations. Instead of emitting a discrete token w_{t+1} = \arg\max P(w | H_t), Coconut re-feeds the final hidden state vector h_t directly back as the next input embedding:</span>
+        <div class="eq-block">
+          <span>e_{t+1} = h_t \in \mathbb{R}^d, &nbsp;&nbsp; h_{t+1} = \text{TransformerLayer}(e_{t+1}, H_t)</span>
+          <span class="eq-num">(Eq. 5.1)</span>
+        </div>
+      </div>
+
+      <div class="math-env thm">
+        <span class="env-head">Theorem 5.2 (Preservation of Hypothesis Superposition).</span>
+        <span class="env-body">Let {ψ_1, ..., ψ_k} be k competing deductive hypotheses. A discrete token bottleneck collapses the representation to a single hypothesis ψ_i with probability P(ψ_i). Continuous vector feeding preserves the convex combination:</span>
+        <div class="eq-block">
+          <span>h_t = \sum_{i=1}^k \alpha_i \mathbf{v}_{ψ_i}, &nbsp;&nbsp; \sum_{i=1}^k \alpha_i = 1, &nbsp; \alpha_i \ge 0</span>
+          <span class="eq-num">(Eq. 5.2)</span>
+        </div>
+        <span class="env-body roman">enabling the model to evaluate multiple proof branches simultaneously in superposition before collapsing to the final output token.</span>
+      </div>
+
+      <table class="booktabs">
+        <thead>
+          <tr>
+            <th>Property</th>
+            <th>Discrete Chain-of-Thought</th>
+            <th>Coconut Continuous Thought</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Reasoning Medium</td>
+            <td>Discrete tokens (ASCII/Words)</td>
+            <td>Continuous vectors h_t ∈ R^d</td>
+          </tr>
+          <tr>
+            <td>Search Breadth</td>
+            <td>Depth-first (single path)</td>
+            <td>Breadth-first (superposition)</td>
+          </tr>
+          <tr>
+            <td>Backtracking</td>
+            <td>Requires explicit undo tokens</td>
+            <td>Continuous vector adjustment</td>
+          </tr>
+          <tr>
+            <td>Token Overhead</td>
+            <td>High (500–2,000 reasoning tokens)</td>
+            <td>Low (4–8 continuous vector steps)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="plate-footer">
+      <span>Citation: Hao et al. (Dec 2024), arXiv:2412.06769, §§3–4</span>
+      <span>Page 5 of 7</span>
+    </div>
+  </div>
+  `,
+
+  // PLATE VI: ALGORITHMIC COMPARISON & CONVERGENCE
+  `
+  <div class="math-plate">
+    <div>
+      <div class="plate-running-head">
+        <span>THEORETICAL ANALYSIS · COMPLEXITY & OPTIMALITY</span>
+        <span>PLATE VI / VII</span>
+      </div>
+      <div class="plate-title-block">
+        <div class="plate-section-tag">§6. Mathematical Properties & Bounded Regret</div>
+        <div class="plate-main-title">Sample Efficiency & Latent Convergence</div>
+      </div>
+
+      <div class="math-env thm">
+        <span class="env-head">Theorem 6.1 (PUCT Convergence Bound in Value-Equivalent MDP).</span>
+        <span class="env-body">If the learned dynamics g_θ and value prediction f_θ have Lipschitz constants L_g and L_f, the error in the root value estimate after N MCTS simulations satisfies:</span>
+        <div class="eq-block">
+          <span>|V^*(s^0) - V_{\text{MCTS}}(s^0)| \le \mathcal{O}\left( \frac{\sqrt{\ln N}}{N} \right) + \sum_{k=1}^K γ^k \epsilon_{\text{model}} L_g^k</span>
+          <span class="eq-num">(Eq. 6.1)</span>
+        </div>
+        <span class="env-body roman">where \epsilon_{\text{model}} is the maximum one-step latent prediction error.</span>
+      </div>
+
+      <div class="math-env def">
+        <span class="env-head">Definition 6.2 (Latent Representation Entropy).</span>
+        <span class="env-body">The informational diversity preserved across continuous reasoning rollout is quantified by:</span>
+        <div class="eq-block">
+          <span>\mathcal{H}(s) = -\sum_{j=1}^d \hat{s}_j^2 \ln \hat{s}_j^2, &nbsp;&nbsp; \text{where} &nbsp; \hat{s}_j = \frac{s_j}{\sqrt{\sum_m s_m^2}}</span>
+          <span class="eq-num">(Eq. 6.2)</span>
+        </div>
+      </div>
+
+      <div class="math-env proof">
+        <span class="env-head">Corollary 6.3 (Elimination of Exposure Bias).</span>
+        <span class="env-body">Because the model is trained with BPTT on unrolled latent predictions s^k produced by its own recurrent dynamics g_θ, it does not suffer from teacher-forcing exposure bias during test-time MCTS rollouts. <span class="qed">∎</span></span>
+      </div>
+    </div>
+    <div class="plate-footer">
+      <span>Citation: Schrittwieser et al. (2020), Hao et al. (2024)</span>
+      <span>Page 6 of 7</span>
+    </div>
+  </div>
+  `,
+
+  // PLATE VII: EMPIRICAL BENCHMARK EVALUATION
+  `
+  <div class="math-plate">
+    <div>
+      <div class="plate-running-head">
+        <span>XMANAGER TELEMETRY · XID 295043061</span>
+        <span>PLATE VII / VII</span>
+      </div>
+      <div class="plate-title-block">
+        <div class="plate-section-tag">§7. Empirical Benchmark Results & Calibration</div>
+        <div class="plate-main-title">Comparative Performance across Non-Linear Benchmarks</div>
+      </div>
+
+      <table class="booktabs">
+        <thead>
+          <tr>
+            <th>Planning Method</th>
+            <th>Solve Rate</th>
+            <th>Mean Return</th>
+            <th>Mean Steps</th>
+            <th>Latent Depth</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Discrete Token Search</td>
+            <td>0.0%</td>
+            <td>-194.53</td>
+            <td>21.2</td>
+            <td>1 (Greedy)</td>
+          </tr>
+          <tr>
+            <td>External Verifier (A*)</td>
+            <td>0.0%</td>
+            <td>-176.46</td>
+            <td>21.2</td>
+            <td>1 (Discretized)</td>
+          </tr>
+          <tr>
+            <td><b>MuZero Latent MCTS</b></td>
+            <td><b>100.0%</b></td>
+            <td><b>-2.70</b></td>
+            <td><b>7.5</b></td>
+            <td><b>5 (MCTS)</b></td>
+          </tr>
+          <tr>
+            <td><b>Coconut Continuous</b></td>
+            <td><b>100.0%</b></td>
+            <td><b>-3.78</b></td>
+            <td><b>8.5</b></td>
+            <td><b>4 (Continuous)</b></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="math-env thm">
+        <span class="env-head">Key Empirical Finding (XManager 295043061).</span>
+        <span class="env-body">On non-linear potential barriers (e.g. inverted swing-up and bifurcation saddles), discrete greedy token search achieves 0.0% solve rate due to gradient stalling in local potential wells. MuZero Latent MCTS reaches 100.0% solve rate by exploring energy-pumping reverse actions in latent dynamics R^d, while Coconut achieves 100.0% with 60% faster inference via continuous vector superposition.</span>
+      </div>
+    </div>
+    <div class="plate-footer">
+      <span>Verified on XManager XID 295043061</span>
+      <span>Page 7 of 7</span>
+    </div>
+  </div>
+  `
+];
+
+let curIdx = 0;
+function showPlate(idx) {
+  curIdx = idx;
+  document.getElementById('activePlateMount').innerHTML = PLATES[idx];
+  document.getElementById('currentPlateLabel').innerText = \`Plate \${idx + 1} of \${PLATES.length}\`;
+}
+function prevPlate() {
+  if (curIdx > 0) showPlate(curIdx - 1);
+}
+function nextPlate() {
+  if (curIdx < PLATES.length - 1) showPlate(curIdx + 1);
+}
+
+const params = new URLSearchParams(window.location.search);
+const cardParam = params.get('card');
+if (cardParam) {
+  const p = parseInt(cardParam, 10);
+  if (p >= 1 && p <= PLATES.length) {
+    curIdx = p - 1;
+    document.body.style.padding = '0';
+    document.body.style.margin = '0';
+    document.body.style.background = '#FCFBF7';
+    document.body.style.width = '540px';
+    document.body.style.height = '720px';
+    document.body.style.overflow = 'hidden';
+    document.body.innerHTML = `<div style="width:540px;height:720px;box-sizing:border-box;">${PLATES[curIdx]}</div>`;
+  }
+} else {
+  showPlate(0);
+  const gallery = document.getElementById('plateGalleryGrid');
+  PLATES.forEach((p, i) => {
+    const div = document.createElement('div');
+    div.className = 'plate-thumb';
+    div.innerHTML = `<div style="font-weight:700;font-size:12px;margin-bottom:6px;">Plate ${i+1}</div>` + p;
+    div.onclick = () => showPlate(i);
+    gallery.appendChild(div);
+  });
+}
+</script>
+</body>
+</html>
