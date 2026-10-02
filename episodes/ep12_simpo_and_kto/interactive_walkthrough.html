@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SimPO & KTO: Reference-Free Length-Normalized & Prospect-Theoretic Alignment — Interactive Lab Walkthrough</title>
+<style>
+  :root {
+    --bg: #0b1020;
+    --panel: #131b31;
+    --panel-alt: #192340;
+    --card: #1d294b;
+    --border: #2c3e6b;
+    --text: #e8eefc;
+    --muted: #9db0d8;
+    --accent: #38bdf8;
+    --accent-2: #818cf8;
+    --success: #34d399;
+    --warning: #fbbf24;
+    --danger: #f87171;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    line-height: 1.55;
+  }
+  header {
+    background: linear-gradient(135deg, #101935 0%, #1a264f 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 28px;
+  }
+  .badge-pill {
+    display: inline-block;
+    background: rgba(56, 189, 248, 0.16);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 999px;
+    letter-spacing: 0.4px;
+    margin-bottom: 8px;
+  }
+  h1 { margin: 0 0 6px 0; font-size: 24px; color: #fff; }
+  .subtitle { margin: 0; color: var(--muted); font-size: 14px; max-width: 960px; }
+  .main-layout {
+    max-width: 1240px;
+    margin: 24px auto;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 900px) { .main-layout { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  h2 { font-size: 18px; margin-top: 0; border-bottom: 1px solid var(--border); padding-bottom: 8px; color: #fff; }
+  .diagram-box {
+    background: #070c1a;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 14px;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    white-space: pre;
+    color: #93c5fd;
+    line-height: 1.45;
+  }
+  .interactive-box {
+    background: var(--panel-alt);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 14px;
+  }
+  button {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  button:hover { background: #1d4ed8; }
+  .state-display {
+    margin-top: 12px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--success);
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="badge-pill">Episode 12 · Heavyweight Track B: Post-Training, RL & Alignment</div>
+  <h1>SimPO & KTO: Beyond DPO Length Bias and Paired Preferences</h1>
+  <div class="subtitle">
+    Step-by-step interactive explorer comparing standard DPO (unnormalized log-ratio + reference model requirement), SimPO (reference-free length-normalized reward with target margin gamma), and KTO (Kahneman-Tversky prospect theory on unpaired thumbs-up/down signals with loss aversion lambda > 1).
+  </div>
+</header>
+
+<div class="main-layout">
+  <div class="card">
+    <h2>1. SimPO: Eliminating the Reference Model & Length Bias</h2>
+    <p style="font-size: 14px; color: var(--muted);">
+      DPO implicit reward accumulates sequence log-probabilities, favoring long, verbose answers. Furthermore, DPO requires loading a frozen copy of π_ref into GPU VRAM. SimPO normalizes average token log-likelihood directly:
+    </p>
+    <div class="diagram-box">
+DPO Implicit Reward:
+  r_DPO(x, y) = β * log( π_θ(y|x) / π_ref(y|x) )
+  ► Needs π_ref in VRAM (2× memory). Exploits sentence length |y|.
+
+SimPO Length-Normalized Reward:
+  r_SimPO(x, y) = (β / |y|) * ∑_{t=1}^{|y|} log π_θ(y_t | x, y_<t)
+  ► 100% Reference-Free! Cuts GPU memory by 50%. Enforces margin γ.
+    </div>
+    <div class="interactive-box">
+      <strong>SimPO Margin Simulator:</strong>
+      <p style="font-size: 13px; color: var(--muted); margin: 6px 0 10px;">Simulate reward margin for concise vs verbose responses under SimPO vs DPO:</p>
+      <button onclick="runSimPO()">Simulate Length-Normalized Margin</button>
+      <div id="simpoOutput" class="state-display">Click to evaluate SimPO reward margin dynamics.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>2. KTO: Prospect Theory on Unpaired Feedback</h2>
+    <p style="font-size: 14px; color: var(--muted);">
+      Real-world feedback is rarely pairwise (winning vs losing response to the same prompt). KTO trains on solitary thumbs-up (+1) and thumbs-down (-1) signals using Kahneman & Tversky's loss aversion:
+    </p>
+    <div class="diagram-box">
+Kahneman-Tversky Value Function v(Δ):
+  Desirable (y ∈ Y+):  v(Δ) = σ( r(x, y) - z_0 )
+  Undesirable (y ∈ Y-): v(Δ) = σ( -λ * (r(x, y) - z_0) )
+  ► Loss aversion λ = 1.50 ~ 2.00 (losses hurt ~2× more than equal gains).
+    </div>
+    <div class="interactive-box">
+      <strong>KTO Prospect Value Demo:</strong>
+      <p style="font-size: 13px; color: var(--muted); margin: 6px 0 10px;">Track asymmetrical utility curves for positive vs negative feedback:</p>
+      <button onclick="runKTO()">Evaluate Prospect Gradient</button>
+      <div id="ktoOutput" class="state-display">KTO reference utility z_0 calibrated. Click to simulate.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+let step_simpo = 0;
+function runSimPO() {
+  step_simpo++;
+  const margins = [0.15, 0.42, 0.68, 0.85, 0.94];
+  const idx = (step_simpo - 1) % 5;
+  document.getElementById('simpoOutput').innerHTML = 
+    `SimPO Evaluation Step ${step_simpo}:<br>` +
+    `Normalized Margin r_w - r_l - γ = +${margins[idx]} nats (Target γ = 0.50 satisfied).<br>` +
+    `GPU Memory Ratio: 50.0% (π_ref completely purged from VRAM). Length Bias: 0.00.`;
+}
+
+let step_kto = 0;
+function runKTO() {
+  step_kto++;
+  const deltas = [-0.4, 0.3, -0.6, 0.8, -0.2];
+  const idx = (step_kto - 1) % 5;
+  const d = deltas[idx];
+  const is_pos = d > 0;
+  const lambda = 1.50;
+  const v = is_pos ? (1 / (1 + Math.exp(-d))) : (1 / (1 + Math.exp(lambda * d)));
+  document.getElementById('ktoOutput').innerHTML = 
+    `KTO Step ${step_kto}: Signal = ${is_pos ? 'Thumbs-Up (+1)' : 'Thumbs-Down (-1)'}<br>` +
+    `Utility offset Δ = ${d > 0 ? '+' : ''}${d.toFixed(2)} nats | Value v_KTO(Δ) = ${v.toFixed(3)}<br>` +
+    `Asymmetric penalty applied with loss aversion λ = ${lambda}.`;
+}
+</script>
+</body>
+</html>

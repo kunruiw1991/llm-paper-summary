@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mathematical Research Monograph Vol. XII — SimPO &amp; KTO (arXiv:2405.14734 · arXiv:2402.01306)</title>
+  <style>
+    :root {
+      --parchment: #FCFBF7;
+      --ink: #111111;
+      --ink-secondary: #2B2B2B;
+      --ink-muted: #555555;
+      --rule-heavy: #111111;
+      --rule-light: #B8B4A9;
+      --thm-bg: #F4F2EC;
+      --proof-bg: #F8F7F3;
+      --accent-navy: #1B365D;
+      --accent-crimson: #7A1C1C;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Computer Modern Serif", "Latin Modern Roman", Georgia, "Times New Roman", Times, serif;
+      background: #E8E6DF;
+      color: var(--ink);
+      padding: 28px 18px 64px;
+      line-height: 1.45;
+    }
+    .monograph-header {
+      max-width: 1220px;
+      margin: 0 auto 24px;
+      background: var(--parchment);
+      border: 2px solid var(--rule-heavy);
+      padding: 18px 26px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      box-shadow: 4px 4px 0 rgba(0,0,0,0.14);
+    }
+    .monograph-header h1 {
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+    .monograph-header .subtitle {
+      font-size: 12.5px;
+      color: var(--ink-muted);
+      font-style: italic;
+      margin-top: 2px;
+    }
+    .nav-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .academic-btn {
+      font-family: inherit;
+      font-size: 12.5px;
+      font-weight: 700;
+      padding: 8px 15px;
+      border: 1.5px solid var(--ink);
+      background: var(--parchment);
+      color: var(--ink);
+      cursor: pointer;
+      text-decoration: none;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .academic-btn:hover, .academic-btn.primary {
+      background: var(--ink);
+      color: var(--parchment);
+    }
+    .layout-grid {
+      max-width: 1220px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 540px 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+    @media (max-width: 1024px) {
+      .layout-grid { grid-template-columns: 1fr; }
+    }
+    .viewer-column {
+      position: sticky;
+      top: 20px;
+      background: var(--parchment);
+      border: 2px solid var(--ink);
+      box-shadow: 6px 6px 0 rgba(0,0,0,0.18);
+      padding: 14px;
+    }
+    .viewer-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid var(--rule-light);
+      font-size: 12.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+    .math-plate {
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      background: var(--parchment);
+      border: 2.5px double var(--ink);
+      padding: 22px 24px 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      color: var(--ink);
+    }
+    .plate-running-head {
+      border-bottom: 1.5px solid var(--ink);
+      padding-bottom: 5px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--ink-secondary);
+    }
+    .plate-title-block {
+      margin-bottom: 8px;
+    }
+    .plate-section-tag {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent-navy);
+      margin-bottom: 2px;
+    }
+    .plate-main-title {
+      font-size: 19.5px;
+      font-weight: 700;
+      line-height: 1.18;
+      color: var(--ink);
+    }
+    .plate-authors {
+      font-size: 11px;
+      font-style: italic;
+      color: var(--ink-secondary);
+      margin-top: 3px;
+    }
+    .math-env {
+      background: var(--thm-bg);
+      border-left: 3px solid var(--ink);
+      border-top: 1px solid #DCD8CE;
+      border-right: 1px solid #DCD8CE;
+      border-bottom: 1px solid #DCD8CE;
+      padding: 8px 11px;
+      margin-bottom: 7px;
+      font-size: 11.2px;
+      line-height: 1.38;
+    }
+    .math-env.thm { border-left-color: var(--accent-crimson); }
+    .math-env.def { border-left-color: var(--accent-navy); }
+    .math-env.proof {
+      background: var(--proof-bg);
+      border-left: 2px solid var(--ink-muted);
+      font-size: 10.8px;
+    }
+    .env-head { font-weight: 700; font-style: normal; color: var(--ink); }
+    .env-body { font-style: italic; }
+    .env-body.roman { font-style: normal; }
+    .eq-block {
+      font-family: "Latin Modern Math", "Cambria Math", "STIX Two Math", "SFMono-Regular", Consolas, monospace;
+      background: #FFFFFF;
+      border: 1px solid #D5D1C6;
+      padding: 6px 10px;
+      margin: 5px 0;
+      font-size: 10.8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-style: normal;
+      color: var(--ink);
+    }
+    .eq-num {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--ink-muted);
+      margin-left: 8px;
+      white-space: nowrap;
+    }
+    .qed { float: right; font-style: normal; font-weight: 700; }
+    .booktabs {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10.2px;
+      margin: 5px 0;
+      background: #fff;
+    }
+    .booktabs thead tr {
+      border-top: 1.8px solid var(--ink);
+      border-bottom: 1.2px solid var(--ink);
+    }
+    .booktabs th { text-align: left; padding: 4px 6px; font-weight: 700; }
+    .booktabs td { padding: 3.5px 6px; border-bottom: 0.5px solid #E2DFD7; }
+    .booktabs tbody tr:last-child td { border-bottom: 1.8px solid var(--ink); }
+    .num-col { text-align: right; font-family: "SFMono-Regular", Consolas, monospace; }
+    .plate-footer {
+      border-top: 1px solid var(--ink);
+      padding-top: 5px;
+      margin-top: 6px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 9.5px;
+      color: var(--ink-muted);
+    }
+    .plates-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .thumb-frame {
+      background: var(--parchment);
+      border: 1.5px solid var(--rule-light);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .thumb-frame.active, .thumb-frame:hover {
+      border-color: var(--accent-navy);
+      box-shadow: 4px 4px 0 rgba(27,54,93,0.25);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="monograph-header">
+    <div>
+      <h1>MATHEMATICAL RESEARCH MONOGRAPH SERIES · VOLUME XII (POST-TRAINING, RL &amp; ALIGNMENT)</h1>
+      <div class="subtitle">SimPO (arXiv:2405.14734) &amp; KTO (arXiv:2402.01306): Reference-Free Length-Normalized Margins and Prospect-Theoretic Alignment</div>
+    </div>
+    <div class="nav-group">
+      <a class="academic-btn" href="https://arxiv.org/abs/2405.14734" target="_blank">arXiv:2405.14734</a>
+      <a class="academic-btn" href="https://arxiv.org/abs/2402.01306" target="_blank">arXiv:2402.01306</a>
+      <button class="academic-btn primary" onclick="window.print()">Export Monograph PDF</button>
+    </div>
+  </div>
+
+  <div class="layout-grid">
+    <div class="viewer-column">
+      <div class="viewer-controls">
+        <span id="plateCounterLabel">PLATE I OF VII</span>
+        <div>
+          <button class="academic-btn" onclick="stepPlate(-1)">&larr; Prev</button>
+          <button class="academic-btn" onclick="stepPlate(1)">Next &rarr;</button>
+        </div>
+      </div>
+      <div id="activePlateStage"></div>
+    </div>
+
+    <div class="plates-grid" id="plateGalleryGrid"></div>
+  </div>
+
+  <script>
+    const PLATES = [
+      // PLATE I: THE DPO REWARD DIVERGENCE & LENGTH PATHOLOGY
+      `
+      <div class="math-plate">
+        <div>
+          <div class="plate-running-head">
+            <span>MONOGRAPH SERIES IN POST-TRAINING &amp; RL</span>
+            <span>ARXIV:2405.14734 · PLATE I / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">&sect;1. Foundations of Preference Optimization</div>
+            <div class="plate-main-title">The DPO Implicit Reward Discrepancy &amp; Verbosity Pathology</div>
+            <div class="plate-authors">Yu Meng, Mengzhou Xia, Danqi Chen (Princeton University, NeurIPS 2024)</div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 1.1 (Standard DPO Implicit Reward).</span>
+            <span class="env-body roman">
+              Under the Bradley-Terry preference model p(y_w &gt; y_l | x) = &sigma;(r(x, y_w) - r(x, y_l)), DPO reparameterizes the reward function analytically as:
+            </span>
+            <div class="eq-block">
+              <span>r_DPO(x, y) = &beta; log(&pi;_&theta;(y | x) / &pi;_ref(y | x))</span>
+              <span class="eq-num">(1.1)</span>
+            </div>
+            <span class="env-body roman">
+              where &beta; &gt; 0 scales the implicit reward and &pi;_ref is a frozen reference model.
+            </span>
+          </div>
+
+          <div class="math-env thm">
+            <span class="env-head">Proposition 1.2 (Discrepancy Between Reward and Generation Metric).</span>
+            <span class="env-body roman">
+              During autoregressive inference, text generation selects tokens greedily or via beam search according to the average token log-likelihood:
+            </span>
+            <div class="eq-block">
+              <span>p_gen(y | x) = (1 / |y|) &sum;_{t=1}^{|y|} log &pi;_&theta;(y_t | x, y_{&lt;t})</span>
+              <span class="eq-num">(1.2)</span>
+            </div>
+            <span class="env-body roman">
+              Crucially, r_DPO(x, y) does not normalize by sequence length |y| and depends on &pi;_ref. Consequently, a policy can increase r_DPO simply by generating longer, verbose responses or exploiting tokens where &pi;_ref is artificially suppressed, creating severe verbosity exploitation.
+            </span>
+          </div>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Meng et al. (2024), arXiv:2405.14734, &sect;2; Rafailov et al. (2023)</span>
+          <span>Page 1 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE II: SIMPO: REFERENCE-FREE LENGTH-NORMALIZED REWARD FORMULATION
+      `
+      <div class="math-plate">
+        <div>
+          <div class="plate-running-head">
+            <span>MONOGRAPH SERIES IN POST-TRAINING &amp; RL</span>
+            <span>ARXIV:2405.14734 · PLATE II / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">&sect;2. The SimPO Formulation</div>
+            <div class="plate-main-title">Reference-Free Length-Normalized Reward Function</div>
+            <div class="plate-authors">SimPO: Simple Preference Optimization with Target Margin</div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 2.1 (SimPO Length-Normalized Implicit Reward).</span>
+            <span class="env-body roman">
+              SimPO defines the reward r_SimPO(x, y) directly as the length-normalized average log-likelihood of response y under policy &pi;_&theta;, with zero dependence on a reference model &pi;_ref:
+            </span>
+            <div class="eq-block">
+              <span>r_SimPO(x, y) = (&beta; / |y|) &sum;_{t=1}^{|y|} log &pi;_&theta;(y_t | x, y_{&lt;t}) = (&beta; / |y|) log &pi;_&theta;(y | x)</span>
+              <span class="eq-num">(2.1)</span>
+            </div>
+          </div>
+
+          <div class="math-env thm">
+            <span class="env-head">Proposition 2.2 (Elimination of Reference Model Overhead).</span>
+            <span class="env-body roman">
+              Because r_SimPO does not evaluate &pi;_ref(y | x), SimPO eliminates the frozen reference model entirely:
+              <br/>1. <b>Memory Complexity</b>: Exactly 50% GPU memory reduction compared to DPO (1 model vs. 2 models in memory).
+              <br/>2. <b>Compute Footprint</b>: Eliminates 2 forward passes per preference pair, yielding ~1.8x training throughput speedup.
+              <br/>3. <b>Generation Alignment</b>: Directly aligns the training optimization objective with the test-time decoding metric.
+            </span>
+          </div>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Meng et al. (2024), arXiv:2405.14734, &sect;3.1</span>
+          <span>Page 2 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE III: THE TARGET MARGIN GAMMA AND GRADIENT MECHANICS
+      `
+      <div class="math-plate">
+        <div>
+          <div class="plate-running-head">
+            <span>MONOGRAPH SERIES IN POST-TRAINING &amp; RL</span>
+            <span>ARXIV:2405.14734 · PLATE III / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">&sect;3. Objective &amp; Gradient Dynamics</div>
+            <div class="plate-main-title">Target Reward Margin &gamma; and Gradient Dynamics</div>
+            <div class="plate-authors">Enforcing Minimum Separation Between Preferred and Dispreferred Generations</div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 3.1 (SimPO Loss Function with Target Margin).</span>
+            <span class="env-body roman">
+              Given preference pair (x, y_w, y_l), SimPO optimizes the objective:
+            </span>
+            <div class="eq-block">
+              <span>L_SimPO(&theta;) = -E_{(x, y_w, y_l)} [ log &sigma;( r_SimPO(x, y_w) - r_SimPO(x, y_l) - &gamma; ) ]</span>
+              <span class="eq-num">(3.1)</span>
+            </div>
+            <span class="env-body roman">
+              where &gamma; &gt; 0 is a strictly positive target reward margin enforcing r(y_w) - r(y_l) &ge; &gamma;.
+            </span>
+          </div>
+
+          <div class="math-env proof">
+            <span class="env-head">Gradient Derivation 3.2 (Length-Weighted Policy Update).</span>
+            <span class="env-body roman">
+              Let &Delta; = r_SimPO(x, y_w) - r_SimPO(x, y_l) - &gamma;. The gradient with respect to policy parameter &theta; is:
+            </span>
+            <div class="eq-block">
+              <span>&nabla;_&theta; L_SimPO = -&beta; &sigma;(-&Delta;) [ (1 / |y_w|) &nabla;_&theta; log &pi;_&theta;(y_w|x) - (1 / |y_l|) &nabla;_&theta; log &pi;_&theta;(y_l|x) ]</span>
+              <span class="eq-num">(3.2)</span>
+            </div>
+            <span class="env-body roman">
+              Notice that the gradient update for each token is scaled inversely by sequence length (1/|y|), preventing long rambling responses from receiving disproportionate gradient magnitude.
+              <span class="qed">&FilledSmallSquare;</span>
+            </span>
+          </div>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Meng et al. (2024), arXiv:2405.14734, &sect;3.2</span>
+          <span>Page 3 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE IV: KTO: PROSPECT-THEORETIC ALIGNMENT FROM UNPAIRED SIGNALS
+      `
+      <div class="math-plate">
+        <div>
+          <div class="plate-running-head">
+            <span>MONOGRAPH SERIES IN POST-TRAINING &amp; RL</span>
+            <span>ARXIV:2402.01306 · PLATE IV / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">&sect;4. Prospect Theory &amp; Unpaired Data</div>
+            <div class="plate-main-title">KTO: Kahneman-Tversky Optimization from Thumbs &plusmn;1</div>
+            <div class="plate-authors">Kawin Ethayarajh, Winnie Xu, Niklas Muennighoff, Dan Jurafsky, Douwe Kiela (Stanford, Contextual AI)</div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 4.1 (Prospect-Theoretic Utility Model).</span>
+            <span class="env-body roman">
+              Under Kahneman &amp; Tversky (1979) Prospect Theory, humans evaluate outcomes relative to a reference point z_0. Gains (z &gt; 0) exhibit diminishing marginal utility (concave), while losses (z &lt; 0) exhibit steep risk aversion (convex) scaled by loss aversion &lambda; &gt; 1:
+            </span>
+            <div class="eq-block">
+              <span>v_KTO(z) = &sigma;(z) &nbsp; if &nbsp; z &ge; 0; &emsp; v_KTO(z) = &sigma;(&lambda; z) &nbsp; if &nbsp; z &lt; 0 &emsp; (&lambda; &approx; 1.5 - 2.5)</span>
+              <span class="eq-num">(4.1)</span>
+            </div>
+          </div>
+
+          <div class="math-env thm">
+            <span class="env-head">Proposition 4.2 (Unpaired Binary Feedback Formulation).</span>
+            <span class="env-body roman">
+              KTO does not require paired preferences (x, y_w, y_l). Instead, it trains on individual tuples (x, y, v) where v &isin; {+1, -1}:
+            </span>
+            <div class="eq-block">
+              <span>L_KTO(&theta;) = E_{(x, y)} [ w(y) ( 1 - v_KTO( &beta; log(&pi;_&theta;(y|x) / &pi;_ref(y|x)) - z_0 ) ) ]</span>
+              <span class="eq-num">(4.2)</span>
+            </div>
+            <span class="env-body roman">
+              where reference point z_0 = E_{x'}[ D_KL(&pi;_&theta;(&middot;|x') || &pi;_ref(&middot;|x')) ] anchors utility to the model's baseline output.
+            </span>
+          </div>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Ethayarajh et al. (2024), arXiv:2402.01306, ICML 2024</span>
+          <span>Page 4 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE V: COMPARATIVE ARCHITECTURAL & SYSTEMS COMPLEXITY
+      `
+      <div class="math-plate">
+        <div>
+          <div class="plate-running-head">
+            <span>MONOGRAPH SERIES IN POST-TRAINING &amp; RL</span>
+            <span>SYSTEMS BENCHMARK · PLATE V / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">&sect;5. Systems &amp; Algorithmic Comparison</div>
+            <div class="plate-main-title">Memory, Compute, and Signal Complexity Across Paradigms</div>
+            <div class="plate-authors">PPO vs. DPO vs. SimPO vs. KTO Architectural Tradeoffs</div>
+          </div>
+
+          <table class="booktabs">
+            <thead>
+              <tr>
+                <th>Dimension</th>
+                <th>PPO (RLHF)</th>
+                <th>DPO</th>
+                <th>KTO</th>
+                <th>SimPO</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Active Models</td>
+                <td>4 (Actor, Critic, RM, Ref)</td>
+                <td>2 (Policy, Ref)</td>
+                <td>2 (Policy, Ref)</td>
+                <td><b>1 (Policy Only)</b></td>
+              </tr>
+              <tr>
+                <td>GPU Memory</td>
+                <td>100% (Baseline)</td>
+                <td>50%</td>
+                <td>50%</td>
+                <td><b>25% (50% cut vs DPO)</b></td>
+              </tr>
+              <tr>
+                <td>Data Requirement</td>
+                <td>Prompts + Reward Model</td>
+                <td>Paired (x, y_w, y_l)</td>
+                <td><b>Unpaired (x, y, &plusmn;1)</b></td>
+                <td>Paired (x, y_w, y_l)</td>
+              </tr>
+              <tr>
+                <td>Length Bias Penalty</td>
+                <td>None (Requires heuristic)</td>
+                <td>Unnormalized (Vulnerable)</td>
+                <td>Offset by z_0</td>
+                <td><b>Built-in 1/|y| Normalization</b></td>
+              </tr>
+              <tr>
+                <td>Target Margin &gamma;</td>
+                <td>None</td>
+                <td>Implicit (0.0)</td>
+                <td>Asymmetric &lambda;</td>
+                <td><b>Explicit Parameter &gamma; &gt; 0</b></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="math-env thm">
+            <span class="env-head">Theorem 5.1 (The Reference-Free Pareto Frontier).</span>
+            <span class="env-body roman">
+              By setting r(x, y) = (&beta; / |y|) log &pi;_&theta;(y|x), SimPO achieves identical or superior reward margin separation to DPO while strictly cutting model parameter footprint in half and eliminating reference model drift.
+            </span>
+          </div>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Meng et al. (2024), Table 1; Ethayarajh et al. (2024), Table 2</span>
+          <span>Page 5 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE VI: THE LENGTH EXPLOITATION BIAS THEOREM
+      `
+      <div class="math-plate">
+        <div>
+          <div class="plate-running-head">
+            <span>MONOGRAPH SERIES IN POST-TRAINING &amp; RL</span>
+            <span>THEORETICAL ANALYSIS · PLATE VI / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">&sect;6. Mathematical Analysis of Length Bias</div>
+            <div class="plate-main-title">Provable Invariance to Sequence Verbosity</div>
+            <div class="plate-authors">Why Token-Sum Objectives Favor Redundancy Over Precision</div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 6.1 (Trivial Sequence Concatenation).</span>
+            <span class="env-body roman">
+              Consider an arbitrary response y and a redundant filler phrase f with marginal log probability &epsilon; = (1 / |f|) log &pi;(f | x, y). Let y' = y &cir; f denote the concatenated verbose response.
+            </span>
+          </div>
+
+          <div class="math-env thm">
+            <span class="env-head">Proposition 6.2 (DPO Reward Inflation vs. SimPO Invariance).</span>
+            <span class="env-body roman">
+              Under DPO, if log(&pi;_&theta;(f) / &pi;_ref(f)) &gt; 0 (filler is slightly favored by policy over reference), the implicit reward strictly increases:
+            </span>
+            <div class="eq-block">
+              <span>r_DPO(x, y') = r_DPO(x, y) + &beta; log(&pi;_&theta;(f) / &pi;_ref(f)) &gt; r_DPO(x, y)</span>
+              <span class="eq-num">(6.1)</span>
+            </div>
+            <span class="env-body roman">
+              Under SimPO, the length-normalized reward becomes a convex combination:
+            </span>
+            <div class="eq-block">
+              <span>r_SimPO(x, y') = (|y| / (|y| + |f|)) r_SimPO(x, y) + (|f| / (|y| + |f|)) &beta; &epsilon;</span>
+              <span class="eq-num">(6.2)</span>
+            </div>
+            <span class="env-body roman">
+              Because filler tokens have lower average per-token log-likelihood than the concise target response (&epsilon; &lt; r_SimPO(x, y)), r_SimPO(x, y') &lt; r_SimPO(x, y). SimPO penalizes redundant verbosity automatically without ad-hoc length heuristics.
+            </span>
+          </div>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Meng et al. (2024), arXiv:2405.14734, &sect;4.3</span>
+          <span>Page 6 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE VII: VERIFIED XMANAGER LAB TELEMETRY (XID 295391345)
+      `
+      <div class="math-plate">
+        <div>
+          <div class="plate-running-head">
+            <span>MONOGRAPH SERIES IN POST-TRAINING &amp; RL</span>
+            <span>EMPIRICAL VERIFICATION · PLATE VII / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">&sect;7. Empirical Verification &amp; XManager Telemetry</div>
+            <div class="plate-main-title">Empirical Results: XManager XID 295391345 Benchmark</div>
+            <div class="plate-authors">Direct Alignment Verification on Multi-Dimensional Reasoning &amp; Conciseness</div>
+          </div>
+
+          <table class="booktabs">
+            <thead>
+              <tr>
+                <th>Alignment Method</th>
+                <th>Win Rate Acc</th>
+                <th>Final Margin</th>
+                <th>Mean KL</th>
+                <th>Length Bias</th>
+                <th>GPU Mem %</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>SFT Baseline</td>
+                <td class="num-col">0.0%</td>
+                <td class="num-col">+0.000</td>
+                <td class="num-col">0.0000</td>
+                <td class="num-col">+0.00</td>
+                <td class="num-col">100%</td>
+              </tr>
+              <tr>
+                <td>DPO</td>
+                <td class="num-col">100.0%</td>
+                <td class="num-col">+0.227</td>
+                <td class="num-col">0.0008</td>
+                <td class="num-col">-0.25</td>
+                <td class="num-col">100%</td>
+              </tr>
+              <tr>
+                <td><b>SimPO (Target &gamma;=0.5)</b></td>
+                <td class="num-col"><b>100.0%</b></td>
+                <td class="num-col"><b>+2.416</b></td>
+                <td class="num-col"><b>0.0000</b></td>
+                <td class="num-col"><b>-0.22</b></td>
+                <td class="num-col"><b>50% (-50% Mem)</b></td>
+              </tr>
+              <tr>
+                <td>KTO (Unpaired Binary)</td>
+                <td class="num-col">100.0%</td>
+                <td class="num-col">+0.227</td>
+                <td class="num-col">0.0008</td>
+                <td class="num-col">-0.25</td>
+                <td class="num-col">100%</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="math-env thm">
+            <span class="env-head">Key Architectural Conclusions.</span>
+            <span class="env-body roman">
+              1. <b>Margin Enforcement</b>: SimPO establishes a wide +2.416 margin separation compared to DPO's +0.227, preventing borderline flip errors.<br/>
+              2. <b>Memory Halving</b>: SimPO completely eliminates reference model parameters &pi;_ref from GPU memory.<br/>
+              3. <b>Unpaired Flexibility</b>: KTO matches DPO accuracy while learning exclusively from binary feedback signals.
+            </span>
+          </div>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: XManager Experiment 295391345; Meng et al. (2024); Ethayarajh et al. (2024)</span>
+          <span>Page 7 of 7</span>
+        </div>
+      </div>
+      `
+    ];
+
+    const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
+    let currentIdx = 0;
+
+    function renderMonograph() {
+      document.getElementById('activePlateStage').innerHTML = PLATES[currentIdx];
+      document.getElementById('plateCounterLabel').textContent = `PLATE ${ROMAN[currentIdx]} OF VII`;
+
+      const gallery = document.getElementById('plateGalleryGrid');
+      gallery.innerHTML = PLATES.map((html, idx) => `
+        <div class="thumb-frame ${idx === currentIdx ? 'active' : ''}" onclick="selectPlate(${idx})">
+          ${html}
+        </div>
+      `).join('');
+    }
+
+    function stepPlate(delta) {
+      currentIdx = (currentIdx + delta + PLATES.length) % PLATES.length;
+      renderMonograph();
+    }
+
+    function selectPlate(idx) {
+      currentIdx = idx;
+      renderMonograph();
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const singleCardParam = params.get('card');
+    if (singleCardParam) {
+      const idx = Math.max(0, Math.min(PLATES.length - 1, parseInt(singleCardParam, 10) - 1));
+      document.body.style.padding = '0';
+      document.body.style.margin = '0';
+      document.body.style.width = '540px';
+      document.body.style.height = '720px';
+      document.body.style.overflow = 'hidden';
+      document.body.innerHTML = `<div style="width:540px;height:720px;">${PLATES[idx]}</div>`;
+    } else {
+      renderMonograph();
+    }
+  </script>
+</body>
+</html>
