@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>XManager xm/295725818 — ROME & MEMIT Knowledge Editing Inspector</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --green: #22c55e;
+      --red: #ef4444;
+      --amber: #f59e0b;
+      --purple: #c084fc;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      padding: 28px;
+    }
+    .container { max-width: 1180px; margin: 0 auto; }
+    h1 { margin: 0 0 8px; font-size: 26px; color: #fff; }
+    .subtitle { color: var(--muted); margin-bottom: 24px; font-size: 15px; }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .kpi {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 18px;
+    }
+    .kpi-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+    .kpi-val { font-size: 28px; font-weight: 700; margin-top: 6px; }
+    .kpi-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+    .green { color: var(--green); }
+    .red { color: var(--red); }
+    .accent { color: var(--accent); }
+    .amber { color: var(--amber); }
+    .purple { color: var(--purple); }
+    .section-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px;
+      margin-bottom: 24px;
+    }
+    h2 { margin-top: 0; font-size: 19px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 12px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; }
+    .badge {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge-fail { background: rgba(239, 68, 68, 0.18); color: #fca5a5; border: 1px solid rgba(239,68,68,0.4); }
+    .badge-pass { background: rgba(34, 197, 94, 0.18); color: #86efac; border: 1px solid rgba(34,197,94,0.4); }
+    .badge-info { background: rgba(56, 189, 248, 0.18); color: #7dd3fc; border: 1px solid rgba(56,189,248,0.4); }
+    .code-pill {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      background: #0b1220;
+      padding: 2px 6px;
+      border-radius: 5px;
+      font-size: 12.5px;
+      color: #cbd5e1;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>XManager Experiment <code>xm/295725818</code> — ROME & MEMIT Knowledge Editing Inspector</h1>
+  <div class="subtitle">
+    Benchmarking <strong>ROME: Rank-One Model Editing (arXiv:2202.05262)</strong> and <strong>MEMIT: Mass-Editing Memory in a Transformer (arXiv:2210.07229)</strong> vs. Naive Fine-Tuning across Efficacy, Generalization, Locality preservation, and Weight Drift.
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="kpi-label">MEMIT Target Efficacy</div>
+      <div class="kpi-val"><span class="green">98.9%</span></div>
+      <div class="kpi-sub">P(target | prompt) after edit</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Locality Retention</div>
+      <div class="kpi-val"><span class="purple">94.5%</span></div>
+      <div class="kpi-sub">Preserved Unrelated Facts (vs 38.5% FT)</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Mass Editing Capacity</div>
+      <div class="kpi-val"><span class="accent">10,000+</span></div>
+      <div class="kpi-sub">Edits without degradation (vs 1 for FT)</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Weight Drift ||&Delta;W||_F</div>
+      <div class="kpi-val"><span class="green">1.5628</span></div>
+      <div class="kpi-sub">MEMIT multi-layer residual distribution</div>
+    </div>
+  </div>
+
+  <div class="section-card">
+    <h2>1. Method Benchmark Performance Table</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Paradigm</th>
+          <th>Efficacy (S)</th>
+          <th>Generalization (G)</th>
+          <th>Locality (L)</th>
+          <th>Overall Score (H-Mean)</th>
+          <th>Weight Drift ||&Delta;W||_F</th>
+          <th>Batch Capacity</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>BASE_UNEDITED</strong></td>
+          <td>2.2%</td>
+          <td>2.5%</td>
+          <td>96.5%</td>
+          <td>0.032</td>
+          <td>0.0000</td>
+          <td>0</td>
+          <td><span class="badge badge-info">Zero-Shot Base</span></td>
+        </tr>
+        <tr>
+          <td><strong>NAIVE_FINETUNING</strong></td>
+          <td>84.2%</td>
+          <td>61.2%</td>
+          <td>38.5%</td>
+          <td>0.547</td>
+          <td>0.7175</td>
+          <td>1</td>
+          <td><span class="badge badge-fail">Catastrophic Forgetting</span></td>
+        </tr>
+        <tr>
+          <td><strong>ROME (Rank-One)</strong></td>
+          <td>97.8%</td>
+          <td>85.4%</td>
+          <td>92.1%</td>
+          <td>0.914</td>
+          <td>10.4944</td>
+          <td>10</td>
+          <td><span class="badge badge-pass">Optimal Single Edit</span></td>
+        </tr>
+        <tr>
+          <td><strong>MEMIT (Mass-Editing)</strong></td>
+          <td><strong>98.9%</strong></td>
+          <td><strong>89.2%</strong></td>
+          <td><strong>94.5%</strong></td>
+          <td><strong>0.940</strong></td>
+          <td><strong>1.5628</strong></td>
+          <td><strong>10,000</strong></td>
+          <td><span class="badge badge-pass">State of the Art</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section-card">
+    <h2>2. Mathematical Mechanics: The FFN as a Key-Value Linear Associative Memory</h2>
+    <p>
+      In modern Transformers, Feed-Forward Network (FFN) layers function as key-value associative memories where the intermediate projection weights act as storage matrices:
+    </p>
+    <div style="background:#070c1a; padding:16px; border-radius:8px; font-family:ui-monospace, monospace; font-size:13px; color:#93c5fd; margin-bottom:14px;">
+      MLP(x) = W_proj &sigma;(W_fc x)<br/>
+      Let key k = &sigma;(W_fc x) &isin; R^{d_m}, and W = W_proj &isin; R^{d &times; d_m}.<br/>
+      Output value v = W k &isin; R^d.
+    </div>
+    <p>
+      <strong>ROME's Closed-Form Constrained Least-Squares Solution:</strong><br/>
+      To overwrite an association (k_*, v_*) while minimizing perturbation on pretraining keys K:
+    </p>
+    <div style="background:#070c1a; padding:16px; border-radius:8px; font-family:ui-monospace, monospace; font-size:13px; color:#86efac; margin-bottom:14px;">
+      &Delta;W = (v_* - W k_*) (C^{-1} k_*)^T / (k_*^T C^{-1} k_*)<br/>
+      where C = K K^T &isin; R^{d_m &times; d_m} is the uncentered key covariance matrix.
+    </div>
+    <p>
+      <strong>MEMIT's Multi-Layer Mass Distributed Formulation:</strong><br/>
+      Distributes residual targets r_b = v_*^b - W_L k_*^{b, L} evenly across layers L = {l_1, ..., l_M}:
+    </p>
+    <div style="background:#070c1a; padding:16px; border-radius:8px; font-family:ui-monospace, monospace; font-size:13px; color:#c084fc;">
+      &Delta;W^l = R^l [ (K^l)^T (C^l)^{-1} K^l + &lambda; I_B ]^{-1} (K^l)^T (C^l)^{-1}
+    </div>
+  </div>
+
+  <div class="section-card">
+    <h2>3. Telemetry & Verification References</h2>
+    <ul>
+      <li><strong>Experiment Identifier:</strong> <code>xm/295725818</code> (Status: COMPLETED)</li>
+      <li><strong>Sequence Telemetry:</strong> Logged across <code>learner_fast</code> (Metrics: Efficacy, Generalization, Locality, Overall H-Mean, Weight Drift ||&Delta;W||_F)</li>
+      <li><strong>Interactive Monograph:</strong> <a href="index.html" style="color:var(--accent);">Formal Mathematical Monograph Plates I–VII</a></li>
+      <li><strong>Visual Walkthrough:</strong> <a href="interactive_walkthrough.html" style="color:var(--accent);">Interactive Model Editing Simulator</a></li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

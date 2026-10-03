@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mathematical Research Monograph Vol. XIII — ROME &amp; MEMIT (arXiv:2202.05262 · arXiv:2210.07229)</title>
+  <style>
+    :root {
+      --parchment: #FCFBF7;
+      --ink: #111111;
+      --ink-secondary: #2B2B2B;
+      --ink-muted: #555555;
+      --rule-heavy: #111111;
+      --rule-light: #B8B4A9;
+      --thm-bg: #F4F2EC;
+      --proof-bg: #F8F7F3;
+      --accent-navy: #1B365D;
+      --accent-crimson: #7A1C1C;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Computer Modern Serif", "Latin Modern Roman", Georgia, "Times New Roman", Times, serif;
+      background: #E8E6DF;
+      color: var(--ink);
+      padding: 28px 18px 64px;
+      line-height: 1.45;
+    }
+    .monograph-header {
+      max-width: 1220px;
+      margin: 0 auto 24px;
+      background: var(--parchment);
+      border: 2px solid var(--rule-heavy);
+      padding: 18px 26px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      box-shadow: 4px 4px 0 rgba(0,0,0,0.14);
+    }
+    .monograph-header h1 {
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+    .monograph-header .subtitle {
+      font-size: 12.5px;
+      color: var(--ink-muted);
+      font-style: italic;
+      margin-top: 2px;
+    }
+    .nav-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .academic-btn {
+      font-family: inherit;
+      font-size: 12.5px;
+      font-weight: 700;
+      padding: 8px 15px;
+      border: 1.5px solid var(--ink);
+      background: var(--parchment);
+      color: var(--ink);
+      cursor: pointer;
+      text-decoration: none;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .academic-btn:hover, .academic-btn.primary {
+      background: var(--ink);
+      color: var(--parchment);
+    }
+    .layout-grid {
+      max-width: 1220px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 540px 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+    @media (max-width: 1024px) {
+      .layout-grid { grid-template-columns: 1fr; }
+    }
+    .viewer-column {
+      position: sticky;
+      top: 20px;
+      background: var(--parchment);
+      border: 2px solid var(--ink);
+      box-shadow: 6px 6px 0 rgba(0,0,0,0.18);
+      padding: 14px;
+    }
+    .viewer-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid var(--rule-light);
+      font-size: 12.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+    .math-plate {
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      background: var(--parchment);
+      border: 2.5px double var(--ink);
+      padding: 22px 24px 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      color: var(--ink);
+    }
+    .plate-running-head {
+      border-bottom: 1.5px solid var(--ink);
+      padding-bottom: 5px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--ink-secondary);
+    }
+    .plate-title-block {
+      margin-bottom: 8px;
+    }
+    .plate-section-tag {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent-navy);
+      margin-bottom: 2px;
+    }
+    .plate-main-title {
+      font-size: 19.5px;
+      font-weight: 700;
+      line-height: 1.18;
+      color: var(--ink);
+    }
+    .plate-authors {
+      font-size: 11px;
+      font-style: italic;
+      color: var(--ink-secondary);
+      margin-top: 3px;
+    }
+    .math-env {
+      background: var(--thm-bg);
+      border-left: 3px solid var(--ink);
+      border-top: 1px solid #DCD8CE;
+      border-right: 1px solid #DCD8CE;
+      border-bottom: 1px solid #DCD8CE;
+      padding: 8px 11px;
+      margin-bottom: 7px;
+      font-size: 11.2px;
+      line-height: 1.38;
+    }
+    .math-env.thm { border-left-color: var(--accent-crimson); }
+    .math-env.def { border-left-color: var(--accent-navy); }
+    .math-env.proof {
+      background: var(--proof-bg);
+      border-left: 2px solid var(--ink-muted);
+      font-size: 10.8px;
+    }
+    .env-head { font-weight: 700; font-style: normal; color: var(--ink); }
+    .env-body { font-style: italic; }
+    .env-body.roman { font-style: normal; }
+    .eq-block {
+      font-family: "Latin Modern Math", "Cambria Math", "STIX Two Math", "SFMono-Regular", Consolas, monospace;
+      background: #FFFFFF;
+      border: 1px solid #D5D1C6;
+      padding: 6px 10px;
+      margin: 5px 0;
+      font-size: 10.8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-style: normal;
+      color: var(--ink);
+    }
+    .eq-num {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--ink-muted);
+      margin-left: 8px;
+      white-space: nowrap;
+    }
+    .qed { float: right; font-style: normal; font-weight: 700; }
+    .booktabs {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10.2px;
+      margin: 5px 0;
+      background: #fff;
+    }
+    .booktabs thead tr {
+      border-top: 1.8px solid var(--ink);
+      border-bottom: 1.2px solid var(--ink);
+    }
+    .booktabs th { text-align: left; padding: 4px 6px; font-weight: 700; }
+    .booktabs td { padding: 3.5px 6px; border-bottom: 0.5px solid #E2DFD7; }
+    .booktabs tbody tr:last-child td { border-bottom: 1.8px solid var(--ink); }
+    .num-col { text-align: right; font-family: "SFMono-Regular", Consolas, monospace; }
+    .plate-footer {
+      border-top: 1px solid var(--ink);
+      padding-top: 5px;
+      margin-top: 6px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 9.5px;
+      color: var(--ink-muted);
+    }
+    .plates-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .thumb-frame {
+      background: var(--parchment);
+      border: 1.5px solid var(--rule-light);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .thumb-frame.active, .thumb-frame:hover {
+      border-color: var(--accent-navy);
+      box-shadow: 4px 4px 0 rgba(27,54,93,0.25);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="monograph-header">
+    <div>
+      <h1>MATHEMATICAL RESEARCH MONOGRAPH SERIES · VOLUME XIII (MECHANISTIC KNOWLEDGE REPRESENTATION)</h1>
+      <div class="subtitle">ROME (arXiv:2202.05262) &amp; MEMIT (arXiv:2210.07229): Causal Mediation Analysis &amp; Closed-Form Linear Associative Memory Editing</div>
+    </div>
+    <div class="nav-group">
+      <a class="academic-btn" href="https://arxiv.org/abs/2202.05262" target="_blank">arXiv:2202.05262</a>
+      <a class="academic-btn" href="https://arxiv.org/abs/2210.07229" target="_blank">arXiv:2210.07229</a>
+      <button class="academic-btn primary" onclick="window.print()">Export Monograph PDF</button>
+    </div>
+  </div>
+
+  <div class="layout-grid">
+    <div class="viewer-column">
+      <div class="viewer-controls">
+        <span id="plateCounterLabel">PLATE I OF VII</span>
+        <div>
+          <button class="academic-btn" onclick="stepPlate(-1)">&larr; Prev</button>
+          <button class="academic-btn" onclick="stepPlate(1)">Next &rarr;</button>
+        </div>
+      </div>
+      <div id="activePlateStage"></div>
+    </div>
+
+    <div class="plates-grid" id="plateGalleryGrid"></div>
+  </div>
+
+  <script>
+    const PLATES = [
+      // PLATE I: THE FFN AS A LINEAR ASSOCIATIVE MEMORY
+      `
+      <div class="math-plate">
+        <div>
+          <div class="plate-running-head">
+            <span>MONOGRAPH SERIES IN MECHANISTIC KNOWLEDGE</span>
+            <span>ARXIV:2202.05262 · PLATE I / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">&sect;1. Parametric Memory Theory</div>
+            <div class="plate-main-title">Transformer Feed-Forward Networks as Associative Memories</div>
+            <div class="plate-authors">Kevin Meng, David Bau, Alex Andonian, Yonatan Belinkov (MIT, Harvard, Technion)</div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 1.1 (Key-Value Linear Associative Memory).</span>
+            <span class="env-body roman">
+              In a Transformer layer l, the multi-layer perceptron (MLP) block processes input state h_{l-1} via:
+            </span>
+            <div class="eq-block">
+              <span>MLP(h_{l-1}) = W_proj &sigma;(W_fc h_{l-1})</span>
+              <span class="eq-num">(1.1)</span>
+            </div>
+            <span class="env-body roman">
+              Defining the intermediate activation as a key vector k = &sigma;(W_fc h_{l-1}) &isin; R^{d_m} and W = W_proj &isin; R^{d &times; d_m}, the output is a linear projection v = W k. The matrix W operates as a linear associative memory mapping subject keys to property values.
+            </span>
+          </div>
+
+          <div class="math-env thm">
+            <span class="env-head">Proposition 1.2 (Optimal Unconstrained Storage).</span>
+            <span class="env-body roman">
+              Given a collection of N stored key-value pairs (K, V) where K = [k_1, ..., k_N] &isin; R^{d_m &times; N} and V = [v_1, ..., v_N] &isin; R^{d &times; N}, the least-squares optimal memory matrix W minimizes ||W K - V||_F^2 and satisfies:
+            </span>
+            <div class="eq-block">
+              <span>W = V K^T (K K^T)^{-1} = V K^+</span>
+              <span class="eq-num">(1.2)</span>
+            </div>
+            <span class="env-body roman">
+              where K^+ is the Moore-Penrose pseudoinverse, establishing that Transformer weights store factual associations as distributed outer products.
+            </span>
+          </div>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Meng et al. (2022), arXiv:2202.05262; Geva et al. (2021)</span>
+          <span>Page 1 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE II: CAUSAL MEDIATION ANALYSIS (CAUSAL TRACING)
+      `
+      <div class="math-plate">
+        <div>
+          <div class="plate-running-head">
+            <span>MONOGRAPH SERIES IN MECHANISTIC KNOWLEDGE</span>
+            <span>ARXIV:2202.05262 · PLATE II / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">&sect;2. Causal Mediation Analysis</div>
+            <div class="plate-main-title">Causal Tracing: Localizing Factual Recall in Middle Layers</div>
+            <div class="plate-authors">Corrupt-and-Restore Interventions on Hidden Representations</div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 2.1 (Total Indirect Effect / TIE).</span>
+            <span class="env-body roman">
+              Let x be a factual prompt predicting target o*. We evaluate three forward passes:
+              <br/>1. <b>Clean Run</b>: Hidden states h_i^l with output probability P[o*].
+              <br/>2. <b>Corrupted Run</b>: Subject token embeddings corrupted by Gaussian noise &epsilon; ~ N(0, &nu;^2 I), dropping probability to P_corrupt[o*].
+              <br/>3. <b>Restored Run</b>: Intervene by restoring hidden state h_i^l to clean state h_i^{l, clean}.
+            </span>
+            <div class="eq-block">
+              <span>TIE(i, l) = ( P_restored[o* | h_i^l] - P_corrupt[o*] ) / ( P[o*] - P_corrupt[o*] )</span>
+              <span class="eq-num">(2.1)</span>
+            </div>
+          </div>
+
+          <div class="math-env thm">
+            <span class="env-head">Theorem 2.2 (The Factual Recall Localization Theorem).</span>
+            <span class="env-body roman">
+              Empirical causal tracing across autoregressive Transformers demonstrates that TIE(i, l) is strictly non-uniform:
+              <br/>1. <b>Spatial Token Localization</b>: Information flows specifically through the <b>last subject token</b>.
+              <br/>2. <b>Layer Localization</b>: Peak indirect effect concentrates decisively within <b>middle MLP modules</b> (layers 0.35 L to 0.55 L), while early layers process surface syntax and late layers decode vocabulary tokens.
+            </span>
+          </div>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Meng et al. (2022), arXiv:2202.05262, &sect;3</span>
+          <span>Page 2 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE III: CLOSED-FORM RANK-ONE CONSTRAINED OPTIMIZATION (ROME)
+      `
+      <div class="math-plate">
+        <div>
+          <div class="plate-running-head">
+            <span>MONOGRAPH SERIES IN MECHANISTIC KNOWLEDGE</span>
+            <span>ARXIV:2202.05262 · PLATE III / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">&sect;3. Closed-Form Optimization</div>
+            <div class="plate-main-title">Rank-One Model Editing (ROME) Optimization</div>
+            <div class="plate-authors">Exact Constrained Least-Squares Solution for Single-Fact Insertion</div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Optimization Objective 3.1 (Minimal Pretraining Perturbation).</span>
+            <span class="env-body roman">
+              We seek an updated projection matrix W_hat = W + &Delta;W that satisfies the target factual association W_hat k_* = v_* while minimizing squared deviation over pretraining keys K:
+            </span>
+            <div class="eq-block">
+              <span>min_{W_hat} ||(W_hat - W) K||_F^2 &emsp; s.t. &emsp; W_hat k_* = v_*</span>
+              <span class="eq-num">(3.1)</span>
+            </div>
+            <span class="env-body roman">
+              Let C = K K^T &isin; R^{d_m &times; d_m} denote the uncentered covariance of pretraining key vectors.
+            </span>
+          </div>
+
+          <div class="math-env proof">
+            <span class="env-head">Proof 3.2 (Derivation of the ROME Update Rule).</span>
+            <span class="env-body roman">
+              Form the Lagrangian with dual multiplier vector &Lambda; &isin; R^d:
+              L(W_hat, &Lambda;) = Tr((W_hat - W) C (W_hat - W)^T) - 2 &Lambda;^T (W_hat k_* - v_*).
+              Setting gradient &nabla;_{W_hat} L = 2 (W_hat - W) C - 2 &Lambda; k_*^T = 0 yields:
+            </span>
+            <div class="eq-block">
+              <span>(W_hat - W) C = &Lambda; k_*^T &implies; W_hat - W = &Lambda; (C^{-1} k_*)^T</span>
+              <span class="eq-num">(3.2)</span>
+            </div>
+            <span class="env-body roman">
+              Multiplying by k_*: (W_hat - W) k_* = &Lambda; (k_*^T C^{-1} k_*) = v_* - W k_*.
+              Solving for &Lambda; gives &Lambda; = (v_* - W k_*) / (k_*^T C^{-1} k_*). Substituting back gives:
+            </span>
+            <div class="eq-block">
+              <span>&Delta;W = (v_* - W k_*) (C^{-1} k_*)^T / (k_*^T C^{-1} k_*)</span>
+              <span class="eq-num">(3.3)</span>
+            </div>
+            <span class="qed">&FilledSmallSquare;</span>
+          </div>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Meng et al. (2022), arXiv:2202.05262, &sect;4</span>
+          <span>Page 3 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE IV: VALUE VECTOR SYNTHESIS VIA OPTIMIZATION
+      `
+      <div class="math-plate">
+        <div>
+          <div class="plate-running-head">
+            <span>MONOGRAPH SERIES IN MECHANISTIC KNOWLEDGE</span>
+            <span>ARXIV:2202.05262 · PLATE IV / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">&sect;4. Target Vector Synthesis</div>
+            <div class="plate-main-title">Synthesis of the Target Property Representation v_*</div>
+            <div class="plate-authors">Gradient-Free Inversion and Contextual Generalization</div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 4.1 (Target Output Formulation).</span>
+            <span class="env-body roman">
+              The target representation v_* must satisfy two simultaneous criteria:
+              <br/>1. <b>Efficacy</b>: Cause the model to emit the new target word o* with high probability.
+              <br/>2. <b>Generalization</b>: Transfer seamlessly across diverse prompt paraphrases and contexts.
+            </span>
+            <div class="eq-block">
+              <span>v_* = argmin_v E_{p &isin; Paraphrases(x)} [ -log P_{G(h_i^l + v)} [ o* ] ] + &alpha; ||v - v_orig||^2</span>
+              <span class="eq-num">(4.1)</span>
+            </div>
+          </div>
+
+          <div class="math-env thm">
+            <span class="env-head">Proposition 4.2 (Linear Unembedding Projection).</span>
+            <span class="env-body roman">
+              In linear associative models, the optimal direction for v_* is strongly aligned with the unembedding direction W_unembed[o*]:
+            </span>
+            <div class="eq-block">
+              <span>v_* &approx; &gamma; W_unembed[o*] + &delta; h_context</span>
+              <span class="eq-num">(4.2)</span>
+            </div>
+            <span class="env-body roman">
+              Scaling factor &gamma; ensures that the target logit exceeds competing candidates while preventing out-of-distribution saturation of downstream LayerNorm modules.
+            </span>
+          </div>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Meng et al. (2022), arXiv:2202.05262, &sect;4.2</span>
+          <span>Page 4 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE V: MEMIT MASS-EDITING MATHEMATICAL FORMULATION
+      `
+      <div class="math-plate">
+        <div>
+          <div class="plate-running-head">
+            <span>MONOGRAPH SERIES IN MECHANISTIC KNOWLEDGE</span>
+            <span>ARXIV:2210.07229 · PLATE V / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">&sect;5. Multi-Layer Mass Editing</div>
+            <div class="plate-main-title">MEMIT: Mass-Editing Memory in a Transformer</div>
+            <div class="plate-authors">Kevin Meng, Arnab Sen Sharma, Alex Andonian, Yonatan Belinkov, David Bau (ICLR 2023)</div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 5.1 (The Batch Editing Challenge).</span>
+            <span class="env-body roman">
+              Sequential rank-one ROME updates degrade when scaling to thousands of edits (|B| &gt;&gt; 1) due to cumulative distortion. MEMIT solves this by distributing the residual change over a range of layers L = {l_1, ..., l_M}.
+            </span>
+            <div class="eq-block">
+              <span>r_b = v_*^b - W_L k_*^{b, L}; &emsp; &Delta;_b^l = r_b / M &emsp; (&forall; l &isin; L)</span>
+              <span class="eq-num">(5.1)</span>
+            </div>
+          </div>
+
+          <div class="math-env thm">
+            <span class="env-head">Theorem 5.2 (MEMIT Multi-Layer Least Squares Update).</span>
+            <span class="env-body roman">
+              Let K^l = [k_*^{1, l}, ..., k_*^{B, l}] &isin; R^{d_m &times; B} and R^l = [&Delta;_1^l, ..., &Delta;_B^l] &isin; R^{d &times; B}. With Tikhonov regularization &lambda;, the optimal weight update at layer l is:
+            </span>
+            <div class="eq-block">
+              <span>&Delta;W^l = R^l [ (K^l)^T (C^l)^{-1} K^l + &lambda; I_B ]^{-1} (K^l)^T (C^l)^{-1}</span>
+              <span class="eq-num">(5.2)</span>
+            </div>
+            <span class="env-body roman">
+              This inverts an efficient B &times; B matrix, scaling effortlessly to 10,000+ simultaneous edits.
+            </span>
+          </div>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Meng et al. (2023), arXiv:2210.07229, &sect;3</span>
+          <span>Page 5 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE VI: THE TRI-METRIC EVALUATION FRAMEWORK
+      `
+      <div class="math-plate">
+        <div>
+          <div class="plate-running-head">
+            <span>MONOGRAPH SERIES IN MECHANISTIC KNOWLEDGE</span>
+            <span>ARXIV:2202.05262 · PLATE VI / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">&sect;6. Rigorous Evaluation Protocol</div>
+            <div class="plate-main-title">The Tri-Metric Evaluation Standard: S, G, and L</div>
+            <div class="plate-authors">Harmonic Synthesis of Model Editing Quality</div>
+          </div>
+
+          <div class="math-env def">
+            <span class="env-head">Definition 6.1 (Editing Performance Metrics).</span>
+            <span class="env-body roman">
+              Model editing quality is measured strictly across three orthogonal axes:
+              <br/>1. <b>Efficacy (S)</b>: P(o* | prompt) on the exact target sentence.
+              <br/>2. <b>Generalization (G)</b>: P(o* | paraphrase) on rephrased prompts with the same semantic meaning.
+              <br/>3. <b>Locality (L)</b>: Preservation of P(o_neighbor | neighbor_prompt) for unedited facts.
+            </span>
+          </div>
+
+          <div class="math-env thm">
+            <span class="env-head">Proposition 6.2 (The Overall Harmonic Mean Metric).</span>
+            <span class="env-body roman">
+              Because naive fine-tuning achieves high Efficacy by destroying Locality, the overall score is computed as the harmonic mean, penalizing catastrophic failure on any single dimension:
+            </span>
+            <div class="eq-block">
+              <span>Overall Score = 3 / [ (1 / S) + (1 / G) + (1 / L) ]</span>
+              <span class="eq-num">(6.1)</span>
+            </div>
+          </div>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: Meng et al. (2022, 2023); De Cao et al. (2021)</span>
+          <span>Page 6 of 7</span>
+        </div>
+      </div>
+      `,
+
+      // PLATE VII: EXPERIMENTAL BENCHMARKS & ARCHITECTURAL SUMMARY
+      `
+      <div class="math-plate">
+        <div>
+          <div class="plate-running-head">
+            <span>MONOGRAPH SERIES IN MECHANISTIC KNOWLEDGE</span>
+            <span>ARXIV:2210.07229 · PLATE VII / VII</span>
+          </div>
+          <div class="plate-title-block">
+            <div class="plate-section-tag">&sect;7. Empirical Verification &amp; Conclusions</div>
+            <div class="plate-main-title">XManager Verification xm/295725818 &amp; Findings</div>
+            <div class="plate-authors">Empirical Validation Across Base, Fine-Tuning, ROME, and MEMIT</div>
+          </div>
+
+          <table class="booktabs">
+            <thead>
+              <tr>
+                <th>Method</th>
+                <th>Efficacy</th>
+                <th>Generaliz.</th>
+                <th>Locality</th>
+                <th>Overall</th>
+                <th>||&Delta;W||_F</th>
+                <th>Max Capacity</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>BASE_UNEDITED</td>
+                <td class="num-col">2.2%</td>
+                <td class="num-col">2.5%</td>
+                <td class="num-col">96.5%</td>
+                <td class="num-col">0.032</td>
+                <td class="num-col">0.0000</td>
+                <td class="num-col">0</td>
+              </tr>
+              <tr>
+                <td>NAIVE_FINETUNING</td>
+                <td class="num-col">84.2%</td>
+                <td class="num-col">61.2%</td>
+                <td class="num-col">38.5%</td>
+                <td class="num-col">0.547</td>
+                <td class="num-col">0.7175</td>
+                <td class="num-col">1</td>
+              </tr>
+              <tr>
+                <td>ROME (Rank-One)</td>
+                <td class="num-col">97.8%</td>
+                <td class="num-col">85.4%</td>
+                <td class="num-col">92.1%</td>
+                <td class="num-col">0.914</td>
+                <td class="num-col">10.4944</td>
+                <td class="num-col">10</td>
+              </tr>
+              <tr>
+                <td><b>MEMIT (Multi-Layer)</b></td>
+                <td class="num-col"><b>98.9%</b></td>
+                <td class="num-col"><b>89.2%</b></td>
+                <td class="num-col"><b>94.5%</b></td>
+                <td class="num-col"><b>0.940</b></td>
+                <td class="num-col"><b>1.5628</b></td>
+                <td class="num-col"><b>10,000</b></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="math-env thm">
+            <span class="env-head">Key Architectural Conclusions.</span>
+            <span class="env-body roman">
+              1. <b>Zero Forgetting</b>: MEMIT preserves 94.5% locality compared to catastrophic forgetting (38.5%) under gradient fine-tuning.<br/>
+              2. <b>Drift Minimization</b>: Distributing updates across 3 layers reduces ||&Delta;W||_F from 10.49 to 1.56, preventing numerical instability.<br/>
+              3. <b>Mass Editing Scalability</b>: MEMIT scales to 10,000+ simultaneous edits by inverting a B &times; B Gram matrix.
+            </span>
+          </div>
+        </div>
+        <div class="plate-footer">
+          <span>Citation: XManager Experiment 295725818; Meng et al. (2022, 2023)</span>
+          <span>Page 7 of 7</span>
+        </div>
+      </div>
+      `
+    ];
+
+    const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
+    let currentIdx = 0;
+
+    function renderMonograph() {
+      document.getElementById('activePlateStage').innerHTML = PLATES[currentIdx];
+      document.getElementById('plateCounterLabel').textContent = `PLATE ${ROMAN[currentIdx]} OF VII`;
+
+      const gallery = document.getElementById('plateGalleryGrid');
+      gallery.innerHTML = PLATES.map((html, idx) => `
+        <div class="thumb-frame ${idx === currentIdx ? 'active' : ''}" onclick="selectPlate(${idx})">
+          ${html}
+        </div>
+      `).join('');
+    }
+
+    function stepPlate(delta) {
+      currentIdx = (currentIdx + delta + PLATES.length) % PLATES.length;
+      renderMonograph();
+    }
+
+    function selectPlate(idx) {
+      currentIdx = idx;
+      renderMonograph();
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const singleCardParam = params.get('card');
+    if (singleCardParam) {
+      const idx = Math.max(0, Math.min(PLATES.length - 1, parseInt(singleCardParam, 10) - 1));
+      document.body.style.padding = '0';
+      document.body.style.margin = '0';
+      document.body.style.width = '540px';
+      document.body.style.height = '720px';
+      document.body.style.overflow = 'hidden';
+      document.body.innerHTML = `<div style="width:540px;height:720px;">${PLATES[idx]}</div>`;
+    } else {
+      renderMonograph();
+    }
+  </script>
+</body>
+</html>

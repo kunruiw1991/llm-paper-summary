@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROME & MEMIT: Closed-Form Rank-One & Multi-Layer Model Editing — Interactive Walkthrough</title>
+<style>
+  :root {
+    --bg: #0b1020;
+    --panel: #131b31;
+    --panel-alt: #192340;
+    --card: #1d294b;
+    --border: #2c3e6b;
+    --text: #e8eefc;
+    --muted: #9db0d8;
+    --accent: #38bdf8;
+    --accent-2: #818cf8;
+    --success: #34d399;
+    --warning: #fbbf24;
+    --danger: #f87171;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    line-height: 1.55;
+  }
+  header {
+    background: linear-gradient(135deg, #101935 0%, #1a264f 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 28px;
+  }
+  .badge-pill {
+    display: inline-block;
+    background: rgba(56, 189, 248, 0.16);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 999px;
+    letter-spacing: 0.4px;
+    margin-bottom: 8px;
+  }
+  h1 { margin: 0 0 6px 0; font-size: 24px; color: #fff; }
+  .subtitle { margin: 0; color: var(--muted); font-size: 14px; max-width: 960px; }
+  .main-layout {
+    max-width: 1240px;
+    margin: 24px auto;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 900px) { .main-layout { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  h2 { font-size: 18px; margin-top: 0; border-bottom: 1px solid var(--border); padding-bottom: 8px; color: #fff; }
+  .diagram-box {
+    background: #070c1a;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 14px;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    white-space: pre;
+    color: #93c5fd;
+    line-height: 1.45;
+  }
+  .interactive-box {
+    background: var(--panel-alt);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 14px;
+  }
+  button {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  button:hover { background: #1d4ed8; }
+  .state-display {
+    margin-top: 12px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: #34d399;
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="badge-pill">EPISODE 13: TRACK C (MECHANISTIC KNOWLEDGE REPRESENTATION)</div>
+  <h1>ROME & MEMIT: Closed-Form Model Editing in Transformer Associative Memories</h1>
+  <div class="subtitle">
+    Explore how Causal Tracing pinpoints factual recall to middle-layer FFNs, and how closed-form rank-one (ROME) and distributed multi-layer (MEMIT) updates overwrite target memories without catastrophic forgetting.
+  </div>
+</header>
+
+<div class="main-layout">
+  <div class="card">
+    <h2>1. Causal Tracing (Indirect Effect Heatmap)</h2>
+    <p>
+      In ROME, causal mediation analysis compares a clean run against a corrupted run (Gaussian noise added to subject embeddings) and measures the Total Indirect Effect (TIE) when restoring individual hidden states.
+    </p>
+    <div class="diagram-box">
+Token Pos \ Layer | L1    L2    L3    L4    L5    L6    L7
+----------------------------------------------------------
+"The"             | 0.02  0.03  0.04  0.03  0.02  0.01  0.01
+"Eiffel"          | 0.05  0.12  0.22  0.25  0.18  0.08  0.03
+"Tower" [LAST SUB]| 0.08  0.31  0.82  0.95  0.78  0.35  0.12  <-- PEAK TIE
+"is"              | 0.01  0.02  0.03  0.04  0.03  0.02  0.01
+"located"         | 0.01  0.01  0.02  0.03  0.02  0.01  0.01
+    </div>
+    <div class="interactive-box">
+      <strong>Intervention Target:</strong> Layer 4 MLP at the last subject token ("Tower"). Restoring this single coordinate restores 95% of output probability for "Paris"!
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>2. Closed-Form Rank-One Update (ROME) vs. MEMIT</h2>
+    <p>
+      Instead of noisy gradient descent, ROME solves a constrained least-squares objective directly:
+    </p>
+    <div class="diagram-box">
+&Delta;W = (v_* - W k_*) (C^{-1} k_*)^T / (k_*^T C^{-1} k_*)
+
+Key Properties:
+  - Exact recall: (W + &Delta;W) k_* = v_*
+  - Minimal distortion: preserves pretraining covariance C = E[k k^T]
+  - Locality: retention of unrelated facts remains >92%
+    </div>
+    <div class="interactive-box">
+      <button onclick="simulateEdit()">Simulate MEMIT Batch Edit (10,000 Facts)</button>
+      <div id="editResult" class="state-display">Click to execute MEMIT multi-layer residual distribution...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+function simulateEdit() {
+  document.getElementById('editResult').innerHTML = 
+    "<b>[MEMIT Execution]</b><br/>" +
+    "&bull; Target facts: 10,000 associations distributed across Layers 3, 4, 5<br/>" +
+    "&bull; Target Efficacy: 98.9% | Generalization: 89.2%<br/>" +
+    "&bull; Neighborhood Locality: 94.5% (Zero catastrophic forgetting)<br/>" +
+    "&bull; Frobenius Drift ||&Delta;W||_F: 1.5628 (5.7x smaller than iterative ROME!)";
+}
+</script>
+</body>
+</html>
